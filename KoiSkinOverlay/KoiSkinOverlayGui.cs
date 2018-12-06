@@ -234,6 +234,9 @@ namespace KoiSkinOverlayX
             yield return null;
 
             var ctrl = GetOverlayController();
+
+            KoiSkinOverlayMgr.LoadAllOverlayTextures(ctrl);
+
             foreach (var texType in new[] {TexType.BodyOver, TexType.BodyUnder, TexType.FaceOver, TexType.FaceUnder})
             {
                 var tex = ctrl.Overlays.FirstOrDefault(x => x.Key == texType).Value;
