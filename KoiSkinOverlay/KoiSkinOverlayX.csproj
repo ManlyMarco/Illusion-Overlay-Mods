@@ -82,7 +82,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="TexChangeEventArgs.cs" />
     <Compile Include="TexType.cs" />
     <Compile Include="Util.cs" />
   </ItemGroup>

@@ -1,9 +1,11 @@
 ﻿/*
     
+    Original KoiSkinOverlay by essu, the poem too
+
     Yea,
     though I walk through the valley of the shadow of death, I will fear no takedown
     for Thou art with me; Thy praise and Thy frogposting they comfort me.
-    
+  
 */
 
 using System.Collections.Generic;

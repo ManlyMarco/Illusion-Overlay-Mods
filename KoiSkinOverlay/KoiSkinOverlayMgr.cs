@@ -1,14 +1,4 @@
-﻿/*
-    
-    Original KoiSkinOverlay by essu, the poem too
-
-    Yea,
-    though I walk through the valley of the shadow of death, I will fear no takedown
-    for Thou art with me; Thy praise and Thy frogposting they comfort me.
-  
-*/
-
-using System;
+﻿using System;
 using System.IO;
 using BepInEx;
 using BepInEx.Logging;
@@ -28,21 +18,15 @@ namespace KoiSkinOverlayX
         public const string Version = "2.0";
 
         public static readonly string OverlayDirectory = Path.Combine(Paths.PluginPath, "KoiSkinOverlay");
-        internal static Material overlayMat;
+        internal static Material OverlayMat { get; private set; }
         private static RenderTexture rt_Face;
         private static RenderTexture rt_Body;
-
-        //private static readonly Dictionary<int, Texture2D> BlitTextures = new Dictionary<int, Texture2D>();
-
-        //internal static KoiSkinOverlayX Instance { get; private set; }
-
+        
         private void Awake()
         {
-            //Instance = this;
-
             var ab = AssetBundle.LoadFromMemory(Resources.composite);
-            overlayMat = new Material(ab.LoadAsset<Shader>("assets/composite.shader"));
-            DontDestroyOnLoad(overlayMat);
+            OverlayMat = new Material(ab.LoadAsset<Shader>("assets/composite.shader"));
+            DontDestroyOnLoad(OverlayMat);
             ab.Unload(false);
 
             rt_Face = new RenderTexture(512, 512, 8);
@@ -55,42 +39,19 @@ namespace KoiSkinOverlayX
         }
 
 
-
-
-
-        private void Update()
-        {/*
-            if (BlitTextures.Count > 0)
-            {
-                foreach (var blitTexture in BlitTextures)
-                    Destroy(blitTexture.Value);
-
-                BlitTextures.Clear();
-            }*/
-
 #if DEBUG
+        private void Update()
+        {
             if (Input.GetKeyDown(KeyCode.RightControl))
             {
                 foreach (var cc in FindObjectsOfType<KoiSkinOverlayController>())
                     cc.UpdateTexture(TexType.Unknown);
             }
-#endif
         }
+#endif
 
         private static Texture2D GetOverlayTex(ChaInfo cc, TexType texType)
         {
-            //var cacheId = Util.CombineHashCodes(cc.GetHashCode(), texType.GetHashCode());
-            //if (BlitTextures.TryGetValue(cacheId, out Texture2D t)) return t;
-
-            /*void CacheTex(Texture2D tex)
-            {
-                if (tex != null)
-                {
-                    DontDestroyOnLoad(tex);
-                    BlitTextures[cacheId] = tex;
-                }
-            }*/
-
             // Old loading logic, import if possible
             var charFullname = cc.fileParam?.fullname;
             if (!string.IsNullOrEmpty(charFullname))
@@ -107,11 +68,7 @@ namespace KoiSkinOverlayX
                         var overlayTex = Util.TextureFromBytes(fileTexBytes);
 
                         if (overlayTex != null)
-                        {
-                            //CacheTex(overlayTex);
-                            //SetTexExtData(chaFile, overlayTex, texType);
                             return overlayTex;
-                        }
                     }
                     catch (Exception ex)
                     {
@@ -126,7 +83,6 @@ namespace KoiSkinOverlayX
             if (embeddedTex != null)
             {
                 Logger.Log(LogLevel.Info, $"[OverlayX] Loading embedded overlay texture data {texType} from card: {cc.fileParam?.fullname ?? "?"}");
-                //CacheTex(embeddedTex);
                 return embeddedTex;
             }
 

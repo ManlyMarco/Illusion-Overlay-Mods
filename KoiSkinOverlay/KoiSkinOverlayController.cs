@@ -7,6 +7,18 @@ namespace KoiSkinOverlayX
     [RequireComponent(typeof(ChaControl))]
     public class KoiSkinOverlayController : MonoBehaviour
     {
+        private readonly Dictionary<TexType, Texture2D> _overlays = new Dictionary<TexType, Texture2D>();
+
+        public IEnumerable<KeyValuePair<TexType, Texture2D>> Overlays => _overlays.AsEnumerable();
+
+        internal ChaControl ChaControl { get; private set; }
+
+        public void ApplyOverlayToRT(RenderTexture bodyTexture, TexType overlayType)
+        {
+            if (_overlays.TryGetValue(overlayType, out var tex))
+                ApplyOverlay(bodyTexture, tex);
+        }
+
         public Texture ApplyOverlayToTex(Texture bodyTexture, TexType overlayType)
         {
             if (_overlays.TryGetValue(overlayType, out var tex))
@@ -15,45 +27,15 @@ namespace KoiSkinOverlayX
             return bodyTexture;
         }
 
-        public void ApplyOverlayToRT(RenderTexture bodyTexture, TexType overlayType)
-        {
-            if (_overlays.TryGetValue(overlayType, out var tex))
-                ApplyOverlay(bodyTexture, tex);
-        }
-
-        private readonly Dictionary<TexType, Texture2D> _overlays = new Dictionary<TexType, Texture2D>();
-
-        internal ChaControl ChaControl { get; private set; }
-
-        public IEnumerable<KeyValuePair<TexType, Texture2D>> Overlays => _overlays.AsEnumerable();
-
         public void SetOverlayTex(Texture2D overlayTex, TexType overlayType)
         {
             _overlays[overlayType] = overlayTex;
             UpdateTexture(overlayType);
         }
 
-        private static Texture ApplyOverlay(Texture mainTex, RenderTexture destTex, Texture2D blitTex)
+        public void UpdateTexture(TexType type)
         {
-            if (blitTex == null || destTex == null) return mainTex;
-
-            KoiSkinOverlayMgr.overlayMat.SetTexture("_Overlay", blitTex);
-            Graphics.Blit(mainTex, destTex, KoiSkinOverlayMgr.overlayMat);
-            return destTex;
-        }
-
-        private static void ApplyOverlay(RenderTexture mainTex, Texture2D blitTex)
-        {
-            if (blitTex == null) return;
-
-            KoiSkinOverlayMgr.overlayMat.SetTexture("_Overlay", blitTex);
-            Graphics.Blit(mainTex, mainTex, KoiSkinOverlayMgr.overlayMat);
-        }
-
-        private void Start()
-        {
-            ChaControl = gameObject.GetComponent<ChaControl>();
-            KoiSkinOverlayMgr.LoadAllOverlayTextures(this);
+            UpdateTexture(ChaControl, type);
         }
 
         private void OnDestroy()
@@ -63,9 +45,10 @@ namespace KoiSkinOverlayX
             _overlays.Clear();
         }
 
-        public void UpdateTexture(TexType type)
+        private void Start()
         {
-            UpdateTexture(ChaControl, type);
+            ChaControl = gameObject.GetComponent<ChaControl>();
+            KoiSkinOverlayMgr.LoadAllOverlayTextures(this);
         }
 
         public static void UpdateTexture(ChaControl cc, TexType type)
@@ -85,13 +68,29 @@ namespace KoiSkinOverlayX
                     cc.CreateFaceTexture();
                     break;
                 default:
-                    cc.AddUpdateCMFaceTexFlags(true, true, true, true, true, true, true);
-                    cc.CreateFaceTexture();
                     cc.AddUpdateCMBodyTexFlags(true, true, true, true, true);
                     cc.CreateBodyTexture();
+                    cc.AddUpdateCMFaceTexFlags(true, true, true, true, true, true, true);
+                    cc.CreateFaceTexture();
                     break;
             }
         }
 
+        private static Texture ApplyOverlay(Texture mainTex, RenderTexture destTex, Texture2D blitTex)
+        {
+            if (blitTex == null || destTex == null) return mainTex;
+
+            KoiSkinOverlayMgr.OverlayMat.SetTexture("_Overlay", blitTex);
+            Graphics.Blit(mainTex, destTex, KoiSkinOverlayMgr.OverlayMat);
+            return destTex;
+        }
+
+        private static void ApplyOverlay(RenderTexture mainTex, Texture2D blitTex)
+        {
+            if (blitTex == null) return;
+
+            KoiSkinOverlayMgr.OverlayMat.SetTexture("_Overlay", blitTex);
+            Graphics.Blit(mainTex, mainTex, KoiSkinOverlayMgr.OverlayMat);
+        }
     }
 }
