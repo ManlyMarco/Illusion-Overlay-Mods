@@ -42,6 +42,7 @@
     </Reference>
     <Reference Include="Assembly-CSharp-firstpass">
       <HintPath>..\lib\Assembly-CSharp-firstpass.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="BepInEx">
       <HintPath>..\lib\BepInEx.dll</HintPath>
@@ -58,7 +59,6 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
     <Reference Include="UnityEngine">
       <HintPath>..\lib\UnityEngine.dll</HintPath>
       <Private>False</Private>
@@ -72,8 +72,10 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="KoiSkinOverlayX.cs" />
-    <Compile Include="KoiSkinOverlayX_GUI.cs" />
+    <Compile Include="Hooks.cs" />
+    <Compile Include="KoiSkinOverlayController.cs" />
+    <Compile Include="KoiSkinOverlayGui.cs" />
+    <Compile Include="KoiSkinOverlayMgr.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
