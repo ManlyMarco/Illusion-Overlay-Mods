@@ -9,19 +9,19 @@ using Resources = KoiSkinOverlayX.Properties.Resources;
 
 namespace KoiSkinOverlayX
 {
-    [BepInPlugin(GUID, "KSOX", Version)]
+    [BepInPlugin(GUID, "KSOX (KoiSkinOverlay)", Version)]
     [BepInDependency("com.bepis.bepinex.extendedsave")]
     [BepInDependency(MakerAPI.MakerAPI.GUID)]
     public class KoiSkinOverlayMgr : BaseUnityPlugin
     {
-        public const string GUID = "KSOX";
+        public const string GUID = "KoiSkinOverlay";
         public const string Version = "2.0";
 
         public static readonly string OverlayDirectory = Path.Combine(Paths.PluginPath, "KoiSkinOverlay");
         internal static Material OverlayMat { get; private set; }
         private static RenderTexture rt_Face;
         private static RenderTexture rt_Body;
-        
+
         private void Awake()
         {
             var ab = AssetBundle.LoadFromMemory(Resources.composite);
@@ -37,8 +37,7 @@ namespace KoiSkinOverlayX
 
             Hooks.Init();
         }
-
-
+        
 #if DEBUG
         private void Update()
         {
@@ -60,7 +59,7 @@ namespace KoiSkinOverlayX
 
                 if (File.Exists(texFilename))
                 {
-                    Logger.Log(LogLevel.Info, $"[OverlayX] Importing texture data for {cc.fileParam.fullname} from file {texFilename}");
+                    Logger.Log(LogLevel.Info, $"[KSOX] Importing texture data for {cc.fileParam.fullname} from file {texFilename}");
 
                     try
                     {
@@ -72,7 +71,7 @@ namespace KoiSkinOverlayX
                     }
                     catch (Exception ex)
                     {
-                        Logger.Log(LogLevel.Error, "[OverlayX] Failed to load texture from file - " + ex.Message);
+                        Logger.Log(LogLevel.Error, "[KSOX] Failed to load texture from file - " + ex.Message);
                     }
                 }
             }
@@ -82,7 +81,7 @@ namespace KoiSkinOverlayX
             var embeddedTex = GetTexExtData(chaFile, texType);
             if (embeddedTex != null)
             {
-                Logger.Log(LogLevel.Info, $"[OverlayX] Loading embedded overlay texture data {texType} from card: {cc.fileParam?.fullname ?? "?"}");
+                Logger.Log(LogLevel.Info, $"[KSOX] Loading embedded overlay texture data {texType} from card: {cc.fileParam?.fullname ?? "?"}");
                 return embeddedTex;
             }
 
@@ -109,7 +108,8 @@ namespace KoiSkinOverlayX
             var texFilename = $"{charFolder}/{name}.png";
             return texFilename;
         }
-        public static void SetTexExtData(ChaFile chaFile, Texture2D tex, TexType texType)
+
+        private static void SetTexExtData(ChaFile chaFile, Texture2D tex, TexType texType)
         {
             var data = ExtendedSave.GetExtendedDataById(chaFile, GUID);
             if (data == null)
@@ -125,7 +125,7 @@ namespace KoiSkinOverlayX
                 data.data.Remove(texType.ToString());
         }
 
-        public static Texture2D GetTexExtData(ChaFile chaFile, TexType texType)
+        private static Texture2D GetTexExtData(ChaFile chaFile, TexType texType)
         {
             var data = ExtendedSave.GetExtendedDataById(chaFile, GUID);
             if (data != null && data.data.TryGetValue(texType.ToString(), out var texData))
@@ -137,7 +137,7 @@ namespace KoiSkinOverlayX
                     if (loadedTex != null) return loadedTex;
                 }
 
-                Logger.Log(LogLevel.Debug, $"[OverlayX] Embedded overlay texture data {texType.ToString()} is empty or invalid in card {chaFile.charaFileName}");
+                Logger.Log(LogLevel.Debug, $"[KSOX] Embedded overlay texture data {texType.ToString()} is empty or invalid in card {chaFile.charaFileName}");
             }
             return null;
         }
@@ -157,10 +157,10 @@ namespace KoiSkinOverlayX
             {
                 case TexType.BodyOver:
                 case TexType.BodyUnder:
-                    return KoiSkinOverlayMgr.rt_Body;
+                    return rt_Body;
                 case TexType.FaceUnder:
                 case TexType.FaceOver:
-                    return KoiSkinOverlayMgr.rt_Face;
+                    return rt_Face;
                 default:
                     return null;
             }
@@ -171,8 +171,7 @@ namespace KoiSkinOverlayX
             foreach (var texType in new[] { TexType.BodyOver, TexType.BodyUnder, TexType.FaceOver, TexType.FaceUnder })
             {
                 var tex = GetOverlayTex(controller.ChaControl, texType);
-                if (tex != null)
-                    controller.SetOverlayTex(tex, texType);
+                controller.SetOverlayTex(tex, texType);
             }
         }
 

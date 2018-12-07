@@ -37,6 +37,8 @@ namespace KoiSkinOverlayX
 
         [Browsable(false)]
         private ConfigWrapper<bool> _removeOldFiles;
+        [Browsable(false)]
+        private ConfigWrapper<bool> _loadFromLoadedCards;
 
         private Subject<KeyValuePair<TexType, Texture2D>> _textureChanged;
         private TexType _typeToLoad;
@@ -104,22 +106,42 @@ namespace KoiSkinOverlayX
             var makerCategory = new MakerCategory("01_BodyTop", "tglOverlayKSOX",
                 MakerConstants.GetBuiltInCategory("01_BodyTop", "tglPaint").Position + 5, "Overlays");
             e.AddSubCategory(makerCategory);
+            
+            e.AddControl(new MakerButton("Get face overlay template", makerCategory, owner))
+                .OnClick.AddListener(() => WriteAndOpenPng(Resources.face));
+            e.AddControl(new MakerButton("Get body overlay template", makerCategory, owner))
+                .OnClick.AddListener(() => WriteAndOpenPng(Resources.body));
 
-            SetupTexControls(e, makerCategory, owner, TexType.FaceOver, "Face overlay texture (on top of everything, true color)");
+            var tLoad = e.AddControl(new MakerToggle(makerCategory, "Load overlays when loading cards", owner));
+            tLoad.Value = _loadFromLoadedCards.Value;
+            tLoad.ValueChanged.Subscribe(b => _loadFromLoadedCards.Value = b);
+            var tRemove = e.AddControl(new MakerToggle(makerCategory, "Remove overlays imported from BepInEx\\KoiSkinOverlay when saving cards (they are saved inside the card now and no longer necessary)", owner));
+            tRemove.Value = _removeOldFiles.Value;
+            tRemove.ValueChanged.Subscribe(b => _removeOldFiles.Value = b);
+            
             e.AddControl(new MakerSeparator(makerCategory, owner));
 
-            SetupTexControls(e, makerCategory, owner, TexType.BodyOver, "Body overlay texture (on top of everything, true color)");
+            SetupTexControls(e, makerCategory, owner, TexType.FaceOver, "Face overlay texture (On top of almost everything)");
+
             e.AddControl(new MakerSeparator(makerCategory, owner));
 
-            SetupTexControls(e, makerCategory, owner, TexType.FaceUnder, "Face underlay texture (under tattoos and other overlays)");
+            SetupTexControls(e, makerCategory, owner, TexType.BodyOver, "Body overlay texture (On top of almost everything)");
+
             e.AddControl(new MakerSeparator(makerCategory, owner));
 
-            SetupTexControls(e, makerCategory, owner, TexType.BodyUnder, "Body underlay texture (under tattoos and other overlays)");
+            SetupTexControls(e, makerCategory, owner, TexType.FaceUnder, "Face underlay texture (Under tattoos, blushes, etc.)");
+
             e.AddControl(new MakerSeparator(makerCategory, owner));
 
-            var t = e.AddControl(new MakerToggle(makerCategory, "Remove overlays imported from BepInEx\\KoiSkinOverlay when saving cards (they are saved inside the card now and no longer necessary)", owner));
-            t.Value = _removeOldFiles.Value;
-            t.ValueChanged.Subscribe(b => t.Value = b);
+            SetupTexControls(e, makerCategory, owner, TexType.BodyUnder, "Body underlay texture (Under tattoos, blushes, etc.)");
+        }
+
+        private static void WriteAndOpenPng(byte[] pngData)
+        {
+            if (pngData == null) throw new ArgumentNullException(nameof(pngData));
+            var filename = GetUniqueTexDumpFilename();
+            File.WriteAllBytes(filename, pngData);
+            Util.OpenFileInExplorer(filename);
         }
 
         private void SetTexAndUpdate(Texture2D tex, TexType texType)
@@ -135,7 +157,7 @@ namespace KoiSkinOverlayX
         {
             e.AddControl(new MakerText(title, makerCategory, owner));
 
-            var bi = e.AddControl(new MakerImage(null, makerCategory, owner) {Height = 150, Width = 150});
+            var bi = e.AddControl(new MakerImage(null, makerCategory, owner) { Height = 150, Width = 150 });
             _textureChanged.Subscribe(
                 d =>
                 {
@@ -159,50 +181,30 @@ namespace KoiSkinOverlayX
                             var ctrl = GetOverlayController();
                             var tex = ctrl.Overlays.FirstOrDefault(x => x.Key == texType).Value;
                             if (tex == null) return;
-                            var filename = GetUniqueTexDumpFilename();
-                            File.WriteAllBytes(filename, tex.EncodeToPNG());
-                            Util.OpenFileInExplorer(filename);
+                            WriteAndOpenPng(tex.EncodeToPNG());
                         }
                         catch (Exception ex)
                         {
-                            Logger.Log(LogLevel.Error | LogLevel.Message, "[OverlayX] Failed to export texture - " + ex.Message);
+                            Logger.Log(LogLevel.Error | LogLevel.Message, "[KSOX] Failed to export texture - " + ex.Message);
                         }
-                    });
-
-            e.AddControl(new MakerButton("Export template texture", makerCategory, owner))
-                .OnClick.AddListener(
-                    () =>
-                    {
-                        var filename = GetUniqueTexDumpFilename();
-                        switch (texType)
-                        {
-                            case TexType.BodyOver:
-                            case TexType.BodyUnder:
-                                File.WriteAllBytes(filename, Resources.body);
-                                break;
-                            case TexType.FaceOver:
-                            case TexType.FaceUnder:
-                                File.WriteAllBytes(filename, Resources.face);
-                                break;
-                            default:
-                                throw new ArgumentOutOfRangeException(nameof(texType), texType, null);
-                        }
-                        Util.OpenFileInExplorer(filename);
                     });
         }
 
         private void Start()
         {
             _api = MakerAPI.MakerAPI.Instance;
-            _removeOldFiles = new ConfigWrapper<bool>("removeOldFiles", GetComponent<KoiSkinOverlayMgr>(), true);
+
+            var owner = GetComponent<KoiSkinOverlayMgr>();
+            _removeOldFiles = new ConfigWrapper<bool>("removeOldFiles", owner, true);
+            _loadFromLoadedCards = new ConfigWrapper<bool>("loadFromLoadedCards", owner, true);
 
             _api.RegisterCustomSubCategories += RegisterCustomSubCategories;
             _api.MakerExiting += MakerExiting;
-            _api.ChaFileLoaded += (sender, args) => StartCoroutine(UpdateImages());
+            _api.ChaFileLoaded += OnChaFileLoaded;
 
             ExtendedSave.CardBeingSaved += ExtendedSaveOnCardBeingSaved;
         }
-
+        
         private void Update()
         {
             if (_bytesToLoad != null)
@@ -212,7 +214,7 @@ namespace KoiSkinOverlayX
                     var tex = Util.TextureFromBytes(_bytesToLoad);
                     SetTexAndUpdate(tex, _typeToLoad);
 
-                    Logger.Log(LogLevel.Message, "[OverlayX] Texture imported successfully");
+                    Logger.Log(LogLevel.Message, "[KSOX] Texture imported successfully");
                 }
                 catch (Exception ex)
                 {
@@ -223,21 +225,20 @@ namespace KoiSkinOverlayX
 
             if (_lastError != null)
             {
-                Logger.Log(LogLevel.Error | LogLevel.Message, "[OverlayX] Failed to load texture from file - " + _lastError.Message);
+                Logger.Log(LogLevel.Error | LogLevel.Message, "[KSOX] Failed to load texture from file - " + _lastError.Message);
                 Logger.Log(LogLevel.Debug, _lastError);
                 _lastError = null;
             }
         }
 
-        private IEnumerator UpdateImages()
+        private void OnChaFileLoaded(object sender, ChaFileLoadedEventArgs e)
         {
-            yield return null;
-
             var ctrl = GetOverlayController();
 
-            KoiSkinOverlayMgr.LoadAllOverlayTextures(ctrl);
+            if (_loadFromLoadedCards.Value)
+                KoiSkinOverlayMgr.LoadAllOverlayTextures(ctrl);
 
-            foreach (var texType in new[] {TexType.BodyOver, TexType.BodyUnder, TexType.FaceOver, TexType.FaceUnder})
+            foreach (var texType in new[] { TexType.BodyOver, TexType.BodyUnder, TexType.FaceOver, TexType.FaceUnder })
             {
                 var tex = ctrl.Overlays.FirstOrDefault(x => x.Key == texType).Value;
                 _textureChanged.OnNext(new KeyValuePair<TexType, Texture2D>(texType, tex));

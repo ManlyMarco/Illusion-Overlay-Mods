@@ -8,9 +8,11 @@
   
 */
 
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection.Emit;
 using Harmony;
+using Studio;
 using UnityEngine;
 
 namespace KoiSkinOverlayX
@@ -132,5 +134,23 @@ namespace KoiSkinOverlayX
         }
 
         #endregion
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(OCIChar), "ChangeChara", new[]
+        {
+            typeof(string)
+        })]
+        public static void OCIChar_ChangeCharaPostHook(string _path, OCIChar __instance)
+        {
+            var component = __instance.charInfo.gameObject.GetComponent<KoiSkinOverlayController>();
+            if (component != null)
+                component.StartCoroutine(DelayedLoad(component));
+        }
+
+        private static IEnumerator DelayedLoad(KoiSkinOverlayController controller)
+        {
+            yield return null;
+            KoiSkinOverlayMgr.LoadAllOverlayTextures(controller);
+        }
     }
 }
