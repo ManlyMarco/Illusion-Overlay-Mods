@@ -34,10 +34,10 @@ namespace KoiSkinOverlayX
         private byte[] _bytesToLoad;
         private Exception _lastError;
 
+        private bool _loadFromLoadedCards;
+
         [Browsable(false)]
         private ConfigWrapper<bool> _removeOldFiles;
-        [Browsable(false)]
-        private ConfigWrapper<bool> _loadFromLoadedCards;
 
         private Subject<KeyValuePair<TexType, Texture2D>> _textureChanged;
         private TexType _typeToLoad;
@@ -102,6 +102,9 @@ namespace KoiSkinOverlayX
             var owner = GetComponent<KoiSkinOverlayMgr>();
             _textureChanged = new Subject<KeyValuePair<TexType, Texture2D>>();
 
+            _loadFromLoadedCards = true;
+            e.AddLoadToggle(new MakerLoadToggle("Overlays")).ValueChanged.Subscribe(b => _loadFromLoadedCards = b);
+
             var makerCategory = new MakerCategory("01_BodyTop", "tglOverlayKSOX",
                 MakerConstants.GetBuiltInCategory("01_BodyTop", "tglPaint").Position + 5, "Overlays");
             e.AddSubCategory(makerCategory);
@@ -110,10 +113,7 @@ namespace KoiSkinOverlayX
                 .OnClick.AddListener(() => WriteAndOpenPng(Resources.face));
             e.AddControl(new MakerButton("Get body overlay template", makerCategory, owner))
                 .OnClick.AddListener(() => WriteAndOpenPng(Resources.body));
-
-            var tLoad = e.AddControl(new MakerToggle(makerCategory, "Load overlays when loading cards", owner));
-            tLoad.Value = _loadFromLoadedCards.Value;
-            tLoad.ValueChanged.Subscribe(b => _loadFromLoadedCards.Value = b);
+            
             var tRemove = e.AddControl(new MakerToggle(makerCategory, "Remove overlays imported from BepInEx\\KoiSkinOverlay when saving cards (they are saved inside the card now and no longer necessary)", owner));
             tRemove.Value = _removeOldFiles.Value;
             tRemove.ValueChanged.Subscribe(b => _removeOldFiles.Value = b);
@@ -195,7 +195,6 @@ namespace KoiSkinOverlayX
 
             var owner = GetComponent<KoiSkinOverlayMgr>();
             _removeOldFiles = new ConfigWrapper<bool>("removeOldFiles", owner, true);
-            _loadFromLoadedCards = new ConfigWrapper<bool>("loadFromLoadedCards", owner, true);
 
             _api.RegisterCustomSubCategories += RegisterCustomSubCategories;
             _api.MakerExiting += MakerExiting;
@@ -234,7 +233,7 @@ namespace KoiSkinOverlayX
         {
             var ctrl = GetOverlayController();
 
-            if (_loadFromLoadedCards.Value)
+            if (_loadFromLoadedCards)
                 KoiSkinOverlayMgr.LoadAllOverlayTextures(ctrl);
 
             foreach (var texType in new[] { TexType.BodyOver, TexType.BodyUnder, TexType.FaceOver, TexType.FaceUnder })
