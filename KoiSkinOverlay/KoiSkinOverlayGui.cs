@@ -7,7 +7,6 @@
  */
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -106,7 +105,7 @@ namespace KoiSkinOverlayX
             var makerCategory = new MakerCategory("01_BodyTop", "tglOverlayKSOX",
                 MakerConstants.GetBuiltInCategory("01_BodyTop", "tglPaint").Position + 5, "Overlays");
             e.AddSubCategory(makerCategory);
-            
+
             e.AddControl(new MakerButton("Get face overlay template", makerCategory, owner))
                 .OnClick.AddListener(() => WriteAndOpenPng(Resources.face));
             e.AddControl(new MakerButton("Get body overlay template", makerCategory, owner))
@@ -118,7 +117,7 @@ namespace KoiSkinOverlayX
             var tRemove = e.AddControl(new MakerToggle(makerCategory, "Remove overlays imported from BepInEx\\KoiSkinOverlay when saving cards (they are saved inside the card now and no longer necessary)", owner));
             tRemove.Value = _removeOldFiles.Value;
             tRemove.ValueChanged.Subscribe(b => _removeOldFiles.Value = b);
-            
+
             e.AddControl(new MakerSeparator(makerCategory, owner));
 
             SetupTexControls(e, makerCategory, owner, TexType.FaceOver, "Face overlay texture (On top of almost everything)");
@@ -204,7 +203,7 @@ namespace KoiSkinOverlayX
 
             ExtendedSave.CardBeingSaved += ExtendedSaveOnCardBeingSaved;
         }
-        
+
         private void Update()
         {
             if (_bytesToLoad != null)
