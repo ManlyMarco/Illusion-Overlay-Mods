@@ -15,7 +15,7 @@ namespace KoiSkinOverlayX
     public class KoiSkinOverlayMgr : BaseUnityPlugin
     {
         public const string GUID = "KSOX";
-        public const string Version = "2.0";
+        public const string Version = "2.1";
 
         public static readonly string OverlayDirectory = Path.Combine(Paths.PluginPath, "KoiSkinOverlay");
         internal static Material OverlayMat { get; private set; }
