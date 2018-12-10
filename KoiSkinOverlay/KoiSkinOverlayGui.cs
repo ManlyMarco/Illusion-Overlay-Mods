@@ -30,20 +30,26 @@ namespace KoiSkinOverlayX
     {
         private const string FileExt = ".png";
         private const string FileFilter = "Overlay images (*.png)|*.png|All files|*.*";
-        private MakerAPI.MakerAPI _api;
+        private static MakerAPI.MakerAPI _api;
         private byte[] _bytesToLoad;
         private Exception _lastError;
 
         private bool _loadFromLoadedCards;
 
         [Browsable(false)]
-        private ConfigWrapper<bool> _removeOldFiles;
+        private static ConfigWrapper<bool> _removeOldFiles;
+        [Browsable(false)]
+        private static ConfigWrapper<bool> _watchLoadedTexForChanges;
 
         private Subject<KeyValuePair<TexType, Texture2D>> _textureChanged;
         private TexType _typeToLoad;
 
-        private void ExtendedSaveOnCardBeingSaved(ChaFile chaFile)
+        private FileSystemWatcher _texChangeWatcher;
+
+        internal static void ExtendedSaveOnCardBeingSaved(ChaFile chaFile)
         {
+            if (!_api.InsideMaker) return;
+
             var ctrl = GetOverlayController();
 
             KoiSkinOverlayMgr.SaveAllOverlayTextures(ctrl, chaFile);
@@ -61,7 +67,7 @@ namespace KoiSkinOverlayX
 
         private static KoiSkinOverlayController GetOverlayController()
         {
-            return MakerAPI.MakerAPI.Instance.GetCharacterControl().gameObject.GetComponent<KoiSkinOverlayController>();
+            return _api.GetCharacterControl().gameObject.GetComponent<KoiSkinOverlayController>();
         }
 
         private static string GetUniqueTexDumpFilename()
@@ -75,6 +81,9 @@ namespace KoiSkinOverlayX
         private void MakerExiting(object sender, EventArgs e)
         {
             _textureChanged?.Dispose();
+            _texChangeWatcher?.Dispose();
+            _bytesToLoad = null;
+            _lastError = null;
         }
 
         private void OnFileAccept(string[] strings, TexType type)
@@ -86,14 +95,37 @@ namespace KoiSkinOverlayX
 
             _typeToLoad = type;
 
-            try
+            void ReadTex(string texturePath)
             {
-                _bytesToLoad = File.ReadAllBytes(texPath);
+                try
+                {
+                    _bytesToLoad = File.ReadAllBytes(texturePath);
+                }
+                catch (Exception ex)
+                {
+                    _bytesToLoad = null;
+                    _lastError = ex;
+                }
             }
-            catch (Exception ex)
+
+            ReadTex(texPath);
+
+            _texChangeWatcher?.Dispose();
+            if (_watchLoadedTexForChanges.Value)
             {
-                _bytesToLoad = null;
-                _lastError = ex;
+                var directory = Path.GetDirectoryName(texPath);
+                if (directory != null)
+                {
+                    _texChangeWatcher = new FileSystemWatcher(directory, Path.GetFileName(texPath));
+                    _texChangeWatcher.Changed += (sender, args) =>
+                    {
+                        if (File.Exists(texPath))
+                            ReadTex(texPath);
+                    };
+                    _texChangeWatcher.Deleted += (sender, args) => _texChangeWatcher?.Dispose();
+                    _texChangeWatcher.Error += (sender, args) => _texChangeWatcher?.Dispose();
+                    _texChangeWatcher.EnableRaisingEvents = true;
+                }
             }
         }
 
@@ -113,10 +145,13 @@ namespace KoiSkinOverlayX
                 .OnClick.AddListener(() => WriteAndOpenPng(Resources.face));
             e.AddControl(new MakerButton("Get body overlay template", makerCategory, owner))
                 .OnClick.AddListener(() => WriteAndOpenPng(Resources.body));
-            
+
             var tRemove = e.AddControl(new MakerToggle(makerCategory, "Remove overlays imported from BepInEx\\KoiSkinOverlay when saving cards (they are saved inside the card now and no longer necessary)", owner));
             tRemove.Value = _removeOldFiles.Value;
             tRemove.ValueChanged.Subscribe(b => _removeOldFiles.Value = b);
+            var tWatch = e.AddControl(new MakerToggle(makerCategory, "Watch last loaded texture file for changes", owner));
+            tWatch.Value = _watchLoadedTexForChanges.Value;
+            tWatch.ValueChanged.Subscribe(b => _watchLoadedTexForChanges.Value = b);
 
             e.AddControl(new MakerSeparator(makerCategory, owner));
 
@@ -195,10 +230,18 @@ namespace KoiSkinOverlayX
 
             var owner = GetComponent<KoiSkinOverlayMgr>();
             _removeOldFiles = new ConfigWrapper<bool>("removeOldFiles", owner, true);
+            _watchLoadedTexForChanges = new ConfigWrapper<bool>("watchLoadedTexForChanges", owner, true);
+            _watchLoadedTexForChanges.SettingChanged += (sender, args) =>
+            {
+                if (!_watchLoadedTexForChanges.Value)
+                    _texChangeWatcher?.Dispose();
+            };
 
             _api.RegisterCustomSubCategories += RegisterCustomSubCategories;
             _api.MakerExiting += MakerExiting;
             _api.ChaFileLoaded += OnChaFileLoaded;
+            // Needed for starting maker in class roster. There is no ChaFileLoaded event fired
+            _api.MakerFinishedLoading += (sender, args) => UpdateInterface(GetOverlayController());
 
             ExtendedSave.CardBeingSaved += ExtendedSaveOnCardBeingSaved;
         }
@@ -231,11 +274,18 @@ namespace KoiSkinOverlayX
 
         private void OnChaFileLoaded(object sender, ChaFileLoadedEventArgs e)
         {
+            _texChangeWatcher?.Dispose();
+
             var ctrl = GetOverlayController();
 
             if (_loadFromLoadedCards)
                 KoiSkinOverlayMgr.LoadAllOverlayTextures(ctrl);
 
+            UpdateInterface(ctrl);
+        }
+
+        private void UpdateInterface(KoiSkinOverlayController ctrl)
+        {
             foreach (var texType in new[] { TexType.BodyOver, TexType.BodyUnder, TexType.FaceOver, TexType.FaceUnder })
             {
                 var tex = ctrl.Overlays.FirstOrDefault(x => x.Key == texType).Value;

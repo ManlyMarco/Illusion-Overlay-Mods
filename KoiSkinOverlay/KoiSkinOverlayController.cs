@@ -54,6 +54,7 @@ namespace KoiSkinOverlayX
         public static void UpdateTexture(ChaControl cc, TexType type)
         {
             if (cc == null) return;
+            if(cc.customTexCtrlBody == null || cc.customTexCtrlFace == null) return;
 
             switch (type)
             {
