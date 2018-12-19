@@ -20,19 +20,15 @@ do).
 - [Part 3](#p3) will discuss how to paint an overlay from scratch in 3D Coat.
 
 ### Necessary Plugins
-
 - BepInex (most recent version)
-
 - KoiSkinOverlayX (KSOX v2.1)
 
 ### Necessary software
-
 - 3D Coat
-
 - Photoshop, or any similar 2D editor (Gimp, Paint.net, etc)
 
-### Resources and templates used in this guide
-Files used in this guide: Body UV.png, Face UV.png, Tat1.png, Template.3b.
+### Resources and templates
+Files used in this guide (Body UV.png, Face UV.png, Tat1.png and Template.3b) are available in the [Resources](Resources) folder.
 
 Here are a few 3D Coat brush alpha packs to get you started. You can find more
 online. Just drag and drop the .3dcpack files on 3D Coat to load them in, then
