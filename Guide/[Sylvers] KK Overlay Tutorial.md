@@ -1,20 +1,7 @@
-*Necessary Plugins:*
-
--   *BepInex (most recent version)*
-
--   *KoiSkinOverlayX (KSOX v2.1)*
-
-*Necessary software:*
-
--   *3D Coat*
-
--   *Photoshop, or any similar 2D editor (Gimp, Paint.net, etc)*
-
-**Foreword:**
-
-*This is tutorial for creating overlays for the KoiSkinOverlayX plugin. It is
+# Introduction
+This is tutorial for creating overlays for the KoiSkinOverlayX plugin. It is
 meant as a very basic beginner guide in creating Overlays by using either 3D
-Coat and/or a 2D image editor.*
+Coat and/or a 2D image editor.
 
 Disclaimer: *I am not highly proficient in using 3D Coat (I only recently
 started to use it), and there are other 3D editors that allow 3D painting,
@@ -24,16 +11,28 @@ dedicated tools for painting that made life easier. If you think I am doing
 something wrong, or know a better way to do anything in this guide, feel free to
 contact me, and I’ll update the guide.*
 
-*This tutorial is split into 3 Parts. (You will always want to read Part 1, but
+This tutorial is split into 3 Parts. (You will always want to read Part 1, but
 feel free to only read Part 2 or Part 3, depending on what you’re trying to
-do).*  
-*Part 1 will discuss all the basic functionalities of the plugin.*  
-*Part 2 will discuss the use of a 2D editor to place pre-made illustrations
-(tattoos, textures, etc).*  
-*Part 3 will discuss how to paint an overlay from scratch in 3D Coat.*  
+do).
+- [Part 1](#p1) will discuss all the basic functionalities of the plugin.
+- [Part 2](#p2) will discuss the use of a 2D editor to place pre-made illustrations
+(tattoos, textures, etc).
+- [Part 3](#p3) will discuss how to paint an overlay from scratch in 3D Coat.
 
+### Necessary Plugins
 
-**Included Files**: Body UV.png, Face UV.png, Tat1.png, Template.3b.
+- BepInex (most recent version)
+
+- KoiSkinOverlayX (KSOX v2.1)
+
+### Necessary software
+
+- 3D Coat
+
+- Photoshop, or any similar 2D editor (Gimp, Paint.net, etc)
+
+### Resources and templates used in this guide
+Files used in this guide: Body UV.png, Face UV.png, Tat1.png, Template.3b.
 
 Here are a few 3D Coat brush alpha packs to get you started. You can find more
 online. Just drag and drop the .3dcpack files on 3D Coat to load them in, then
@@ -47,7 +46,7 @@ restart the application.
 
 <https://gumroad.com/d/baf9006383771d4256d026966f700b98>
 
-**[Part.1]: KSOX**
+# Part 1: KSOX <a name="p1"></a>
 
 **KoiSkinOverlayX (KSOX v2.1)** by Marco & Essu, is a **BepInex** plugin that
 allows you to use separate body and face texture as an overlay to individual
@@ -95,7 +94,7 @@ The way to solve this is by editing the final overlay PNG, to both *desaturate*
 adjust until you find a level of saturation/brightness you like. (I usually
 start with -30% saturation and +20 brightness and move from there).
 
-**[Part.2]: Using a 2D editor**
+# Part 2: Using a 2D editor <a name="p2"></a>
 
 Note: This option comes with a limitation. If you’re using pre-made
 illustrations, you can’t display them across UV seams. And since the default
@@ -108,38 +107,44 @@ In this part, you won’t be using 3DC at all. You will only be importing an
 illustration, and adjusting it to the correct location on the body/face. We will
 only go over doing this for the body. But the same steps apply for the face.
 
-**Step 1:** Now to start with, you need a pre-made illustration. It can be
+#### Step 1
+Now to start with, you need a pre-made illustration. It can be
 something you downloaded, or something you made in a 2D editor. For example, we
 will be using a tattoo downloaded from google.
 
 ![](media/77ebc84e070a348feef91e98969c0f36.png)
 
-**Step 2:** Open your 2D editor of choice (I am using Photoshop). And open the
+#### Step 2
+Open your 2D editor of choice (I am using Photoshop). And open the
 “Body UV.PNG“ file I included.
 
-**Step 3:** Import your downloaded tattoo into the 2D editor. And proceed to
+#### Step 3
+Import your downloaded tattoo into the 2D editor. And proceed to
 resize and place it anywhere on the UV wireframe. I copied the tattoo on the
 front body and right back thigh, and gave them some gradient colors.
 
 ![](media/cc47dccb0bfb8ea92ba58d64aace669f.png)
 
-Note: You can place as many tattoos as you want. Edit their color, rotation,
+**Note:** You can place as many tattoos as you want. Edit their color, rotation,
 transparency, etc. As long as you keep every individual tattoo contained inside
 each of the UV wireframe segments. If you cross the empty space between
 wireframe segments, you will have clipping and the tattoos won’t align.
 
-**Step 4:** Hide or delete the Wireframe layer (otherwise the wireframe will
+#### Step 4
+Hide or delete the Wireframe layer (otherwise the wireframe will
 appear in the overlay), then save your current file as a new PNG, for example
 “Body 01.PNG”.
 
-Note: The same steps apply for creating a Face overlay in 2D. Only, you will be
+**Note:** The same steps apply for creating a Face overlay in 2D. Only, you will be
 opening “Face UV.PNG” instead.
 
-**Step 5:** Load up KK, and open the Female editor. Then navigate to “Overlays”.
+#### Step 5
+Load up KK, and open the Female editor. Then navigate to “Overlays”.
 
 ![](media/2601931c5df7cb4f82ef64d30b370a5f.png)
 
-**Step 6:** You have to choose between the two options we discussed at the start
+#### Step 6
+You have to choose between the two options we discussed at the start
 of the tutorial. Either load the body overlay into “Body overlay texture (On top
 of almost everything)”. Or into “Body underlay texture (under tattoos, blushes,
 etc)”. Browse to the “Body 01.PNG” file you saved.
@@ -156,7 +161,7 @@ editor, the changes will automatically be updated in KK every time you save to
 char PNG file, it will no long be affected by changes to the original “Body 01.
 PNG”, you need to reload the body/face PNGs to update them in that case.
 
-**[Part.3]: 3D Coat Basics**
+# Part 3: 3D Coat Basics <a name="p3"></a>
 
 The trick to 3D painting, is that you need to use the female body and face 3D
 models in a software capable of painting on the UV directly in 3D. That way,
@@ -393,9 +398,7 @@ painted your own overlay. And ended up with something similar to this.
 There are two mechanics worth knowing at this stage. Making direct layer edits
 in your 2D editor while in 3DC. And exporting all of this for KK.
 
-**Editing in 2D:**  
-  
-
+### Editing in 2D
 
 ![](media/ec19efd7bffd0cc3bbab760a3e0c92d8.png)
 
@@ -425,7 +428,7 @@ Note: The same rules for 2D editing apply here. If you cross the UV wireframe
 seams.. you will get distortion and visual problems. So, keep any additions to
 each individual UV segment (front body, back body, etc).
 
-**Exporting:**
+### Exporting
 
 ![](media/8b2f14c1063ed4da960d54bed0282ea7.png)
 
