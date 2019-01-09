@@ -258,9 +258,13 @@ namespace KoiSkinOverlayX
                 try
                 {
                     var tex = Util.TextureFromBytes(_bytesToLoad);
+
                     SetTexAndUpdate(tex, _typeToLoad);
 
-                    Logger.Log(LogLevel.Message, "[KSOX] Texture imported successfully");
+                    if (tex.width != tex.height || tex.height % 1024 != 0 || tex.height == 0)
+                        Logger.Log(LogLevel.Message | LogLevel.Warning, "[KSOX] WARNING - Unusual texture resolution! It's recommended to use 1024x1024 for face and 2048x2048 for body.");
+                    else
+                        Logger.Log(LogLevel.Message, "[KSOX] Texture imported successfully");
                 }
                 catch (Exception ex)
                 {
