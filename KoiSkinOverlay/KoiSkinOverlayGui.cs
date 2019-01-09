@@ -201,7 +201,7 @@ namespace KoiSkinOverlayX
 
             e.AddControl(new MakerButton("Load new texture", makerCategory, owner))
                 .OnClick.AddListener(
-                    () => OpenFileDialog.Show(strings => OnFileAccept(strings, texType), "Open overlay image", UserData.Path, FileFilter, FileExt));
+                    () => OpenFileDialog.Show(strings => OnFileAccept(strings, texType), "Open overlay image", GetDefaultLoadDir(), FileFilter, FileExt));
 
             e.AddControl(new MakerButton("Clear texture", makerCategory, owner))
                 .OnClick.AddListener(() => SetTexAndUpdate(null, texType));
@@ -222,6 +222,11 @@ namespace KoiSkinOverlayX
                             Logger.Log(LogLevel.Error | LogLevel.Message, "[KSOX] Failed to export texture - " + ex.Message);
                         }
                     });
+        }
+
+        private static string GetDefaultLoadDir()
+        {
+            return File.Exists(KoiSkinOverlayMgr.OverlayDirectory) ? KoiSkinOverlayMgr.OverlayDirectory : Paths.GameRootPath;
         }
 
         private void Start()
