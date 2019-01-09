@@ -7,6 +7,12 @@ namespace KoiSkinOverlayX
     [RequireComponent(typeof(ChaControl))]
     public class KoiSkinOverlayController : MonoBehaviour
     {
+        /// <summary>
+        /// Additional overlays to be applied over the KSOX overlay (if any).
+        /// Drawn bottom to top based on index. Use <code>UpdateTexture</code> to refresh.
+        /// </summary>
+        public List<AdditionalTexture> AdditionalTextures { get; } = new List<AdditionalTexture>();
+
         private readonly Dictionary<TexType, Texture2D> _overlays = new Dictionary<TexType, Texture2D>();
 
         public IEnumerable<KeyValuePair<TexType, Texture2D>> Overlays => _overlays.AsEnumerable();
@@ -17,12 +23,24 @@ namespace KoiSkinOverlayX
         {
             if (_overlays.TryGetValue(overlayType, out var tex))
                 ApplyOverlay(bodyTexture, tex);
+
+            foreach (var additionalTexture in AdditionalTextures)
+            {
+                if (additionalTexture.OverlayType == overlayType && additionalTexture.Texture != null)
+                    ApplyOverlay(bodyTexture, additionalTexture.Texture);
+            }
         }
 
         public Texture ApplyOverlayToTex(Texture bodyTexture, TexType overlayType)
         {
             if (_overlays.TryGetValue(overlayType, out var tex))
-                return ApplyOverlay(bodyTexture, KoiSkinOverlayMgr.GetOverlayRT(overlayType), tex);
+                bodyTexture = ApplyOverlay(bodyTexture, KoiSkinOverlayMgr.GetOverlayRT(overlayType), tex);
+
+            foreach (var additionalTexture in AdditionalTextures)
+            {
+                if (additionalTexture.OverlayType == overlayType && additionalTexture.Texture != null)
+                    bodyTexture = ApplyOverlay(bodyTexture, KoiSkinOverlayMgr.GetOverlayRT(overlayType), additionalTexture.Texture);
+            }
 
             return bodyTexture;
         }
@@ -43,6 +61,7 @@ namespace KoiSkinOverlayX
             foreach (var kvp in _overlays)
                 Destroy(kvp.Value);
             _overlays.Clear();
+            AdditionalTextures.Clear();
         }
 
         private void Start()
@@ -54,7 +73,7 @@ namespace KoiSkinOverlayX
         public static void UpdateTexture(ChaControl cc, TexType type)
         {
             if (cc == null) return;
-            if(cc.customTexCtrlBody == null || cc.customTexCtrlFace == null) return;
+            if (cc.customTexCtrlBody == null || cc.customTexCtrlFace == null) return;
 
             switch (type)
             {

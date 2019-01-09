@@ -27,7 +27,7 @@ namespace KoiSkinOverlayX
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(ChaFile), "CopyChaFile", null, null)]
+        [HarmonyPatch(typeof(ChaFile), "CopyChaFile")]
         public static void CopyChaFile(ChaFile dst, ChaFile src)
         {
             var extendedData = ExtendedSave.GetExtendedDataById(src, KoiSkinOverlayMgr.GUID);
@@ -95,7 +95,7 @@ namespace KoiSkinOverlayX
             var instructions = new List<CodeInstruction>(_instructions);
             var texMain = AccessTools.Field(typeof(CustomTextureCreate), "texMain");
 
-            var inserts = new CodeInstruction[] {
+            var inserts = new[] {
                 new CodeInstruction(OpCodes.Ldarg_0),
                 new CodeInstruction(OpCodes.Ldarg_0),
                 new CodeInstruction(OpCodes.Ldarg_0),
