@@ -11,6 +11,7 @@ You can support development of my plugins through my Patreon page: https://www.p
 2. Download the latest release from [here](https://github.com/ManlyMarco/KoiSkinOverlayX/releases).
 3. Extract the dll files into the folder `Koikatu\BepInEx` in your game's directory.
 4. Start character maker, you should see new tab "Overlays" show up under the Body tab.
+5. [A full guide on creating overlays available here](Guide/%5BSylvers%5D%20KK%20Overlay%20Tutorial.md).
 
 ### Importing old overlays
 - Overlays from folders in BepInEx/KoiSkinOverlay with the char's name will be imported on character load. In these folders, "body.png" and/or "face.png" will be loaded. When you save the character, these files will be saved inside the character card and removed from the folder.
