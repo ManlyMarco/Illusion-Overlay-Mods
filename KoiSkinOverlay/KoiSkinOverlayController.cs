@@ -109,8 +109,17 @@ namespace KoiSkinOverlayX
         {
             if (blitTex == null) return;
 
+            var rtTemp = RenderTexture.GetTemporary(mainTex.width, mainTex.height, 0, mainTex.format);
+            var rta = RenderTexture.active;
+            RenderTexture.active = rtTemp;
+            GL.Clear(false, true, Color.green);
+            RenderTexture.active = rta;
+
             KoiSkinOverlayMgr.OverlayMat.SetTexture("_Overlay", blitTex);
-            Graphics.Blit(mainTex, mainTex, KoiSkinOverlayMgr.OverlayMat);
+            Graphics.Blit(mainTex, rtTemp, KoiSkinOverlayMgr.OverlayMat);
+            Graphics.Blit(rtTemp, mainTex);
+
+            RenderTexture.ReleaseTemporary(rtTemp);
         }
     }
 }
