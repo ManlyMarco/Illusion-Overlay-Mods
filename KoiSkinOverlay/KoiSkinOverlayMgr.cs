@@ -3,6 +3,7 @@ using System.IO;
 using BepInEx;
 using BepInEx.Logging;
 using ExtensibleSaveFormat;
+using KoiSkinOverlayX.Clothes;
 using UnityEngine;
 using Logger = BepInEx.Logger;
 using Resources = KoiSkinOverlayX.Properties.Resources;
@@ -16,7 +17,7 @@ namespace KoiSkinOverlayX
     {
         public const string GUID = "KSOX";
         public const string Version = "2.2";
-
+        private const string ClothesGUID = GUID + "_Clothes";
         public static readonly string OverlayDirectory = Path.Combine(Paths.PluginPath, "KoiSkinOverlay");
         internal static Material OverlayMat { get; private set; }
         private static RenderTexture rt_Face;
@@ -36,8 +37,11 @@ namespace KoiSkinOverlayX
             DontDestroyOnLoad(rt_Body);
 
             Hooks.Init();
+
+            MakerAPI.Chara.CharacterApi.RegisterExtraBehaviour<KoiClothesOverlayController>(ClothesGUID);
+            KoiClothesOverlayController.Hooks.Init(ClothesGUID);
         }
-        
+
 #if DEBUG
         private void Update()
         {
@@ -78,7 +82,7 @@ namespace KoiSkinOverlayX
 
             // New loading logic from extended data
             var chaFile = MakerAPI.MakerAPI.Instance.InsideMaker ? MakerAPI.MakerAPI.Instance.LastLoadedChaFile : cc.chaFile;
-            var embeddedTex = GetTexExtData(chaFile, texType);
+            var embeddedTex = GetTexExtData(chaFile, texType.ToString(), GUID);
             if (embeddedTex != null)
             {
                 Logger.Log(LogLevel.Info, $"[KSOX] Loading embedded overlay texture data {texType} from card: {cc.fileParam?.fullname ?? "?"}");
@@ -109,26 +113,26 @@ namespace KoiSkinOverlayX
             return texFilename;
         }
 
-        private static void SetTexExtData(ChaFile chaFile, Texture2D tex, TexType texType)
+        private static void SetTexExtData(ChaFile chaFile, Texture2D tex, string texType, string guid)
         {
-            var data = ExtendedSave.GetExtendedDataById(chaFile, GUID);
+            var data = ExtendedSave.GetExtendedDataById(chaFile, guid);
             if (data == null)
             {
                 if (tex == null) return;
                 data = new PluginData { version = 1 };
-                ExtendedSave.SetExtendedDataById(chaFile, GUID, data);
+                ExtendedSave.SetExtendedDataById(chaFile, guid, data);
             }
 
             if (tex != null)
-                data.data[texType.ToString()] = tex.EncodeToPNG();
+                data.data[texType] = tex.EncodeToPNG();
             else
-                data.data.Remove(texType.ToString());
+                data.data.Remove(texType);
         }
 
-        private static Texture2D GetTexExtData(ChaFile chaFile, TexType texType)
+        private static Texture2D GetTexExtData(ChaFile chaFile, string texType, string guid)
         {
-            var data = ExtendedSave.GetExtendedDataById(chaFile, GUID);
-            if (data != null && data.data.TryGetValue(texType.ToString(), out var texData))
+            var data = ExtendedSave.GetExtendedDataById(chaFile, guid);
+            if (data != null && data.data.TryGetValue(texType, out var texData))
             {
 
                 if (texData is byte[] texBytes)
@@ -137,7 +141,7 @@ namespace KoiSkinOverlayX
                     if (loadedTex != null) return loadedTex;
                 }
 
-                Logger.Log(LogLevel.Debug, $"[KSOX] Embedded overlay texture data {texType.ToString()} is empty or invalid in card {chaFile.charaFileName}");
+                Logger.Log(LogLevel.Debug, $"[KSOX] Embedded overlay texture data {texType} is empty or invalid in card {chaFile.charaFileName}");
             }
             return null;
         }
@@ -178,7 +182,7 @@ namespace KoiSkinOverlayX
         internal static void SaveAllOverlayTextures(KoiSkinOverlayController controller, ChaFile chaFile)
         {
             foreach (var controllerOverlay in controller.Overlays)
-                SetTexExtData(chaFile, controllerOverlay.Value, controllerOverlay.Key);
+                SetTexExtData(chaFile, controllerOverlay.Value, controllerOverlay.Key.ToString(), GUID);
         }
     }
 }

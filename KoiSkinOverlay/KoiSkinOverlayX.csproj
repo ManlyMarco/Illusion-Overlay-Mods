@@ -77,7 +77,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AdditionalTexture.cs" />
+    <Compile Include="Clothes\ClothesRendererGroup.cs" />
+    <Compile Include="Clothes\ClothesTexId.cs" />
     <Compile Include="Hooks.cs" />
+    <Compile Include="Clothes\KoiClothesOverlayController.cs" />
     <Compile Include="KoiSkinOverlayController.cs" />
     <Compile Include="KoiSkinOverlayGui.cs" />
     <Compile Include="KoiSkinOverlayMgr.cs" />
