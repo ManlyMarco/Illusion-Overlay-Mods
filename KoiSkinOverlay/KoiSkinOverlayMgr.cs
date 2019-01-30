@@ -3,7 +3,6 @@ using System.IO;
 using BepInEx;
 using BepInEx.Logging;
 using ExtensibleSaveFormat;
-using KoiSkinOverlayX.Clothes;
 using UnityEngine;
 using Logger = BepInEx.Logger;
 using Resources = KoiSkinOverlayX.Properties.Resources;
@@ -17,7 +16,6 @@ namespace KoiSkinOverlayX
     {
         public const string GUID = "KSOX";
         public const string Version = "2.2";
-        private const string ClothesGUID = GUID + "_Clothes";
         public static readonly string OverlayDirectory = Path.Combine(Paths.PluginPath, "KoiSkinOverlay");
         internal static Material OverlayMat { get; private set; }
         private static RenderTexture rt_Face;
@@ -37,9 +35,6 @@ namespace KoiSkinOverlayX
             DontDestroyOnLoad(rt_Body);
 
             Hooks.Init();
-
-            MakerAPI.Chara.CharacterApi.RegisterExtraBehaviour<KoiClothesOverlayController>(ClothesGUID);
-            KoiClothesOverlayController.Hooks.Init(ClothesGUID);
         }
 
 #if DEBUG

@@ -96,7 +96,7 @@ namespace KoiSkinOverlayX
             }
         }
 
-        internal static Texture ApplyOverlay(Texture mainTex, RenderTexture destTex, Texture2D blitTex)
+        public static Texture ApplyOverlay(Texture mainTex, RenderTexture destTex, Texture2D blitTex)
         {
             if (blitTex == null || destTex == null) return mainTex;
 
@@ -105,7 +105,7 @@ namespace KoiSkinOverlayX
             return destTex;
         }
 
-        private static void ApplyOverlay(RenderTexture mainTex, Texture2D blitTex)
+        public static void ApplyOverlay(RenderTexture mainTex, Texture2D blitTex)
         {
             if (blitTex == null) return;
 

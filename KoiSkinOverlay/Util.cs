@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace KoiSkinOverlayX
 {
-    internal static class Util
+    public static class Util
     {
         public static Texture2D TextureFromBytes(byte[] texBytes)
         {

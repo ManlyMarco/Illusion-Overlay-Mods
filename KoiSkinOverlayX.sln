@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.26228.4
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KoiSkinOverlayX", "KoiSkinOverlay\KoiSkinOverlayX.csproj", "{77C9FADD-E6B9-41E7-9559-9EECA5C143C3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KoiClothesOverlayX", "KoiClothesOverlay\KoiClothesOverlayX.csproj", "{C6977F34-BA61-4C41-B39B-311A0AB9B18B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{77C9FADD-E6B9-41E7-9559-9EECA5C143C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{77C9FADD-E6B9-41E7-9559-9EECA5C143C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{77C9FADD-E6B9-41E7-9559-9EECA5C143C3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6977F34-BA61-4C41-B39B-311A0AB9B18B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6977F34-BA61-4C41-B39B-311A0AB9B18B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6977F34-BA61-4C41-B39B-311A0AB9B18B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6977F34-BA61-4C41-B39B-311A0AB9B18B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

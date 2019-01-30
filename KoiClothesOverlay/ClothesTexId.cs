@@ -1,12 +1,13 @@
 ﻿using System.Collections.Generic;
 
-namespace KoiSkinOverlayX.Clothes
+namespace KoiClothesOverlayX
 {
-    internal struct ClothesTexId
+    public struct ClothesTexId
     {
         public readonly string ClothesName;
         public readonly ClothesRendererGroup RendererGroup;
         public readonly int RendererId;
+
         public ClothesTexId(string clothesName, ClothesRendererGroup rendererGroup, int rendererId)
         {
             ClothesName = clothesName;
@@ -17,11 +18,9 @@ namespace KoiSkinOverlayX.Clothes
         public override bool Equals(object obj)
         {
             if (!(obj is ClothesTexId))
-            {
                 return false;
-            }
 
-            var id = (ClothesTexId)obj;
+            var id = (ClothesTexId) obj;
             return ClothesName == id.ClothesName &&
                    RendererGroup == id.RendererGroup &&
                    RendererId == id.RendererId;

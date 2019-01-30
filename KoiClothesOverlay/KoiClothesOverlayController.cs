@@ -3,15 +3,25 @@ using System.Linq;
 using BepInEx.Logging;
 using ExtensibleSaveFormat;
 using Harmony;
+using KoiSkinOverlayX;
 using MakerAPI;
 using MakerAPI.Chara;
 using UnityEngine;
+using Logger = BepInEx.Logger;
 
-namespace KoiSkinOverlayX.Clothes
+namespace KoiClothesOverlayX
 {
     [RequireComponent(typeof(ChaControl))]
     public class KoiClothesOverlayController : CharaCustomFunctionController
     {
+        // todo change based on coord event, maybe listen for updates in ui? or not necessary
+        private Dictionary<ClothesTexId, Texture2D> _overlayTextures;
+
+        public void SetOverlayTex(Texture2D tex, ClothesTexId texType)
+        {
+            _overlayTextures[texType] = tex;
+        }
+
         protected override void OnCardBeingSaved(GameMode currentGameMode)
         {
             var data = new PluginData();
@@ -31,20 +41,18 @@ namespace KoiSkinOverlayX.Clothes
                 _overlayTextures = new Dictionary<ClothesTexId, Texture2D>();
         }
 
-        private Dictionary<ClothesTexId, Texture2D> _overlayTextures;
-
         private void UpdateTextures(ChaClothesComponent clothesCtrl)
         {
             var clothesName = clothesCtrl.name;
 
             var textures = _overlayTextures.Where(x => x.Key.ClothesName == clothesName).ToList();
 
-            var rendererArrs = new[] { clothesCtrl.rendNormal01, clothesCtrl.rendNormal02, clothesCtrl.rendAlpha01, clothesCtrl.rendAlpha02 };
+            var rendererArrs = new[] {clothesCtrl.rendNormal01, clothesCtrl.rendNormal02, clothesCtrl.rendAlpha01, clothesCtrl.rendAlpha02};
 
             for (var i = 0; i < rendererArrs.Length; i++)
             {
                 var renderers = rendererArrs[i];
-                foreach (var texture in textures.Where(x => x.Key.RendererGroup == (ClothesRendererGroup)i))
+                foreach (var texture in textures.Where(x => x.Key.RendererGroup == (ClothesRendererGroup) i))
                 {
                     if (renderers.Length > texture.Key.RendererId)
                     {
@@ -57,7 +65,7 @@ namespace KoiSkinOverlayX.Clothes
                     else
                     {
                         // todo handle properly
-                        BepInEx.Logger.Log(LogLevel.Warning | LogLevel.Message, $"Unused clothes overlay for {texture.Key.ClothesName} - {texture.Key.RendererGroup} - {texture.Key.RendererId}");
+                        Logger.Log(LogLevel.Warning | LogLevel.Message, $"Unused clothes overlay for {texture.Key.ClothesName} - {texture.Key.RendererGroup} - {texture.Key.RendererId}");
                     }
                 }
             }
@@ -65,11 +73,6 @@ namespace KoiSkinOverlayX.Clothes
 
         internal static class Hooks
         {
-            public static void Init(string guid)
-            {
-                HarmonyInstance.Create(guid).PatchAll(typeof(Hooks));
-            }
-
             [HarmonyPostfix]
             [HarmonyPatch(typeof(ChaControl), nameof(global::ChaControl.ChangeCustomClothes))]
             public static void ChangeCustomClothesPostHook(ChaControl __instance, bool main, int kind)
@@ -81,6 +84,11 @@ namespace KoiSkinOverlayX.Clothes
                 if (clothesCtrl == null) return;
 
                 controller.UpdateTextures(clothesCtrl);
+            }
+
+            public static void Init(string guid)
+            {
+                HarmonyInstance.Create(guid).PatchAll(typeof(Hooks));
             }
 
             private static GameObject GetClothingRootGo(ChaControl __instance, bool main, int kind)

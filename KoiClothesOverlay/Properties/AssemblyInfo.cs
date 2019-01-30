@@ -5,12 +5,14 @@ using KoiSkinOverlayX;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("KSOX")]
+[assembly: AssemblyTitle("KCOX")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("ManlyMarco")]
-[assembly: AssemblyProduct("KSOX")]
-[assembly: AssemblyCopyright("Copyright © 2018")]
+[assembly: AssemblyProduct("KoiClothesOverlayX")]
+[assembly: AssemblyCopyright("Copyright ©  2019")]
+[assembly: AssemblyTrademark("")]
+[assembly: AssemblyCulture("")]
 
 // Setting ComVisible to false makes the types in this assembly not visible
 // to COM components.  If you need to access a type in this assembly from
@@ -18,7 +20,7 @@ using KoiSkinOverlayX;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("48DBE560-CFBA-45E4-B348-F5246F475D04")]
+[assembly: Guid("c6977f34-ba61-4c41-b39b-311a0ab9b18b")]
 
 // Version information for an assembly consists of the following four values:
 //
@@ -30,4 +32,4 @@ using KoiSkinOverlayX;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyFileVersion(KoiSkinOverlayMgr.Version)]
+[assembly: AssemblyVersion(KoiSkinOverlayMgr.Version)]

@@ -1,10 +1,11 @@
-﻿namespace KoiSkinOverlayX.Clothes {
+﻿namespace KoiClothesOverlayX
+{
     /// <summary>
     /// Order is important
     /// </summary>
-    internal enum ClothesRendererGroup
+    public enum ClothesRendererGroup
     {
-        Normal01,
+        Normal01 = 0,
         Normal02,
         Alpha01,
         Alpha02
