@@ -24,6 +24,7 @@ namespace KoiClothesOverlayX
 
         private Subject<KeyValuePair<ClothesTexId, Texture2D>> _textureChanged;
         private ClothesTexId _typeToLoad;
+        private CvsClothes _cvsClothesToLoad;
 
         private static KoiClothesOverlayController GetOverlayController()
         {
@@ -43,7 +44,7 @@ namespace KoiClothesOverlayX
             //UpdateInterface();
         }
 
-        private void OnFileAccept(string[] strings, ClothesTexId type)
+        private void OnFileAccept(string[] strings, ClothesTexId type, CvsClothes cvsClothes)
         {
             if (strings == null || strings.Length == 0) return;
 
@@ -51,6 +52,7 @@ namespace KoiClothesOverlayX
             if (string.IsNullOrEmpty(texPath)) return;
 
             _typeToLoad = type;
+            _cvsClothesToLoad = cvsClothes;
 
             void ReadTex(string texturePath)
             {
@@ -70,6 +72,8 @@ namespace KoiClothesOverlayX
 
         private void RegisterCustomSubCategories(object sender, RegisterSubCategoriesEvent e)
         {
+            GetOverlayController().CurrentCoordinate.Subscribe(type => _textureChanged.OnNext(new KeyValuePair<ClothesTexId, Texture2D>()));
+
             var owner = this;
             _textureChanged = new Subject<KeyValuePair<ClothesTexId, Texture2D>>();
 
@@ -97,15 +101,13 @@ namespace KoiClothesOverlayX
                 SetupTexControls(e, MakerConstants.GetBuiltInCategory("03_ClothesTop", pair.Key), owner, pair.Value);
         }
 
-        private void SetTexAndUpdate(Texture2D tex, ClothesTexId texType)
+        private void SetTexAndUpdate(Texture2D tex, ClothesTexId texType, CvsClothes cvsClothes)
         {
-            var ctrl = GetOverlayController();
-
-            ctrl.SetOverlayTex(tex, texType);
-            //todo
-            //ctrl.UpdateTexture(texType);
+            GetOverlayController().SetOverlayTex(tex, texType);
 
             _textureChanged.OnNext(new KeyValuePair<ClothesTexId, Texture2D>(texType, tex));
+
+            cvsClothes.FuncUpdateAllPtnAndColor();
         }
 
         private void SetupTexControls(RegisterCustomControlsEvent e, MakerCategory makerCategory, BaseUnityPlugin owner, string clothesId, string title = "Overlay textures")
@@ -130,40 +132,42 @@ namespace KoiClothesOverlayX
             }
             rCat.ValueChanged.Subscribe(OnSelectionChange);
             rNum.ValueChanged.Subscribe(OnSelectionChange);
-
-
-            var bi = e.AddControl(new MakerImage(null, makerCategory, owner) { Height = 150, Width = 150 });
-            _textureChanged.Subscribe(
-                d =>
-                {
-                    // todo better way of updating
-                    if (Equals(GetSelectedId(), d.Key))
-                        bi.Texture = d.Value;
-                });
-
-            e.AddControl(new MakerButton("Load new texture", makerCategory, owner))
-                .OnClick.AddListener(
-                    () => OpenFileDialog.Show(strings => OnFileAccept(strings, GetSelectedId()), "Open overlay image", KoiSkinOverlayGui.GetDefaultLoadDir(), KoiSkinOverlayGui.FileFilter, KoiSkinOverlayGui.FileExt));
-
-            e.AddControl(new MakerButton("Clear texture", makerCategory, owner))
-                .OnClick.AddListener(() => SetTexAndUpdate(null, GetSelectedId()));
-
-            //todo
-            e.AddControl(new MakerButton("Get overlay template", makerCategory, owner))
+            
+            e.AddControl(new MakerButton("Generate overlay template", makerCategory, owner))
                 .OnClick.AddListener(
                     () =>
                     {
                         GetOverlayController().DumpBaseTexture(GetSelectedId(), KoiSkinOverlayGui.WriteAndOpenPng, cvsClothes);
                     });
 
-            e.AddControl(new MakerButton("Export current texture", makerCategory, owner))
+            var bi = e.AddControl(new MakerImage(null, makerCategory, owner) { Height = 150, Width = 150 });
+            _textureChanged.Subscribe(
+                d =>
+                {
+                    if (Equals(GetSelectedId(), d.Key))
+                        bi.Texture = d.Value;
+                });
+
+            e.AddControl(new MakerButton("Load new overlay texture", makerCategory, owner))
+                .OnClick.AddListener(
+                    () => OpenFileDialog.Show(strings => OnFileAccept(strings, GetSelectedId(), cvsClothes), "Open overlay image", KoiSkinOverlayGui.GetDefaultLoadDir(), KoiSkinOverlayGui.FileFilter, KoiSkinOverlayGui.FileExt));
+
+            e.AddControl(new MakerButton("Clear overlay texture", makerCategory, owner))
+                .OnClick.AddListener(() => SetTexAndUpdate(null, GetSelectedId(), cvsClothes));
+
+            e.AddControl(new MakerButton("Export overlay texture", makerCategory, owner))
                 .OnClick.AddListener(
                     () =>
                     {
                         try
                         {
                             var tex = bi.Texture as Texture2D;
-                            if (tex == null) return;
+                            if (tex == null)
+                            {
+                                Logger.Log(LogLevel.Message, "[KSOX] Nothing to export");
+                                return;
+                            }
+
                             KoiSkinOverlayGui.WriteAndOpenPng(tex.EncodeToPNG());
                         }
                         catch (Exception ex)
@@ -190,7 +194,7 @@ namespace KoiClothesOverlayX
             {
                 try
                 {
-                    SetTexAndUpdate(KoiSkinOverlayGui.LoadBytesToTexture(_bytesToLoad), _typeToLoad);
+                    SetTexAndUpdate(KoiSkinOverlayGui.LoadBytesToTexture(_bytesToLoad), _typeToLoad, _cvsClothesToLoad);
                 }
                 catch (Exception ex)
                 {
@@ -205,16 +209,5 @@ namespace KoiClothesOverlayX
                 _lastError = null;
             }
         }
-
-        /*private void UpdateInterface()
-        {
-            //todo unnecessary? update when switching to the tab? or every redraw, check bools if it's a full reload
-            var ctrl = GetOverlayController();
-            foreach (var texType in new[] { TexType.BodyOver, TexType.BodyUnder, TexType.FaceOver, TexType.FaceUnder })
-            {
-                var tex = ctrl.Overlays.FirstOrDefault(x => x.Key == texType).Value;
-                _textureChanged.OnNext(new KeyValuePair<ClothesTexId, Texture2D>(texType, tex));
-            }
-        }*/
     }
 }

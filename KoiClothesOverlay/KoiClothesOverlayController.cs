@@ -17,7 +17,26 @@ namespace KoiClothesOverlayX
     public class KoiClothesOverlayController : CharaCustomFunctionController
     {
         // todo change based on coord event, maybe listen for updates in ui? or not necessary
-        private Dictionary<ClothesTexId, Texture2D> _overlayTextures;
+        private Dictionary<ChaFileDefine.CoordinateType, Dictionary<ClothesTexId, Texture2D>> _allOverlayTextures;
+
+        private Dictionary<ClothesTexId, Texture2D> CurrentOverlayTextures
+        {
+            get
+            {
+                if (_allOverlayTextures == null) return null;
+
+                var coordinateType = (ChaFileDefine.CoordinateType)ChaControl.fileStatus.coordinateType;
+                _allOverlayTextures.TryGetValue(coordinateType, out var dict);
+
+                if(dict == null)
+                {
+                    dict = new Dictionary<ClothesTexId, Texture2D>();
+                    _allOverlayTextures.Add(coordinateType, dict);
+                }
+
+                return dict;
+            }
+        }
 
         private ClothesTexId _dumpClothesId;
         private Action<byte[]> _dumpCallback;
@@ -25,33 +44,51 @@ namespace KoiClothesOverlayX
         public void SetOverlayTex(Texture2D tex, ClothesTexId texType)
         {
             if (tex == null)
-                _overlayTextures.Remove(texType);
+                CurrentOverlayTextures.Remove(texType);
             else
-                _overlayTextures[texType] = tex;
+                CurrentOverlayTextures[texType] = tex;
         }
 
         protected override void OnCardBeingSaved(GameMode currentGameMode)
         {
+            // Let the previously loaded values get copied if not in maker since there's no way for them to be changed
+            if (currentGameMode != GameMode.Maker) return;
+
             var data = new PluginData();
             data.version = 1;
-            data.data.Add("Overlays", _overlayTextures.Select(x => new KeyValuePair<ClothesTexId, byte[]>(x.Key, x.Value.EncodeToPNG())).ToArray());
+
+            foreach (var dict in _allOverlayTextures)
+            {
+                if (dict.Value != null && dict.Value.Count > 0)
+                {
+                    data.data.Add(dict.Key.ToString(), dict.Value.Select(x => new KeyValuePair<ClothesTexId, byte[]>(x.Key, x.Value.EncodeToPNG())).ToArray());
+                }
+            }
 
             SetExtendedData(data);
         }
 
         protected override void OnReload(GameMode currentGameMode)
         {
-            var data = GetExtendedData();
+            _allOverlayTextures = new Dictionary<ChaFileDefine.CoordinateType, Dictionary<ClothesTexId, Texture2D>>();
 
-            if (data?.data != null && data.data.TryGetValue("Overlays", out var obj) && obj is KeyValuePair<ClothesTexId, byte[]>[] overlayBytes)
-                _overlayTextures = overlayBytes.ToDictionary(pair => pair.Key, pair => Util.TextureFromBytes(pair.Value));
-            else
-                _overlayTextures = new Dictionary<ClothesTexId, Texture2D>();
+            var data = GetExtendedData();
+            
+            if (data?.data != null)
+            {
+                foreach (ChaFileDefine.CoordinateType coord in Enum.GetValues(typeof(ChaFileDefine.CoordinateType)))
+                {
+                    if (data.data.TryGetValue(coord.ToString(), out var obj) && obj is KeyValuePair<ClothesTexId, byte[]>[] overlayBytes)
+                    {
+                        _allOverlayTextures.Add(coord, overlayBytes.ToDictionary(pair => pair.Key, pair => Util.TextureFromBytes(pair.Value)));
+                    }
+                }
+            }
         }
 
         private void ApplyOverlays(ChaClothesComponent clothesCtrl)
         {
-            if (_overlayTextures == null) return;
+            if (CurrentOverlayTextures == null) return;
 
             var clothesName = clothesCtrl.name;
 
@@ -60,7 +97,7 @@ namespace KoiClothesOverlayX
             if (_dumpCallback != null && _dumpClothesId.ClothesName == clothesName)
                 DumpBaseTextureImpl(rendererArrs);
 
-            var overlays = _overlayTextures.Where(x => x.Key.ClothesName == clothesName).ToList();
+            var overlays = CurrentOverlayTextures.Where(x => x.Key.ClothesName == clothesName).ToList();
 
             for (var i = 0; i < rendererArrs.Length; i++)
             {
@@ -157,7 +194,7 @@ namespace KoiClothesOverlayX
 
         public Texture2D GetOverlayTex(ClothesTexId clothesId)
         {
-            _overlayTextures.TryGetValue(clothesId, out var tex);
+            CurrentOverlayTextures.TryGetValue(clothesId, out var tex);
             return tex;
         }
 
