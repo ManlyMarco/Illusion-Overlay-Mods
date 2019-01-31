@@ -81,4 +81,7 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>copy /Y ..\bin\* ..\..\..\..\Games\Koikatsu\BepInEx\</PostBuildEvent>
+  </PropertyGroup>
 </Project>

@@ -28,8 +28,8 @@ namespace KoiSkinOverlayX
     [BepInDependency(KoiSkinOverlayMgr.GUID)]
     public class KoiSkinOverlayGui : BaseUnityPlugin
     {
-        private const string FileExt = ".png";
-        private const string FileFilter = "Overlay images (*.png)|*.png|All files|*.*";
+        public const string FileExt = ".png";
+        public const string FileFilter = "Overlay images (*.png)|*.png|All files|*.*";
         private static MakerAPI.MakerAPI _api;
         private byte[] _bytesToLoad;
         private Exception _lastError;
@@ -70,7 +70,7 @@ namespace KoiSkinOverlayX
             return _api.GetCharacterControl().gameObject.GetComponent<KoiSkinOverlayController>();
         }
 
-        private static string GetUniqueTexDumpFilename()
+        public static string GetUniqueTexDumpFilename()
         {
             var path = Path.Combine(KoiSkinOverlayMgr.OverlayDirectory, "_Export");
             Directory.CreateDirectory(path);
@@ -170,7 +170,7 @@ namespace KoiSkinOverlayX
             SetupTexControls(e, makerCategory, owner, TexType.BodyUnder, "Body underlay texture (Under tattoos, blushes, etc.)");
         }
 
-        private static void WriteAndOpenPng(byte[] pngData)
+        public static void WriteAndOpenPng(byte[] pngData)
         {
             if (pngData == null) throw new ArgumentNullException(nameof(pngData));
             var filename = GetUniqueTexDumpFilename();
@@ -224,7 +224,7 @@ namespace KoiSkinOverlayX
                     });
         }
 
-        private static string GetDefaultLoadDir()
+        public static string GetDefaultLoadDir()
         {
             return File.Exists(KoiSkinOverlayMgr.OverlayDirectory) ? KoiSkinOverlayMgr.OverlayDirectory : Paths.GameRootPath;
         }
@@ -257,14 +257,7 @@ namespace KoiSkinOverlayX
             {
                 try
                 {
-                    var tex = Util.TextureFromBytes(_bytesToLoad);
-
-                    SetTexAndUpdate(tex, _typeToLoad);
-
-                    if (tex.width != tex.height || tex.height % 1024 != 0 || tex.height == 0)
-                        Logger.Log(LogLevel.Message | LogLevel.Warning, "[KSOX] WARNING - Unusual texture resolution! It's recommended to use 1024x1024 for face and 2048x2048 for body.");
-                    else
-                        Logger.Log(LogLevel.Message, "[KSOX] Texture imported successfully");
+                    SetTexAndUpdate(LoadBytesToTexture(_bytesToLoad), _typeToLoad);
                 }
                 catch (Exception ex)
                 {
@@ -275,10 +268,30 @@ namespace KoiSkinOverlayX
 
             if (_lastError != null)
             {
-                Logger.Log(LogLevel.Error | LogLevel.Message, "[KSOX] Failed to load texture from file - " + _lastError.Message);
-                Logger.Log(LogLevel.Debug, _lastError);
+                ShowTextureLoadError(_lastError);
                 _lastError = null;
             }
+        }
+
+        public static void ShowTextureLoadError(Exception texLoadError)
+        {
+            Logger.Log(LogLevel.Error | LogLevel.Message, "[KSOX] Failed to load texture from file - " + texLoadError.Message);
+            Logger.Log(LogLevel.Debug, texLoadError);
+        }
+
+        /// <summary>
+        /// Shows messages on screen based on what's loaded
+        /// </summary>
+        public static Texture2D LoadBytesToTexture(byte[] pngBytes)
+        {
+            var tex = Util.TextureFromBytes(pngBytes);
+
+            if (tex.width != tex.height || tex.height % 1024 != 0 || tex.height == 0)
+                Logger.Log(LogLevel.Message | LogLevel.Warning, "[KSOX] WARNING - Unusual texture resolution! It's recommended to use 1024x1024 for face and 2048x2048 for body.");
+            else
+                Logger.Log(LogLevel.Message, "[KSOX] Texture imported successfully");
+
+            return tex;
         }
 
         private void OnChaFileLoaded(object sender, ChaFileLoadedEventArgs e)

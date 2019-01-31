@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using BepInEx;
 using BepInEx.Logging;
+using ChaCustom;
 using KoiSkinOverlayX;
 using MakerAPI;
 using MakerAPI.Utilities;
@@ -17,8 +18,6 @@ namespace KoiClothesOverlayX
     [BepInDependency(KoiClothesOverlayMgr.GUID)]
     public class KoiClothesOverlayGui : BaseUnityPlugin
     {
-        private const string FileExt = ".png";
-        private const string FileFilter = "Overlay images (*.png)|*.png|All files|*.*";
         private static MakerAPI.MakerAPI _api;
         private byte[] _bytesToLoad;
         private Exception _lastError;
@@ -26,22 +25,9 @@ namespace KoiClothesOverlayX
         private Subject<KeyValuePair<ClothesTexId, Texture2D>> _textureChanged;
         private ClothesTexId _typeToLoad;
 
-        private static string GetDefaultLoadDir()
-        {
-            return File.Exists(KoiSkinOverlayMgr.OverlayDirectory) ? KoiSkinOverlayMgr.OverlayDirectory : Paths.GameRootPath;
-        }
-
         private static KoiClothesOverlayController GetOverlayController()
         {
             return _api.GetCharacterControl().gameObject.GetComponent<KoiClothesOverlayController>();
-        }
-
-        private static string GetUniqueTexDumpFilename()
-        {
-            var path = Path.Combine(KoiSkinOverlayMgr.OverlayDirectory, "_Export");
-            Directory.CreateDirectory(path);
-            var file = Path.Combine(path, DateTime.Now.ToString("yyyy-dd-M--HH-mm-ss") + FileExt);
-            return file;
         }
 
         private void MakerExiting(object sender, EventArgs e)
@@ -53,7 +39,8 @@ namespace KoiClothesOverlayX
 
         private void OnChaFileLoaded(object sender, ChaFileLoadedEventArgs e)
         {
-            UpdateInterface();
+            //todo not needed? hook event on controller?
+            //UpdateInterface();
         }
 
         private void OnFileAccept(string[] strings, ClothesTexId type)
@@ -115,6 +102,7 @@ namespace KoiClothesOverlayX
             var ctrl = GetOverlayController();
 
             ctrl.SetOverlayTex(tex, texType);
+            //todo
             //ctrl.UpdateTexture(texType);
 
             _textureChanged.OnNext(new KeyValuePair<ClothesTexId, Texture2D>(texType, tex));
@@ -122,6 +110,9 @@ namespace KoiClothesOverlayX
 
         private void SetupTexControls(RegisterCustomControlsEvent e, MakerCategory makerCategory, BaseUnityPlugin owner, string clothesId, string title = "Overlay textures")
         {
+            var cvsClothes = GameObject.Find($"CustomScene/CustomRoot/FrontUIGroup/CustomUIGroup/CvsMenuTree/{makerCategory.CategoryName}/{makerCategory.SubCategoryName}")
+                .GetComponentInChildren<CvsClothes>();
+            
             e.AddControl(new MakerText(title, makerCategory, owner));
 
             var rCat = e.AddControl(new MakerRadioButtons(makerCategory, owner, "Renderer group", "Normal 1", "Normal 2", "Alpha 1", "Alpha 2"));
@@ -129,10 +120,19 @@ namespace KoiClothesOverlayX
 
             ClothesTexId GetSelectedId()
             {
-                return new ClothesTexId(clothesId, (ClothesRendererGroup) rCat.Value, rNum.Value);
+                return new ClothesTexId(clothesId, (ClothesRendererGroup)rCat.Value, rNum.Value);
             }
 
-            var bi = e.AddControl(new MakerImage(null, makerCategory, owner) {Height = 150, Width = 150});
+            void OnSelectionChange(int _)
+            {
+                var id = GetSelectedId();
+                _textureChanged.OnNext(new KeyValuePair<ClothesTexId, Texture2D>(id, GetOverlayController().GetOverlayTex(id)));
+            }
+            rCat.ValueChanged.Subscribe(OnSelectionChange);
+            rNum.ValueChanged.Subscribe(OnSelectionChange);
+
+
+            var bi = e.AddControl(new MakerImage(null, makerCategory, owner) { Height = 150, Width = 150 });
             _textureChanged.Subscribe(
                 d =>
                 {
@@ -143,13 +143,18 @@ namespace KoiClothesOverlayX
 
             e.AddControl(new MakerButton("Load new texture", makerCategory, owner))
                 .OnClick.AddListener(
-                    () => OpenFileDialog.Show(strings => OnFileAccept(strings, GetSelectedId()), "Open overlay image", GetDefaultLoadDir(), FileFilter, FileExt));
+                    () => OpenFileDialog.Show(strings => OnFileAccept(strings, GetSelectedId()), "Open overlay image", KoiSkinOverlayGui.GetDefaultLoadDir(), KoiSkinOverlayGui.FileFilter, KoiSkinOverlayGui.FileExt));
 
             e.AddControl(new MakerButton("Clear texture", makerCategory, owner))
                 .OnClick.AddListener(() => SetTexAndUpdate(null, GetSelectedId()));
 
             //todo
-            e.AddControl(new MakerButton("Get overlay template", makerCategory, owner));
+            e.AddControl(new MakerButton("Get overlay template", makerCategory, owner))
+                .OnClick.AddListener(
+                    () =>
+                    {
+                        GetOverlayController().DumpBaseTexture(GetSelectedId(), KoiSkinOverlayGui.WriteAndOpenPng, cvsClothes);
+                    });
 
             e.AddControl(new MakerButton("Export current texture", makerCategory, owner))
                 .OnClick.AddListener(
@@ -159,7 +164,7 @@ namespace KoiClothesOverlayX
                         {
                             var tex = bi.Texture as Texture2D;
                             if (tex == null) return;
-                            WriteAndOpenPng(tex.EncodeToPNG());
+                            KoiSkinOverlayGui.WriteAndOpenPng(tex.EncodeToPNG());
                         }
                         catch (Exception ex)
                         {
@@ -176,7 +181,7 @@ namespace KoiClothesOverlayX
             _api.MakerExiting += MakerExiting;
             _api.ChaFileLoaded += OnChaFileLoaded;
             // Needed for starting maker in class roster. There is no ChaFileLoaded event fired
-            _api.MakerFinishedLoading += (sender, args) => UpdateInterface();
+            //todo not needed? _api.MakerFinishedLoading += (sender, args) => UpdateInterface();
         }
 
         private void Update()
@@ -185,14 +190,7 @@ namespace KoiClothesOverlayX
             {
                 try
                 {
-                    var tex = Util.TextureFromBytes(_bytesToLoad);
-
-                    SetTexAndUpdate(tex, _typeToLoad);
-
-                    if (tex.width != tex.height || tex.height % 1024 != 0 || tex.height == 0)
-                        Logger.Log(LogLevel.Message | LogLevel.Warning, "[KSOX] WARNING - Unusual texture resolution! It's recommended to use 1024x1024 for face and 2048x2048 for body.");
-                    else
-                        Logger.Log(LogLevel.Message, "[KSOX] Texture imported successfully");
+                    SetTexAndUpdate(KoiSkinOverlayGui.LoadBytesToTexture(_bytesToLoad), _typeToLoad);
                 }
                 catch (Exception ex)
                 {
@@ -203,29 +201,20 @@ namespace KoiClothesOverlayX
 
             if (_lastError != null)
             {
-                Logger.Log(LogLevel.Error | LogLevel.Message, "[KSOX] Failed to load texture from file - " + _lastError.Message);
-                Logger.Log(LogLevel.Debug, _lastError);
+                KoiSkinOverlayGui.ShowTextureLoadError(_lastError);
                 _lastError = null;
             }
         }
 
-        private void UpdateInterface()
+        /*private void UpdateInterface()
         {
             //todo unnecessary? update when switching to the tab? or every redraw, check bools if it's a full reload
-            /*var ctrl = GetOverlayController();
+            var ctrl = GetOverlayController();
             foreach (var texType in new[] { TexType.BodyOver, TexType.BodyUnder, TexType.FaceOver, TexType.FaceUnder })
             {
                 var tex = ctrl.Overlays.FirstOrDefault(x => x.Key == texType).Value;
                 _textureChanged.OnNext(new KeyValuePair<ClothesTexId, Texture2D>(texType, tex));
-            }*/
-        }
-
-        private static void WriteAndOpenPng(byte[] pngData)
-        {
-            if (pngData == null) throw new ArgumentNullException(nameof(pngData));
-            var filename = GetUniqueTexDumpFilename();
-            File.WriteAllBytes(filename, pngData);
-            Util.OpenFileInExplorer(filename);
-        }
+            }
+        }*/
     }
 }
