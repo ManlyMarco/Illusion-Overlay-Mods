@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using BepInEx;
 using BepInEx.Logging;
 using ChaCustom;
+using Harmony;
 using KoiSkinOverlayX;
 using MakerAPI;
 using MakerAPI.Utilities;
@@ -14,17 +17,85 @@ using Logger = BepInEx.Logger;
 namespace KoiClothesOverlayX
 {
     [BepInProcess("Koikatu")]
-    [BepInPlugin(KoiClothesOverlayMgr.GUID + "_GUI", "KCOX GUI", KoiSkinOverlayMgr.Version)]
+    [BepInPlugin(GUID, "KCOX GUI", KoiSkinOverlayMgr.Version)]
     [BepInDependency(KoiClothesOverlayMgr.GUID)]
     public class KoiClothesOverlayGui : BaseUnityPlugin
     {
+        private const string GUID = KoiClothesOverlayMgr.GUID + "_GUI";
+
+        private static class Hooks
+        {
+            public static void Init()
+            {
+                HarmonyInstance.Create(GUID).PatchAll(typeof(Hooks));
+            }
+
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(CustomSelectKind), nameof(CustomSelectKind.OnSelect))]
+            public static void UpdateSelectClothesPost(CustomSelectKind __instance)
+            {
+                var type = (CustomSelectKind.SelectKindType)AccessTools.Field(typeof(CustomSelectKind), "type").GetValue(__instance);
+
+                ChaFileDefine.ClothesKind refreshResult;
+                switch (type)
+                {
+                    case CustomSelectKind.SelectKindType.CosTop:
+                    case CustomSelectKind.SelectKindType.CosSailor01:
+                    case CustomSelectKind.SelectKindType.CosSailor02:
+                    case CustomSelectKind.SelectKindType.CosSailor03:
+                    case CustomSelectKind.SelectKindType.CosJacket01:
+                    case CustomSelectKind.SelectKindType.CosJacket02:
+                    case CustomSelectKind.SelectKindType.CosJacket03:
+                        //case CustomSelectKind.SelectKindType.CosTopEmblem:
+                        refreshResult = ChaFileDefine.ClothesKind.top;
+                        break;
+                    case CustomSelectKind.SelectKindType.CosBot:
+                        //case CustomSelectKind.SelectKindType.CosBotEmblem:
+                        refreshResult = ChaFileDefine.ClothesKind.bot;
+                        break;
+                    case CustomSelectKind.SelectKindType.CosBra:
+                        //case CustomSelectKind.SelectKindType.CosBraEmblem:
+                        refreshResult = ChaFileDefine.ClothesKind.bra;
+                        break;
+                    case CustomSelectKind.SelectKindType.CosShorts:
+                        //case CustomSelectKind.SelectKindType.CosShortsEmblem:
+                        refreshResult = ChaFileDefine.ClothesKind.shorts;
+                        break;
+                    case CustomSelectKind.SelectKindType.CosGloves:
+                        //case CustomSelectKind.SelectKindType.CosGlovesEmblem:
+                        refreshResult = ChaFileDefine.ClothesKind.gloves;
+                        break;
+                    case CustomSelectKind.SelectKindType.CosPanst:
+                        //case CustomSelectKind.SelectKindType.CosPanstEmblem:
+                        refreshResult = ChaFileDefine.ClothesKind.panst;
+                        break;
+                    case CustomSelectKind.SelectKindType.CosSocks:
+                        //case CustomSelectKind.SelectKindType.CosSocksEmblem:
+                        refreshResult = ChaFileDefine.ClothesKind.socks;
+                        break;
+                    case CustomSelectKind.SelectKindType.CosInnerShoes:
+                        //case CustomSelectKind.SelectKindType.CosInnerShoesEmblem:
+                        refreshResult = ChaFileDefine.ClothesKind.shoes_inner;
+                        break;
+                    case CustomSelectKind.SelectKindType.CosOuterShoes:
+                        //case CustomSelectKind.SelectKindType.CosOuterShoesEmblem:
+                        refreshResult = ChaFileDefine.ClothesKind.shoes_outer;
+                        break;
+                    default:
+                        return;
+                }
+                _refresh?.OnNext((int)refreshResult);
+            }
+        }
+
         private static MakerAPI.MakerAPI _api;
         private byte[] _bytesToLoad;
         private Exception _lastError;
 
+        private static Subject<int> _refresh;
+
         private Subject<KeyValuePair<ClothesTexId, Texture2D>> _textureChanged;
         private ClothesTexId _typeToLoad;
-        private CvsClothes _cvsClothesToLoad;
 
         private static KoiClothesOverlayController GetOverlayController()
         {
@@ -34,6 +105,7 @@ namespace KoiClothesOverlayX
         private void MakerExiting(object sender, EventArgs e)
         {
             _textureChanged?.Dispose();
+            _refresh?.Dispose();
             _bytesToLoad = null;
             _lastError = null;
         }
@@ -44,7 +116,7 @@ namespace KoiClothesOverlayX
             //UpdateInterface();
         }
 
-        private void OnFileAccept(string[] strings, ClothesTexId type, CvsClothes cvsClothes)
+        private void OnFileAccept(string[] strings, ClothesTexId type)
         {
             if (strings == null || strings.Length == 0) return;
 
@@ -52,7 +124,6 @@ namespace KoiClothesOverlayX
             if (string.IsNullOrEmpty(texPath)) return;
 
             _typeToLoad = type;
-            _cvsClothesToLoad = cvsClothes;
 
             void ReadTex(string texturePath)
             {
@@ -70,20 +141,19 @@ namespace KoiClothesOverlayX
             ReadTex(texPath);
         }
 
-        private void RegisterCustomSubCategories(object sender, RegisterSubCategoriesEvent e)
+        private void RegisterCustomControls(object sender, RegisterCustomControlsEvent e)
         {
-            GetOverlayController().CurrentCoordinate.Subscribe(type => _textureChanged.OnNext(new KeyValuePair<ClothesTexId, Texture2D>()));
-
             var owner = this;
             _textureChanged = new Subject<KeyValuePair<ClothesTexId, Texture2D>>();
+            _refresh = new Subject<int>();
 
             var makerCategory = MakerConstants.GetBuiltInCategory("03_ClothesTop", "tglTop");
 
-            SetupTexControls(e, makerCategory, owner, "ct_top_parts_A", "Overlay textures (Piece 1)");
+            SetupTexControls(e, makerCategory, owner, "ct_top_parts_A", 0, "Overlay textures (Piece 1)");
             e.AddControl(new MakerSeparator(makerCategory, owner));
-            SetupTexControls(e, makerCategory, owner, "ct_top_parts_B", "Overlay textures (Piece 2)");
+            SetupTexControls(e, makerCategory, owner, "ct_top_parts_B", 0, "Overlay textures (Piece 2)");
             e.AddControl(new MakerSeparator(makerCategory, owner));
-            SetupTexControls(e, makerCategory, owner, "ct_top_parts_C", "Overlay textures (Piece 3)");
+            SetupTexControls(e, makerCategory, owner, "ct_top_parts_C", 0, "Overlay textures (Piece 3)");
 
             var cats = new[]
             {
@@ -97,24 +167,30 @@ namespace KoiClothesOverlayX
                 new KeyValuePair<string, string>("tglOuterShoes", "ct_shoes_outer")
             };
 
-            foreach (var pair in cats)
-                SetupTexControls(e, MakerConstants.GetBuiltInCategory("03_ClothesTop", pair.Key), owner, pair.Value);
+            for (var index = 0; index < cats.Length; index++)
+            {
+                var pair = cats[index];
+                SetupTexControls(e, MakerConstants.GetBuiltInCategory("03_ClothesTop", pair.Key), owner, pair.Value, index + 1);
+            }
+
+            GetOverlayController().CurrentCoordinate.Subscribe(type => StartCoroutine(RefreshCo(-1)));
         }
 
-        private void SetTexAndUpdate(Texture2D tex, ClothesTexId texType, CvsClothes cvsClothes)
+        private IEnumerator RefreshCo(int category)
+        {
+            yield return null;
+            _refresh.OnNext(category);
+        }
+
+        private void SetTexAndUpdate(Texture2D tex, ClothesTexId texType)
         {
             GetOverlayController().SetOverlayTex(tex, texType);
 
             _textureChanged.OnNext(new KeyValuePair<ClothesTexId, Texture2D>(texType, tex));
-
-            cvsClothes.FuncUpdateAllPtnAndColor();
         }
 
-        private void SetupTexControls(RegisterCustomControlsEvent e, MakerCategory makerCategory, BaseUnityPlugin owner, string clothesId, string title = "Overlay textures")
+        private void SetupTexControls(RegisterCustomControlsEvent e, MakerCategory makerCategory, BaseUnityPlugin owner, string clothesId, int clothesIndex, string title = "Overlay textures")
         {
-            var cvsClothes = GameObject.Find($"CustomScene/CustomRoot/FrontUIGroup/CustomUIGroup/CvsMenuTree/{makerCategory.CategoryName}/{makerCategory.SubCategoryName}")
-                .GetComponentInChildren<CvsClothes>();
-            
             e.AddControl(new MakerText(title, makerCategory, owner));
 
             var rCat = e.AddControl(new MakerRadioButtons(makerCategory, owner, "Renderer group", "Normal 1", "Normal 2", "Alpha 1", "Alpha 2"));
@@ -132,36 +208,31 @@ namespace KoiClothesOverlayX
             }
             rCat.ValueChanged.Subscribe(OnSelectionChange);
             rNum.ValueChanged.Subscribe(OnSelectionChange);
-            
-            e.AddControl(new MakerButton("Generate overlay template", makerCategory, owner))
-                .OnClick.AddListener(
-                    () =>
-                    {
-                        GetOverlayController().DumpBaseTexture(GetSelectedId(), KoiSkinOverlayGui.WriteAndOpenPng, cvsClothes);
-                    });
 
-            var bi = e.AddControl(new MakerImage(null, makerCategory, owner) { Height = 150, Width = 150 });
-            _textureChanged.Subscribe(
-                d =>
+            var controlGen = e.AddControl(new MakerButton("Generate overlay template", makerCategory, owner));
+            controlGen.OnClick.AddListener(
+                () =>
                 {
-                    if (Equals(GetSelectedId(), d.Key))
-                        bi.Texture = d.Value;
+                    GetOverlayController().DumpBaseTexture(GetSelectedId(), KoiSkinOverlayGui.WriteAndOpenPng);
                 });
 
-            e.AddControl(new MakerButton("Load new overlay texture", makerCategory, owner))
-                .OnClick.AddListener(
-                    () => OpenFileDialog.Show(strings => OnFileAccept(strings, GetSelectedId(), cvsClothes), "Open overlay image", KoiSkinOverlayGui.GetDefaultLoadDir(), KoiSkinOverlayGui.FileFilter, KoiSkinOverlayGui.FileExt));
+            var controlImage = e.AddControl(new MakerImage(null, makerCategory, owner) { Height = 150, Width = 150 });
+            _textureChanged.Subscribe(d => { if (Equals(GetSelectedId(), d.Key)) controlImage.Texture = d.Value; });
 
-            e.AddControl(new MakerButton("Clear overlay texture", makerCategory, owner))
-                .OnClick.AddListener(() => SetTexAndUpdate(null, GetSelectedId(), cvsClothes));
+            var controlLoad = e.AddControl(new MakerButton("Load new overlay texture", makerCategory, owner));
+            controlLoad.OnClick.AddListener(
+                    () => OpenFileDialog.Show(strings => OnFileAccept(strings, GetSelectedId()), "Open overlay image", KoiSkinOverlayGui.GetDefaultLoadDir(), KoiSkinOverlayGui.FileFilter, KoiSkinOverlayGui.FileExt));
 
-            e.AddControl(new MakerButton("Export overlay texture", makerCategory, owner))
-                .OnClick.AddListener(
+            var controlClear = e.AddControl(new MakerButton("Clear overlay texture", makerCategory, owner));
+            controlClear.OnClick.AddListener(() => SetTexAndUpdate(null, GetSelectedId()));
+
+            var controlExport = e.AddControl(new MakerButton("Export overlay texture", makerCategory, owner));
+            controlExport.OnClick.AddListener(
                     () =>
                     {
                         try
                         {
-                            var tex = bi.Texture as Texture2D;
+                            var tex = controlImage.Texture as Texture2D;
                             if (tex == null)
                             {
                                 Logger.Log(LogLevel.Message, "[KSOX] Nothing to export");
@@ -175,13 +246,88 @@ namespace KoiClothesOverlayX
                             Logger.Log(LogLevel.Error | LogLevel.Message, "[KSOX] Failed to export texture - " + ex.Message);
                         }
                     });
+
+            void RefreshControls(int categoryNum)
+            {
+                if (!rNum.Exists) return;
+
+                var ctrl = GetOverlayController();
+                var clothes = ctrl.GetCustomClothesComponent(clothesId);
+                var renderers = clothes == null ? null : KoiClothesOverlayController.GetRendererArrays(clothes).ElementAtOrDefault(categoryNum);
+
+                var resetSelection = false;
+                var any = false;
+                var anyCats = rCat.Buttons.Any(x => x.gameObject.activeSelf);
+                for (var i = 0; i < rNum.Buttons.Count; i++)
+                {
+                    var visible = anyCats && renderers != null && i < renderers.Length;
+                    rNum.Buttons[i].gameObject.SetActive(visible);
+
+                    if (!visible && rNum.Buttons[i].isOn)
+                        resetSelection = true;
+                    if (visible)
+                        any = true;
+                }
+
+                if (resetSelection || rNum.Buttons.All(x => !x.isOn))
+                {
+                    var toggle = rNum.Buttons.TakeWhile(x => !x.gameObject.activeSelf).Count();
+                    rNum.Value = toggle;
+                }
+
+                controlGen.Visible.OnNext(any);
+                controlImage.Visible.OnNext(any);
+                controlLoad.Visible.OnNext(any);
+                controlClear.Visible.OnNext(any);
+                controlExport.Visible.OnNext(any);
+            }
+
+            _refresh.Subscribe(
+                cat =>
+                {
+                    if (cat != clothesIndex && cat >= 0) return;
+                    if (!rCat.Exists) return;
+
+                    var ctrl = GetOverlayController();
+                    var clothes = ctrl?.GetCustomClothesComponent(clothesId);
+
+                    var resetSelection = false;
+
+                    if (clothes != null)
+                    {
+                        var rendererArrays = KoiClothesOverlayController.GetRendererArrays(clothes);
+
+                        for (var i = 0; i < rendererArrays.Length; i++)
+                        {
+                            var renderers = rendererArrays[i];
+                            var any = renderers.Length > 0;
+                            rCat.Buttons[i].gameObject.SetActive(any);
+                            if (!any && rCat.Buttons[i].isOn)
+                                resetSelection = true;
+                        }
+                    }
+
+                    if (resetSelection)
+                    {
+                        var toggle = rCat.Buttons.TakeWhile(x => !x.gameObject.activeSelf).Count();
+                        rCat.Value = toggle;
+                    }
+                    else
+                    {
+                        RefreshControls(rCat.Value);
+                    }
+                });
+
+            rCat.ValueChanged.Subscribe(RefreshControls);
         }
 
         private void Start()
         {
             _api = MakerAPI.MakerAPI.Instance;
+            Hooks.Init();
 
-            _api.RegisterCustomSubCategories += RegisterCustomSubCategories;
+            _api.MakerBaseLoaded += RegisterCustomControls;
+            _api.MakerFinishedLoading += (sender, args) => _refresh.OnNext(0);
             _api.MakerExiting += MakerExiting;
             _api.ChaFileLoaded += OnChaFileLoaded;
             // Needed for starting maker in class roster. There is no ChaFileLoaded event fired
@@ -194,7 +340,7 @@ namespace KoiClothesOverlayX
             {
                 try
                 {
-                    SetTexAndUpdate(KoiSkinOverlayGui.LoadBytesToTexture(_bytesToLoad), _typeToLoad, _cvsClothesToLoad);
+                    SetTexAndUpdate(KoiSkinOverlayGui.LoadBytesToTexture(_bytesToLoad), _typeToLoad);
                 }
                 catch (Exception ex)
                 {

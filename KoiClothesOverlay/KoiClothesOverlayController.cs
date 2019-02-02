@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using BepInEx.Logging;
-using ChaCustom;
 using ExtensibleSaveFormat;
 using Harmony;
 using KoiSkinOverlayX;
 using MakerAPI;
 using MakerAPI.Chara;
+using MessagePack;
 using UnityEngine;
 using Logger = BepInEx.Logger;
 
@@ -28,7 +28,7 @@ namespace KoiClothesOverlayX
                 var coordinateType = (ChaFileDefine.CoordinateType)ChaControl.fileStatus.coordinateType;
                 _allOverlayTextures.TryGetValue(coordinateType, out var dict);
 
-                if(dict == null)
+                if (dict == null)
                 {
                     dict = new Dictionary<ClothesTexId, Texture2D>();
                     _allOverlayTextures.Add(coordinateType, dict);
@@ -47,6 +47,8 @@ namespace KoiClothesOverlayX
                 CurrentOverlayTextures.Remove(texType);
             else
                 CurrentOverlayTextures[texType] = tex;
+
+            RefreshTexture(texType);
         }
 
         protected override void OnCardBeingSaved(GameMode currentGameMode)
@@ -61,7 +63,7 @@ namespace KoiClothesOverlayX
             {
                 if (dict.Value != null && dict.Value.Count > 0)
                 {
-                    data.data.Add(dict.Key.ToString(), dict.Value.Select(x => new KeyValuePair<ClothesTexId, byte[]>(x.Key, x.Value.EncodeToPNG())).ToArray());
+                    data.data.Add(dict.Key.ToString(), dict.Value.ToDictionary(x => MessagePackSerializer.Serialize(x.Key), x => x.Value.EncodeToPNG()));
                 }
             }
 
@@ -70,18 +72,63 @@ namespace KoiClothesOverlayX
 
         protected override void OnReload(GameMode currentGameMode)
         {
+            if (_allOverlayTextures != null)
+            {
+                foreach (var textures in _allOverlayTextures)
+                {
+                    foreach (var texture in textures.Value)
+                    {
+                        Destroy(texture.Value);
+                    }
+                }
+            }
+
             _allOverlayTextures = new Dictionary<ChaFileDefine.CoordinateType, Dictionary<ClothesTexId, Texture2D>>();
 
             var data = GetExtendedData();
-            
+
             if (data?.data != null)
             {
                 foreach (ChaFileDefine.CoordinateType coord in Enum.GetValues(typeof(ChaFileDefine.CoordinateType)))
                 {
-                    if (data.data.TryGetValue(coord.ToString(), out var obj) && obj is KeyValuePair<ClothesTexId, byte[]>[] overlayBytes)
+                    if (data.data.TryGetValue(coord.ToString(), out var obj) && obj is Dictionary<object, object> overlayBytes)
                     {
-                        _allOverlayTextures.Add(coord, overlayBytes.ToDictionary(pair => pair.Key, pair => Util.TextureFromBytes(pair.Value)));
+                        _allOverlayTextures.Add(coord, overlayBytes.ToDictionary(pair => MessagePackSerializer.Deserialize<ClothesTexId>((byte[])pair.Key), pair => Util.TextureFromBytes((byte[])pair.Value)));
                     }
+                }
+            }
+
+            RefreshAllTextures();
+        }
+
+        public void RefreshAllTextures()
+        {
+            for (var i = 0; i < ChaControl.cusClothesCmp.Length; i++)
+                ChaControl.ChangeCustomClothes(true, i, true, false, false, false, false);
+
+            for (int i = 0; i < ChaControl.cusClothesSubCmp.Length; i++)
+                ChaControl.ChangeCustomClothes(false, i, true, false, false, false, false);
+        }
+
+        public ChaClothesComponent GetCustomClothesComponent(string clothesObjectName)
+        {
+            return ChaControl.cusClothesCmp.Concat(ChaControl.cusClothesSubCmp).FirstOrDefault(x => x != null && x.gameObject.name == clothesObjectName);
+        }
+
+        public void RefreshTexture(ClothesTexId texType)
+        {
+            var i = Array.FindIndex(ChaControl.objClothes, x => x.name == texType.ClothesName);
+            if (i >= 0)
+                ChaControl.ChangeCustomClothes(true, i, true, false, false, false, false);
+            else
+            {
+                i = Array.FindIndex(ChaControl.objParts, x => x.name == texType.ClothesName);
+                if (i >= 0)
+                    ChaControl.ChangeCustomClothes(false, i, true, false, false, false, false);
+                else
+                {
+                    Logger.Log(LogLevel.Error | LogLevel.Message, "This should not have happened");
+                    RefreshAllTextures();
                 }
             }
         }
@@ -92,7 +139,7 @@ namespace KoiClothesOverlayX
 
             var clothesName = clothesCtrl.name;
 
-            var rendererArrs = new[] { clothesCtrl.rendNormal01, clothesCtrl.rendNormal02, clothesCtrl.rendAlpha01, clothesCtrl.rendAlpha02 };
+            var rendererArrs = GetRendererArrays(clothesCtrl);
 
             if (_dumpCallback != null && _dumpClothesId.ClothesName == clothesName)
                 DumpBaseTextureImpl(rendererArrs);
@@ -111,11 +158,17 @@ namespace KoiClothesOverlayX
                     }
                     else
                     {
-                        // todo handle properly
-                        Logger.Log(LogLevel.Warning | LogLevel.Message, $"Unused clothes overlay for {overlay.Key.ClothesName} - {overlay.Key.RendererGroup} - {overlay.Key.RendererId}");
+                        Logger.Log(LogLevel.Warning | LogLevel.Message, $"[KCOX] Removing unused overlay for {overlay.Key.ClothesName}");
+                        Destroy(overlay.Value);
+                        overlays.Remove(overlay);
                     }
                 }
             }
+        }
+
+        public static Renderer[][] GetRendererArrays(ChaClothesComponent clothesCtrl)
+        {
+            return new[] { clothesCtrl.rendNormal01, clothesCtrl.rendNormal02, clothesCtrl.rendAlpha01, clothesCtrl.rendAlpha02 };
         }
 
         private void DumpBaseTextureImpl(Renderer[][] rendererArrs)
@@ -162,7 +215,7 @@ namespace KoiClothesOverlayX
                 var controller = __instance.GetComponent<KoiClothesOverlayController>();
                 if (controller == null) return;
 
-                var clothesCtrl = GetClothingRootGo(__instance, main, kind)?.GetComponent<ChaClothesComponent>();
+                var clothesCtrl = GetCustomClothesComponent(__instance, main, kind);
                 if (clothesCtrl == null) return;
 
                 controller.ApplyOverlays(clothesCtrl);
@@ -173,7 +226,7 @@ namespace KoiClothesOverlayX
                 HarmonyInstance.Create(guid).PatchAll(typeof(Hooks));
             }
 
-            private static GameObject GetClothingRootGo(ChaControl __instance, bool main, int kind)
+            private static ChaClothesComponent GetCustomClothesComponent(ChaControl chaControl, bool main, int kind)
             {
                 /* for top clothes it fires once at start with first bool true (main load), then for each subpart with bool false
                 * if true, objClothes are used, if false objParts
@@ -185,26 +238,30 @@ namespace KoiClothesOverlayX
                     if (kind == 0)
                         return null;
 
-                    return __instance.objClothes.ElementAtOrDefault(kind);
+                    return chaControl.GetCustomClothesComponent(kind);
                 }
 
-                return __instance.objParts.ElementAtOrDefault(kind);
+                return chaControl.GetCustomClothesSubComponent(kind);
             }
         }
 
         public Texture2D GetOverlayTex(ClothesTexId clothesId)
         {
-            CurrentOverlayTextures.TryGetValue(clothesId, out var tex);
-            return tex;
+            if (CurrentOverlayTextures != null)
+            {
+                CurrentOverlayTextures.TryGetValue(clothesId, out var tex);
+                return tex;
+            }
+            return null;
         }
 
-        public void DumpBaseTexture(ClothesTexId clothesId, Action<byte[]> callback, CvsClothes cvsClothes)
+        public void DumpBaseTexture(ClothesTexId clothesId, Action<byte[]> callback)
         {
             _dumpCallback = callback;
             _dumpClothesId = clothesId;
 
             // Force redraw to trigger the dump
-            cvsClothes.FuncUpdateAllPtnAndColor();
+            RefreshTexture(clothesId);
         }
     }
 }

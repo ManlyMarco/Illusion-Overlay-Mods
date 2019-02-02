@@ -1,11 +1,16 @@
 ﻿using System.Collections.Generic;
+using MessagePack;
 
 namespace KoiClothesOverlayX
 {
-    public struct ClothesTexId
+    [MessagePackObject]
+    public class ClothesTexId
     {
+        [Key(0)]
         public readonly string ClothesName;
+        [Key(1)]
         public readonly ClothesRendererGroup RendererGroup;
+        [Key(2)]
         public readonly int RendererId;
 
         public ClothesTexId(string clothesName, ClothesRendererGroup rendererGroup, int rendererId)
