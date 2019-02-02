@@ -28,7 +28,7 @@ namespace KoiSkinOverlayX
             DontDestroyOnLoad(OverlayMat);
             ab.Unload(false);
 
-            rt_Face = new RenderTexture(512, 512, 8);
+            rt_Face = new RenderTexture(1024, 1024, 8);
             DontDestroyOnLoad(rt_Face);
 
             rt_Body = new RenderTexture(2048, 2048, 8);
