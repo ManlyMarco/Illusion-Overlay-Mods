@@ -67,6 +67,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ClothesRendererGroup.cs" />
+    <Compile Include="ClothesTexData.cs" />
     <Compile Include="ClothesTexId.cs" />
     <Compile Include="KoiClothesOverlayController.cs" />
     <Compile Include="KoiClothesOverlayGui.cs" />

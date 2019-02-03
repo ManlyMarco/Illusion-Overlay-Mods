@@ -94,8 +94,9 @@ namespace KoiClothesOverlayX
 
         private static Subject<int> _refresh;
 
-        private Subject<KeyValuePair<ClothesTexId, Texture2D>> _textureChanged;
+        private Subject<KeyValuePair<ClothesTexId, ClothesTexData>> _textureChanged;
         private ClothesTexId _typeToLoad;
+        private bool _hideMain;
 
         private static KoiClothesOverlayController GetOverlayController()
         {
@@ -116,8 +117,9 @@ namespace KoiClothesOverlayX
             //UpdateInterface();
         }
 
-        private void OnFileAccept(string[] strings, ClothesTexId type)
+        private void OnFileAccept(string[] strings, ClothesTexId type, bool hideMain)
         {
+            _hideMain = hideMain;
             if (strings == null || strings.Length == 0) return;
 
             var texPath = strings[0];
@@ -144,7 +146,7 @@ namespace KoiClothesOverlayX
         private void RegisterCustomControls(object sender, RegisterCustomControlsEvent e)
         {
             var owner = this;
-            _textureChanged = new Subject<KeyValuePair<ClothesTexId, Texture2D>>();
+            _textureChanged = new Subject<KeyValuePair<ClothesTexId, ClothesTexData>>();
             _refresh = new Subject<int>();
 
             var makerCategory = MakerConstants.GetBuiltInCategory("03_ClothesTop", "tglTop");
@@ -182,11 +184,11 @@ namespace KoiClothesOverlayX
             _refresh.OnNext(category);
         }
 
-        private void SetTexAndUpdate(Texture2D tex, ClothesTexId texType)
+        private void SetTexAndUpdate(ClothesTexData tex, ClothesTexId texType)
         {
             GetOverlayController().SetOverlayTex(tex, texType);
 
-            _textureChanged.OnNext(new KeyValuePair<ClothesTexId, Texture2D>(texType, tex));
+            _textureChanged.OnNext(new KeyValuePair<ClothesTexId, ClothesTexData>(texType, tex));
         }
 
         private void SetupTexControls(RegisterCustomControlsEvent e, MakerCategory makerCategory, BaseUnityPlugin owner, string clothesId, int clothesIndex, string title = "Overlay textures")
@@ -204,7 +206,7 @@ namespace KoiClothesOverlayX
             void OnSelectionChange(int _)
             {
                 var id = GetSelectedId();
-                _textureChanged.OnNext(new KeyValuePair<ClothesTexId, Texture2D>(id, GetOverlayController().GetOverlayTex(id)));
+                _textureChanged.OnNext(new KeyValuePair<ClothesTexId, ClothesTexData>(id, GetOverlayController()?.GetOverlayTex(id)));
             }
             rCat.ValueChanged.Subscribe(OnSelectionChange);
             rNum.ValueChanged.Subscribe(OnSelectionChange);
@@ -217,11 +219,39 @@ namespace KoiClothesOverlayX
                 });
 
             var controlImage = e.AddControl(new MakerImage(null, makerCategory, owner) { Height = 150, Width = 150 });
-            _textureChanged.Subscribe(d => { if (Equals(GetSelectedId(), d.Key)) controlImage.Texture = d.Value; });
+
+            var controlOverride = e.AddControl(new MakerToggle(makerCategory, "Hide base texture", owner));
+            controlOverride.ValueChanged.Subscribe(
+                b =>
+                {
+                    var c = GetOverlayController();
+                    if (c != null)
+                    {
+                        var tex = c.GetOverlayTex(GetSelectedId()) ?? new ClothesTexData();
+                        if (tex.Override != b)
+                        {
+                            tex.Override = b;
+                            SetTexAndUpdate(tex, GetSelectedId());
+                        }
+                    }
+                });
+
+            _textureChanged.Subscribe(d =>
+            {
+                if (Equals(GetSelectedId(), d.Key))
+                {
+                    controlImage.Texture = d.Value?.Texture;
+                    controlOverride.Value = d.Value?.Override ?? false;
+                }
+            });
 
             var controlLoad = e.AddControl(new MakerButton("Load new overlay texture", makerCategory, owner));
-            controlLoad.OnClick.AddListener(
-                    () => OpenFileDialog.Show(strings => OnFileAccept(strings, GetSelectedId()), "Open overlay image", KoiSkinOverlayGui.GetDefaultLoadDir(), KoiSkinOverlayGui.FileFilter, KoiSkinOverlayGui.FileExt));
+            controlLoad.OnClick.AddListener(() => OpenFileDialog.Show(
+                strings => OnFileAccept(strings, GetSelectedId(), controlOverride.Value),
+                "Open overlay image",
+                KoiSkinOverlayGui.GetDefaultLoadDir(),
+                KoiSkinOverlayGui.FileFilter,
+                KoiSkinOverlayGui.FileExt));
 
             var controlClear = e.AddControl(new MakerButton("Clear overlay texture", makerCategory, owner));
             controlClear.OnClick.AddListener(() => SetTexAndUpdate(null, GetSelectedId()));
@@ -277,6 +307,7 @@ namespace KoiClothesOverlayX
 
                 controlGen.Visible.OnNext(any);
                 controlImage.Visible.OnNext(any);
+                controlOverride.Visible.OnNext(any);
                 controlLoad.Visible.OnNext(any);
                 controlClear.Visible.OnNext(any);
                 controlExport.Visible.OnNext(any);
@@ -349,7 +380,7 @@ namespace KoiClothesOverlayX
                     else
                         Logger.Log(LogLevel.Message, "[KCOX] Texture imported successfully");
 
-                    SetTexAndUpdate(tex, _typeToLoad);
+                    SetTexAndUpdate(new ClothesTexData { Override = _hideMain, Texture = tex }, _typeToLoad);
                 }
                 catch (Exception ex)
                 {

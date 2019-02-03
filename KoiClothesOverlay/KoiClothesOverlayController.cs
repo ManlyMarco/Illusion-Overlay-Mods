@@ -17,9 +17,9 @@ namespace KoiClothesOverlayX
     public class KoiClothesOverlayController : CharaCustomFunctionController
     {
         // todo change based on coord event, maybe listen for updates in ui? or not necessary
-        private Dictionary<ChaFileDefine.CoordinateType, Dictionary<ClothesTexId, Texture2D>> _allOverlayTextures;
+        private Dictionary<ChaFileDefine.CoordinateType, Dictionary<ClothesTexId, ClothesTexData>> _allOverlayTextures;
 
-        private Dictionary<ClothesTexId, Texture2D> CurrentOverlayTextures
+        private Dictionary<ClothesTexId, ClothesTexData> CurrentOverlayTextures
         {
             get
             {
@@ -30,7 +30,7 @@ namespace KoiClothesOverlayX
 
                 if (dict == null)
                 {
-                    dict = new Dictionary<ClothesTexId, Texture2D>();
+                    dict = new Dictionary<ClothesTexId, ClothesTexData>();
                     _allOverlayTextures.Add(coordinateType, dict);
                 }
 
@@ -41,7 +41,7 @@ namespace KoiClothesOverlayX
         private ClothesTexId _dumpClothesId;
         private Action<byte[]> _dumpCallback;
 
-        public void SetOverlayTex(Texture2D tex, ClothesTexId texType)
+        public void SetOverlayTex(ClothesTexData tex, ClothesTexId texType)
         {
             if (tex == null)
                 CurrentOverlayTextures.Remove(texType);
@@ -59,13 +59,15 @@ namespace KoiClothesOverlayX
             var data = new PluginData();
             data.version = 1;
 
-            foreach (var dict in _allOverlayTextures)
+            data.data.Add("Overlays", MessagePackSerializer.Serialize(_allOverlayTextures));
+
+            /*foreach (var dict in _allOverlayTextures)
             {
                 if (dict.Value != null && dict.Value.Count > 0)
                 {
                     data.data.Add(dict.Key.ToString(), dict.Value.ToDictionary(x => MessagePackSerializer.Serialize(x.Key), x => x.Value.EncodeToPNG()));
                 }
-            }
+            }*/
 
             SetExtendedData(data);
         }
@@ -78,16 +80,37 @@ namespace KoiClothesOverlayX
                 {
                     foreach (var texture in textures.Value)
                     {
-                        Destroy(texture.Value);
+                        Destroy(texture.Value.Texture);
+                    }
+                }
+                _allOverlayTextures = null;
+            }
+
+            // Todo load toggle
+            var pd = GetExtendedData();
+            if (pd != null && pd.data.TryGetValue("Ovelays", out var overlayData))
+            {
+                if (overlayData is byte[] overlayBytes)
+                {
+                    try
+                    {
+                        _allOverlayTextures = MessagePackSerializer.Deserialize<
+                            Dictionary<ChaFileDefine.CoordinateType, Dictionary<ClothesTexId, ClothesTexData>>>(
+                            overlayBytes);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(LogLevel.Warning | LogLevel.Message, "[KCOX] Failed to deserialize overlay data for " + (ChaFileControl?.charaFileName ?? "?"));
+                        Logger.Log(LogLevel.Debug, ex);
                     }
                 }
             }
 
-            _allOverlayTextures = new Dictionary<ChaFileDefine.CoordinateType, Dictionary<ClothesTexId, Texture2D>>();
+            if (_allOverlayTextures == null)
+                _allOverlayTextures = new Dictionary<ChaFileDefine.CoordinateType, Dictionary<ClothesTexId, ClothesTexData>>();
 
-            var data = GetExtendedData();
-
-            if (data?.data != null)
+            /*
+            if (pd?.data != null)
             {
                 foreach (ChaFileDefine.CoordinateType coord in Enum.GetValues(typeof(ChaFileDefine.CoordinateType)))
                 {
@@ -96,7 +119,7 @@ namespace KoiClothesOverlayX
                         _allOverlayTextures.Add(coord, overlayBytes.ToDictionary(pair => MessagePackSerializer.Deserialize<ClothesTexId>((byte[])pair.Key), pair => Util.TextureFromBytes((byte[])pair.Value)));
                     }
                 }
-            }
+        }*/
 
             RefreshAllTextures();
         }
@@ -149,17 +172,29 @@ namespace KoiClothesOverlayX
             for (var i = 0; i < rendererArrs.Length; i++)
             {
                 var renderers = rendererArrs[i];
-                foreach (var overlay in overlays.Where(x => x.Key.RendererGroup == (ClothesRendererGroup)i))
+                foreach (var overlay in overlays.Where(x => x.Key.RendererGroup == (ClothesRendererGroup)i).ToList())
                 {
                     if (renderers.Length > overlay.Key.RendererId)
                     {
                         var mat = renderers[overlay.Key.RendererId].material;
-                        KoiSkinOverlayController.ApplyOverlay((RenderTexture)mat.mainTexture, overlay.Value);
+
+                        var mainTexture = (RenderTexture)mat.mainTexture;
+
+                        if (overlay.Value.Override)
+                        {
+                            var rta = RenderTexture.active;
+                            RenderTexture.active = mainTexture;
+                            GL.Clear(false, true, Color.clear);
+                            RenderTexture.active = rta;
+                        }
+
+                        if (overlay.Value.Texture != null)
+                            KoiSkinOverlayController.ApplyOverlay(mainTexture, overlay.Value.Texture);
                     }
                     else
                     {
                         Logger.Log(MakerAPI.MakerAPI.Instance.InsideMaker ? LogLevel.Warning | LogLevel.Message : LogLevel.Debug, $"[KCOX] Removing unused overlay for {overlay.Key.ClothesName}");
-                        Destroy(overlay.Value);
+                        Destroy(overlay.Value.Texture);
                         overlays.Remove(overlay);
                     }
                 }
@@ -245,7 +280,7 @@ namespace KoiClothesOverlayX
             }
         }
 
-        public Texture2D GetOverlayTex(ClothesTexId clothesId)
+        public ClothesTexData GetOverlayTex(ClothesTexId clothesId)
         {
             if (CurrentOverlayTextures != null)
             {
