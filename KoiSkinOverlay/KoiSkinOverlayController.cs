@@ -112,7 +112,7 @@ namespace KoiSkinOverlayX
             var rtTemp = RenderTexture.GetTemporary(mainTex.width, mainTex.height, 0, mainTex.format);
             var rta = RenderTexture.active;
             RenderTexture.active = rtTemp;
-            GL.Clear(false, true, Color.green);
+            GL.Clear(false, true, Color.clear);
             RenderTexture.active = rta;
 
             KoiSkinOverlayMgr.OverlayMat.SetTexture("_Overlay", blitTex);
