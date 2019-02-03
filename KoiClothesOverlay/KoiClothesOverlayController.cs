@@ -16,6 +16,8 @@ namespace KoiClothesOverlayX
     [RequireComponent(typeof(ChaControl))]
     public class KoiClothesOverlayController : CharaCustomFunctionController
     {
+        private const string OverlayDataKey = "Overlays";
+
         // todo change based on coord event, maybe listen for updates in ui? or not necessary
         private Dictionary<ChaFileDefine.CoordinateType, Dictionary<ClothesTexId, ClothesTexData>> _allOverlayTextures;
 
@@ -43,7 +45,7 @@ namespace KoiClothesOverlayX
 
         public void SetOverlayTex(ClothesTexData tex, ClothesTexId texType)
         {
-            if (tex == null)
+            if (tex == null || tex.IsEmpty())
                 CurrentOverlayTextures.Remove(texType);
             else
                 CurrentOverlayTextures[texType] = tex;
@@ -59,17 +61,22 @@ namespace KoiClothesOverlayX
             var data = new PluginData();
             data.version = 1;
 
-            data.data.Add("Overlays", MessagePackSerializer.Serialize(_allOverlayTextures));
-
-            /*foreach (var dict in _allOverlayTextures)
-            {
-                if (dict.Value != null && dict.Value.Count > 0)
-                {
-                    data.data.Add(dict.Key.ToString(), dict.Value.ToDictionary(x => MessagePackSerializer.Serialize(x.Key), x => x.Value.EncodeToPNG()));
-                }
-            }*/
+            CleanupTextureList();
+            data.data.Add(OverlayDataKey, MessagePackSerializer.Serialize(_allOverlayTextures));
 
             SetExtendedData(data);
+        }
+
+        private void CleanupTextureList()
+        {
+            foreach (var group in _allOverlayTextures.Values)
+            {
+                foreach (var texture in group.Where(x => x.Value.IsEmpty()).ToList())
+                    group.Remove(texture.Key);
+            }
+
+            foreach (var group in _allOverlayTextures.Where(x => !x.Value.Any()).ToList())
+                _allOverlayTextures.Remove(group.Key);
         }
 
         protected override void OnReload(GameMode currentGameMode)
@@ -88,7 +95,7 @@ namespace KoiClothesOverlayX
 
             // Todo load toggle
             var pd = GetExtendedData();
-            if (pd != null && pd.data.TryGetValue("Ovelays", out var overlayData))
+            if (pd != null && pd.data.TryGetValue(OverlayDataKey, out var overlayData))
             {
                 if (overlayData is byte[] overlayBytes)
                 {
@@ -109,18 +116,6 @@ namespace KoiClothesOverlayX
             if (_allOverlayTextures == null)
                 _allOverlayTextures = new Dictionary<ChaFileDefine.CoordinateType, Dictionary<ClothesTexId, ClothesTexData>>();
 
-            /*
-            if (pd?.data != null)
-            {
-                foreach (ChaFileDefine.CoordinateType coord in Enum.GetValues(typeof(ChaFileDefine.CoordinateType)))
-                {
-                    if (data.data.TryGetValue(coord.ToString(), out var obj) && obj is Dictionary<object, object> overlayBytes)
-                    {
-                        _allOverlayTextures.Add(coord, overlayBytes.ToDictionary(pair => MessagePackSerializer.Deserialize<ClothesTexId>((byte[])pair.Key), pair => Util.TextureFromBytes((byte[])pair.Value)));
-                    }
-                }
-        }*/
-
             RefreshAllTextures();
         }
 
@@ -140,20 +135,24 @@ namespace KoiClothesOverlayX
 
         public void RefreshTexture(ClothesTexId texType)
         {
-            var i = Array.FindIndex(ChaControl.objClothes, x => x.name == texType.ClothesName);
-            if (i >= 0)
-                ChaControl.ChangeCustomClothes(true, i, true, false, false, false, false);
-            else
+            if (texType?.ClothesName != null)
             {
-                i = Array.FindIndex(ChaControl.objParts, x => x.name == texType.ClothesName);
+                var i = Array.FindIndex(ChaControl.objClothes, x => x != null && x.name == texType.ClothesName);
                 if (i >= 0)
-                    ChaControl.ChangeCustomClothes(false, i, true, false, false, false, false);
-                else
                 {
-                    Logger.Log(LogLevel.Error | LogLevel.Message, "This should not have happened");
-                    RefreshAllTextures();
+                    ChaControl.ChangeCustomClothes(true, i, true, false, false, false, false);
+                    return;
+                }
+
+                i = Array.FindIndex(ChaControl.objParts, x => x != null && x.name == texType.ClothesName);
+                if (i >= 0)
+                {
+                    ChaControl.ChangeCustomClothes(false, i, true, false, false, false, false);
+                    return;
                 }
             }
+
+            RefreshAllTextures();
         }
 
         private void ApplyOverlays(ChaClothesComponent clothesCtrl)

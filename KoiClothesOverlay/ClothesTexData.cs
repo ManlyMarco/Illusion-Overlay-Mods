@@ -18,5 +18,10 @@ namespace KoiClothesOverlayX {
             get => Texture?.EncodeToPNG();
             set => Texture = Util.TextureFromBytes(value);
         }
+
+        public bool IsEmpty()
+        {
+            return !Override && Texture == null;
+        }
     }
 }

@@ -34,9 +34,11 @@ namespace KoiClothesOverlayX
             [HarmonyPatch(typeof(CustomSelectKind), nameof(CustomSelectKind.OnSelect))]
             public static void UpdateSelectClothesPost(CustomSelectKind __instance)
             {
+                if (_refresh == null) return;
+                if (_refreshing) return;
+
                 var type = (CustomSelectKind.SelectKindType)AccessTools.Field(typeof(CustomSelectKind), "type").GetValue(__instance);
 
-                ChaFileDefine.ClothesKind refreshResult;
                 switch (type)
                 {
                     case CustomSelectKind.SelectKindType.CosTop:
@@ -47,44 +49,36 @@ namespace KoiClothesOverlayX
                     case CustomSelectKind.SelectKindType.CosJacket02:
                     case CustomSelectKind.SelectKindType.CosJacket03:
                         //case CustomSelectKind.SelectKindType.CosTopEmblem:
-                        refreshResult = ChaFileDefine.ClothesKind.top;
                         break;
                     case CustomSelectKind.SelectKindType.CosBot:
                         //case CustomSelectKind.SelectKindType.CosBotEmblem:
-                        refreshResult = ChaFileDefine.ClothesKind.bot;
                         break;
                     case CustomSelectKind.SelectKindType.CosBra:
                         //case CustomSelectKind.SelectKindType.CosBraEmblem:
-                        refreshResult = ChaFileDefine.ClothesKind.bra;
                         break;
                     case CustomSelectKind.SelectKindType.CosShorts:
                         //case CustomSelectKind.SelectKindType.CosShortsEmblem:
-                        refreshResult = ChaFileDefine.ClothesKind.shorts;
                         break;
                     case CustomSelectKind.SelectKindType.CosGloves:
                         //case CustomSelectKind.SelectKindType.CosGlovesEmblem:
-                        refreshResult = ChaFileDefine.ClothesKind.gloves;
                         break;
                     case CustomSelectKind.SelectKindType.CosPanst:
                         //case CustomSelectKind.SelectKindType.CosPanstEmblem:
-                        refreshResult = ChaFileDefine.ClothesKind.panst;
                         break;
                     case CustomSelectKind.SelectKindType.CosSocks:
                         //case CustomSelectKind.SelectKindType.CosSocksEmblem:
-                        refreshResult = ChaFileDefine.ClothesKind.socks;
                         break;
                     case CustomSelectKind.SelectKindType.CosInnerShoes:
                         //case CustomSelectKind.SelectKindType.CosInnerShoesEmblem:
-                        refreshResult = ChaFileDefine.ClothesKind.shoes_inner;
                         break;
                     case CustomSelectKind.SelectKindType.CosOuterShoes:
                         //case CustomSelectKind.SelectKindType.CosOuterShoesEmblem:
-                        refreshResult = ChaFileDefine.ClothesKind.shoes_outer;
                         break;
                     default:
                         return;
                 }
-                _refresh?.OnNext((int)refreshResult);
+
+                RefreshInterface(-1);
             }
         }
 
@@ -106,16 +100,23 @@ namespace KoiClothesOverlayX
         private void MakerExiting(object sender, EventArgs e)
         {
             _textureChanged?.Dispose();
+            _textureChanged = null;
             _refresh?.Dispose();
+            _refresh = null;
             _bytesToLoad = null;
             _lastError = null;
+            _refreshing = false;
         }
 
-        private void OnChaFileLoaded(object sender, ChaFileLoadedEventArgs e)
+        private static void RefreshInterface(int category)
         {
-            //todo not needed? hook event on controller?
-            //UpdateInterface();
+            if (_refreshing || _refresh == null) return;
+
+            _refreshing = true;
+            _api.StartCoroutine(RefreshInterfaceCo(category));
         }
+
+        private static bool _refreshing;
 
         private void OnFileAccept(string[] strings, ClothesTexId type, bool hideMain)
         {
@@ -175,13 +176,14 @@ namespace KoiClothesOverlayX
                 SetupTexControls(e, MakerConstants.GetBuiltInCategory("03_ClothesTop", pair.Key), owner, pair.Value, index + 1);
             }
 
-            GetOverlayController().CurrentCoordinate.Subscribe(type => StartCoroutine(RefreshCo(-1)));
+            GetOverlayController().CurrentCoordinate.Subscribe(type => RefreshInterface(-1));
         }
 
-        private IEnumerator RefreshCo(int category)
+        private static IEnumerator RefreshInterfaceCo(int category)
         {
             yield return null;
-            _refresh.OnNext(category);
+            _refresh?.OnNext(category);
+            _refreshing = false;
         }
 
         private void SetTexAndUpdate(ClothesTexData tex, ClothesTexId texType)
@@ -203,8 +205,11 @@ namespace KoiClothesOverlayX
                 return new ClothesTexId(clothesId, (ClothesRendererGroup)rCat.Value, rNum.Value);
             }
 
+            var refreshing = false;
             void OnSelectionChange(int _)
             {
+                if (refreshing) return;
+
                 var id = GetSelectedId();
                 _textureChanged.OnNext(new KeyValuePair<ClothesTexId, ClothesTexData>(id, GetOverlayController()?.GetOverlayTex(id)));
             }
@@ -320,32 +325,42 @@ namespace KoiClothesOverlayX
                     if (!rCat.Exists) return;
 
                     var ctrl = GetOverlayController();
-                    var clothes = ctrl?.GetCustomClothesComponent(clothesId);
 
-                    var resetSelection = false;
-
-                    if (clothes != null)
+                    refreshing = true;
+                    try
                     {
-                        var rendererArrays = KoiClothesOverlayController.GetRendererArrays(clothes);
+                        var clothes = ctrl?.GetCustomClothesComponent(clothesId);
+                        var resetSelection = false;
 
-                        for (var i = 0; i < rendererArrays.Length; i++)
+                        if (clothes != null)
                         {
-                            var renderers = rendererArrays[i];
-                            var any = renderers.Length > 0;
-                            rCat.Buttons[i].gameObject.SetActive(any);
-                            if (!any && rCat.Buttons[i].isOn)
-                                resetSelection = true;
+                            var rendererArrays = KoiClothesOverlayController.GetRendererArrays(clothes);
+
+                            for (var i = 0; i < rendererArrays.Length; i++)
+                            {
+                                var renderers = rendererArrays[i];
+                                var any = renderers.Length > 0;
+                                rCat.Buttons[i].gameObject.SetActive(any);
+                                if (!any && rCat.Buttons[i].isOn)
+                                    resetSelection = true;
+                            }
+                        }
+
+                        if (resetSelection)
+                        {
+                            var toggle = rCat.Buttons.TakeWhile(x => !x.gameObject.activeSelf).Count();
+                            rCat.Value = toggle;
+                        }
+                        else
+                        {
+                            RefreshControls(rCat.Value);
                         }
                     }
-
-                    if (resetSelection)
+                    finally
                     {
-                        var toggle = rCat.Buttons.TakeWhile(x => !x.gameObject.activeSelf).Count();
-                        rCat.Value = toggle;
-                    }
-                    else
-                    {
-                        RefreshControls(rCat.Value);
+                        refreshing = false;
+                        var id = GetSelectedId();
+                        _textureChanged.OnNext(new KeyValuePair<ClothesTexId, ClothesTexData>(id, ctrl?.GetOverlayTex(id)));
                     }
                 });
 
@@ -358,11 +373,9 @@ namespace KoiClothesOverlayX
             Hooks.Init();
 
             _api.MakerBaseLoaded += RegisterCustomControls;
-            _api.MakerFinishedLoading += (sender, args) => _refresh.OnNext(0);
+            _api.MakerFinishedLoading += (sender, args) => RefreshInterface(-1);
             _api.MakerExiting += MakerExiting;
-            _api.ChaFileLoaded += OnChaFileLoaded;
-            // Needed for starting maker in class roster. There is no ChaFileLoaded event fired
-            //todo not needed? _api.MakerFinishedLoading += (sender, args) => UpdateInterface();
+            _api.ChaFileLoaded += (sender, e) => RefreshInterface(-1);
         }
 
         private void Update()
