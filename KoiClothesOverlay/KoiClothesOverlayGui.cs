@@ -235,7 +235,7 @@ namespace KoiClothesOverlayX
                             var tex = controlImage.Texture as Texture2D;
                             if (tex == null)
                             {
-                                Logger.Log(LogLevel.Message, "[KSOX] Nothing to export");
+                                Logger.Log(LogLevel.Message, "[KCOX] Nothing to export");
                                 return;
                             }
 
@@ -243,7 +243,7 @@ namespace KoiClothesOverlayX
                         }
                         catch (Exception ex)
                         {
-                            Logger.Log(LogLevel.Error | LogLevel.Message, "[KSOX] Failed to export texture - " + ex.Message);
+                            Logger.Log(LogLevel.Error | LogLevel.Message, "[KCOX] Failed to export texture - " + ex.Message);
                         }
                     });
 
@@ -340,7 +340,16 @@ namespace KoiClothesOverlayX
             {
                 try
                 {
-                    SetTexAndUpdate(KoiSkinOverlayGui.LoadBytesToTexture(_bytesToLoad), _typeToLoad);
+                    var tex = Util.TextureFromBytes(_bytesToLoad);
+
+                    var origTex = GetOverlayController().GetRenderer(_typeToLoad).material.mainTexture;
+
+                    if (tex.width != origTex.width || tex.height != origTex.height)
+                        Logger.Log(LogLevel.Message | LogLevel.Warning, $"[KCOX] WARNING - Wrong texture resolution! It's recommended to use {origTex.width}x{origTex.height} instead.");
+                    else
+                        Logger.Log(LogLevel.Message, "[KCOX] Texture imported successfully");
+
+                    SetTexAndUpdate(tex, _typeToLoad);
                 }
                 catch (Exception ex)
                 {

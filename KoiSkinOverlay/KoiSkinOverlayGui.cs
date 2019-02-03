@@ -257,7 +257,14 @@ namespace KoiSkinOverlayX
             {
                 try
                 {
-                    SetTexAndUpdate(LoadBytesToTexture(_bytesToLoad), _typeToLoad);
+                    var tex = Util.TextureFromBytes(_bytesToLoad);
+
+                    if (tex.width != tex.height || tex.height % 1024 != 0 || tex.height == 0)
+                        Logger.Log(LogLevel.Message | LogLevel.Warning, "[KSOX] WARNING - Unusual texture resolution! It's recommended to use 1024x1024 for face and 2048x2048 for body.");
+                    else
+                        Logger.Log(LogLevel.Message, "[KSOX] Texture imported successfully");
+
+                    SetTexAndUpdate(tex, _typeToLoad);
                 }
                 catch (Exception ex)
                 {
@@ -277,21 +284,6 @@ namespace KoiSkinOverlayX
         {
             Logger.Log(LogLevel.Error | LogLevel.Message, "[KSOX] Failed to load texture from file - " + texLoadError.Message);
             Logger.Log(LogLevel.Debug, texLoadError);
-        }
-
-        /// <summary>
-        /// Shows messages on screen based on what's loaded
-        /// </summary>
-        public static Texture2D LoadBytesToTexture(byte[] pngBytes)
-        {
-            var tex = Util.TextureFromBytes(pngBytes);
-
-            if (tex.width != tex.height || tex.height % 1024 != 0 || tex.height == 0)
-                Logger.Log(LogLevel.Message | LogLevel.Warning, "[KSOX] WARNING - Unusual texture resolution! It's recommended to use 1024x1024 for face and 2048x2048 for body.");
-            else
-                Logger.Log(LogLevel.Message, "[KSOX] Texture imported successfully");
-
-            return tex;
         }
 
         private void OnChaFileLoaded(object sender, ChaFileLoadedEventArgs e)

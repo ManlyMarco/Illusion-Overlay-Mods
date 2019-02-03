@@ -158,7 +158,7 @@ namespace KoiClothesOverlayX
                     }
                     else
                     {
-                        Logger.Log(LogLevel.Warning | LogLevel.Message, $"[KCOX] Removing unused overlay for {overlay.Key.ClothesName}");
+                        Logger.Log(MakerAPI.MakerAPI.Instance.InsideMaker ? LogLevel.Warning | LogLevel.Message : LogLevel.Debug, $"[KCOX] Removing unused overlay for {overlay.Key.ClothesName}");
                         Destroy(overlay.Value);
                         overlays.Remove(overlay);
                     }
@@ -262,6 +262,18 @@ namespace KoiClothesOverlayX
 
             // Force redraw to trigger the dump
             RefreshTexture(clothesId);
+        }
+
+        public Renderer GetRenderer(ClothesTexId clothesTexId)
+        {
+            var ccc = GetCustomClothesComponent(clothesTexId.ClothesName);
+            if (ccc != null)
+            {
+                var arr = GetRendererArrays(ccc).ElementAtOrDefault((int)clothesTexId.RendererGroup);
+                if (arr != null)
+                    return arr.ElementAtOrDefault(clothesTexId.RendererId);
+            }
+            return null;
         }
     }
 }
