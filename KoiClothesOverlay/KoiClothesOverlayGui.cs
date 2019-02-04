@@ -18,7 +18,7 @@ using Logger = BepInEx.Logger;
 namespace KoiClothesOverlayX
 {
     [BepInProcess("Koikatu")]
-    [BepInPlugin(GUID, "KCOX GUI", KoiSkinOverlayMgr.Version)]
+    [BepInPlugin(GUID, "KCOX (KoiClothesOverlay) GUI", KoiSkinOverlayMgr.Version)]
     [BepInDependency(KoiClothesOverlayMgr.GUID)]
     public class KoiClothesOverlayGui : BaseUnityPlugin
     {
@@ -111,6 +111,7 @@ namespace KoiClothesOverlayX
             _bytesToLoad = null;
             _lastError = null;
             _refreshing = false;
+            _makerLoadToggle = null;
         }
 
         private static void RefreshInterface(int category)
@@ -122,6 +123,8 @@ namespace KoiClothesOverlayX
         }
 
         private static bool _refreshing;
+        private static MakerLoadToggle _makerLoadToggle;
+        internal static bool MakerLoadFromCharas => _makerLoadToggle == null || _makerLoadToggle.Value;
 
         private void OnFileAccept(string[] strings, ClothesTexId type, bool hideMain)
         {
@@ -154,6 +157,8 @@ namespace KoiClothesOverlayX
             var owner = this;
             _textureChanged = new Subject<KeyValuePair<ClothesTexId, ClothesTexData>>();
             _refresh = new Subject<int>();
+
+            _makerLoadToggle = e.AddLoadToggle(new MakerLoadToggle("Clothes overlays"));
 
             var makerCategory = MakerConstants.GetBuiltInCategory("03_ClothesTop", "tglTop");
 

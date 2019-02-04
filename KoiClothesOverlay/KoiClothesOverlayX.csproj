@@ -71,6 +71,7 @@
     <Compile Include="ClothesTexData.cs" />
     <Compile Include="ClothesTexId.cs" />
     <Compile Include="KoiClothesOverlayController.cs" />
+    <Compile Include="KoiClothesOverlayController.Hooks.cs" />
     <Compile Include="KoiClothesOverlayGui.cs" />
     <Compile Include="KoiClothesOverlayMgr.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
