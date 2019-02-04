@@ -16,16 +16,18 @@ namespace KoiClothesOverlayX
     public partial class KoiClothesOverlayController : CharaCustomFunctionController
     {
         private const string OverlayDataKey = "Overlays";
-        
-        private Dictionary<ChaFileDefine.CoordinateType, Dictionary<ClothesTexId, ClothesTexData>> _allOverlayTextures;
 
+        private Action<byte[]> _dumpCallback;
+        private ClothesTexId _dumpClothesId;
+
+        private Dictionary<ChaFileDefine.CoordinateType, Dictionary<ClothesTexId, ClothesTexData>> _allOverlayTextures;
         private Dictionary<ClothesTexId, ClothesTexData> CurrentOverlayTextures
         {
             get
             {
                 if (_allOverlayTextures == null) return null;
 
-                var coordinateType = (ChaFileDefine.CoordinateType)ChaControl.fileStatus.coordinateType;
+                var coordinateType = (ChaFileDefine.CoordinateType) ChaControl.fileStatus.coordinateType;
                 _allOverlayTextures.TryGetValue(coordinateType, out var dict);
 
                 if (dict == null)
@@ -38,8 +40,77 @@ namespace KoiClothesOverlayX
             }
         }
 
-        private ClothesTexId _dumpClothesId;
-        private Action<byte[]> _dumpCallback;
+        public void DumpBaseTexture(ClothesTexId clothesId, Action<byte[]> callback)
+        {
+            _dumpCallback = callback;
+            _dumpClothesId = clothesId;
+
+            // Force redraw to trigger the dump
+            RefreshTexture(clothesId);
+        }
+
+        public ChaClothesComponent GetCustomClothesComponent(string clothesObjectName)
+        {
+            return ChaControl.cusClothesCmp.Concat(ChaControl.cusClothesSubCmp).FirstOrDefault(x => x != null && x.gameObject.name == clothesObjectName);
+        }
+
+        public ClothesTexData GetOverlayTex(ClothesTexId clothesId)
+        {
+            if (CurrentOverlayTextures != null)
+            {
+                CurrentOverlayTextures.TryGetValue(clothesId, out var tex);
+                return tex;
+            }
+            return null;
+        }
+
+        public Renderer GetRenderer(ClothesTexId clothesTexId)
+        {
+            var ccc = GetCustomClothesComponent(clothesTexId.ClothesName);
+            if (ccc != null)
+            {
+                var arr = GetRendererArrays(ccc).ElementAtOrDefault((int) clothesTexId.RendererGroup);
+                if (arr != null)
+                    return arr.ElementAtOrDefault(clothesTexId.RendererId);
+            }
+            return null;
+        }
+
+        public static Renderer[][] GetRendererArrays(ChaClothesComponent clothesCtrl)
+        {
+            return new[] {clothesCtrl.rendNormal01, clothesCtrl.rendNormal02, clothesCtrl.rendAlpha01, clothesCtrl.rendAlpha02};
+        }
+
+        public void RefreshAllTextures()
+        {
+            for (var i = 0; i < ChaControl.cusClothesCmp.Length; i++)
+                ChaControl.ChangeCustomClothes(true, i, true, false, false, false, false);
+
+            for (var i = 0; i < ChaControl.cusClothesSubCmp.Length; i++)
+                ChaControl.ChangeCustomClothes(false, i, true, false, false, false, false);
+        }
+
+        public void RefreshTexture(ClothesTexId texType)
+        {
+            if (texType?.ClothesName != null)
+            {
+                var i = Array.FindIndex(ChaControl.objClothes, x => x != null && x.name == texType.ClothesName);
+                if (i >= 0)
+                {
+                    ChaControl.ChangeCustomClothes(true, i, true, false, false, false, false);
+                    return;
+                }
+
+                i = Array.FindIndex(ChaControl.objParts, x => x != null && x.name == texType.ClothesName);
+                if (i >= 0)
+                {
+                    ChaControl.ChangeCustomClothes(false, i, true, false, false, false, false);
+                    return;
+                }
+            }
+
+            RefreshAllTextures();
+        }
 
         public void SetOverlayTex(ClothesTexData tex, ClothesTexId texType)
         {
@@ -71,18 +142,6 @@ namespace KoiClothesOverlayX
             SetExtendedData(data);
         }
 
-        private void CleanupTextureList()
-        {
-            foreach (var group in _allOverlayTextures.Values)
-            {
-                foreach (var texture in group.Where(x => x.Value.IsEmpty()).ToList())
-                    group.Remove(texture.Key);
-            }
-
-            foreach (var group in _allOverlayTextures.Where(x => !x.Value.Any()).ToList())
-                _allOverlayTextures.Remove(group.Key);
-        }
-
         protected override void OnReload(GameMode currentGameMode)
         {
             if (currentGameMode == GameMode.Maker && !KoiClothesOverlayGui.MakerLoadFromCharas) return;
@@ -92,13 +151,11 @@ namespace KoiClothesOverlayX
                 foreach (var textures in _allOverlayTextures)
                 {
                     foreach (var texture in textures.Value)
-                    {
                         Destroy(texture.Value.Texture);
-                    }
                 }
                 _allOverlayTextures = null;
             }
-            
+
             var pd = GetExtendedData();
             if (pd != null && pd.data.TryGetValue(OverlayDataKey, out var overlayData))
             {
@@ -112,7 +169,7 @@ namespace KoiClothesOverlayX
                     }
                     catch (Exception ex)
                     {
-                        Logger.Log(LogLevel.Warning | LogLevel.Message, "[KCOX] Failed to deserialize overlay data for " + (ChaFileControl?.charaFileName ?? "?"));
+                        Logger.Log(LogLevel.Warning, "[KCOX] Failed to deserialize overlay data for " + (ChaFileControl?.charaFileName ?? "?"));
                         Logger.Log(LogLevel.Debug, ex);
                     }
                 }
@@ -120,42 +177,6 @@ namespace KoiClothesOverlayX
 
             if (_allOverlayTextures == null)
                 _allOverlayTextures = new Dictionary<ChaFileDefine.CoordinateType, Dictionary<ClothesTexId, ClothesTexData>>();
-
-            RefreshAllTextures();
-        }
-
-        public void RefreshAllTextures()
-        {
-            for (var i = 0; i < ChaControl.cusClothesCmp.Length; i++)
-                ChaControl.ChangeCustomClothes(true, i, true, false, false, false, false);
-
-            for (int i = 0; i < ChaControl.cusClothesSubCmp.Length; i++)
-                ChaControl.ChangeCustomClothes(false, i, true, false, false, false, false);
-        }
-
-        public ChaClothesComponent GetCustomClothesComponent(string clothesObjectName)
-        {
-            return ChaControl.cusClothesCmp.Concat(ChaControl.cusClothesSubCmp).FirstOrDefault(x => x != null && x.gameObject.name == clothesObjectName);
-        }
-
-        public void RefreshTexture(ClothesTexId texType)
-        {
-            if (texType?.ClothesName != null)
-            {
-                var i = Array.FindIndex(ChaControl.objClothes, x => x != null && x.name == texType.ClothesName);
-                if (i >= 0)
-                {
-                    ChaControl.ChangeCustomClothes(true, i, true, false, false, false, false);
-                    return;
-                }
-
-                i = Array.FindIndex(ChaControl.objParts, x => x != null && x.name == texType.ClothesName);
-                if (i >= 0)
-                {
-                    ChaControl.ChangeCustomClothes(false, i, true, false, false, false, false);
-                    return;
-                }
-            }
 
             RefreshAllTextures();
         }
@@ -172,19 +193,19 @@ namespace KoiClothesOverlayX
                 DumpBaseTextureImpl(rendererArrs);
 
             if (CurrentOverlayTextures.Count == 0) return;
-            
+
             var overlays = CurrentOverlayTextures.Where(x => x.Key.ClothesName == clothesName).ToList();
 
             for (var i = 0; i < rendererArrs.Length; i++)
             {
                 var renderers = rendererArrs[i];
-                foreach (var overlay in overlays.Where(x => x.Key.RendererGroup == (ClothesRendererGroup)i).ToList())
+                foreach (var overlay in overlays.Where(x => x.Key.RendererGroup == (ClothesRendererGroup) i).ToList())
                 {
                     if (renderers.Length > overlay.Key.RendererId)
                     {
                         var mat = renderers[overlay.Key.RendererId].material;
 
-                        var mainTexture = (RenderTexture)mat.mainTexture;
+                        var mainTexture = (RenderTexture) mat.mainTexture;
                         if (mainTexture == null) return;
 
                         if (overlay.Value.Override)
@@ -208,19 +229,26 @@ namespace KoiClothesOverlayX
             }
         }
 
-        public static Renderer[][] GetRendererArrays(ChaClothesComponent clothesCtrl)
+        private void CleanupTextureList()
         {
-            return new[] { clothesCtrl.rendNormal01, clothesCtrl.rendNormal02, clothesCtrl.rendAlpha01, clothesCtrl.rendAlpha02 };
+            foreach (var group in _allOverlayTextures.Values)
+            {
+                foreach (var texture in group.Where(x => x.Value.IsEmpty()).ToList())
+                    group.Remove(texture.Key);
+            }
+
+            foreach (var group in _allOverlayTextures.Where(x => !x.Value.Any()).ToList())
+                _allOverlayTextures.Remove(group.Key);
         }
 
         private void DumpBaseTextureImpl(Renderer[][] rendererArrs)
         {
             try
             {
-                var renderer = rendererArrs.ElementAtOrDefault((int)_dumpClothesId.RendererGroup)?.ElementAtOrDefault(_dumpClothesId.RendererId);
+                var renderer = rendererArrs.ElementAtOrDefault((int) _dumpClothesId.RendererGroup)?.ElementAtOrDefault(_dumpClothesId.RendererId);
                 if (renderer == null) throw new Exception("Specified renderer doesn't exist");
 
-                var renderTexture = (RenderTexture)renderer.material.mainTexture;
+                var renderTexture = (RenderTexture) renderer.material.mainTexture;
 
                 var act = RenderTexture.active;
                 RenderTexture.active = renderTexture;
@@ -246,37 +274,6 @@ namespace KoiClothesOverlayX
             {
                 _dumpCallback = null;
             }
-        }
-
-        public ClothesTexData GetOverlayTex(ClothesTexId clothesId)
-        {
-            if (CurrentOverlayTextures != null)
-            {
-                CurrentOverlayTextures.TryGetValue(clothesId, out var tex);
-                return tex;
-            }
-            return null;
-        }
-
-        public void DumpBaseTexture(ClothesTexId clothesId, Action<byte[]> callback)
-        {
-            _dumpCallback = callback;
-            _dumpClothesId = clothesId;
-
-            // Force redraw to trigger the dump
-            RefreshTexture(clothesId);
-        }
-
-        public Renderer GetRenderer(ClothesTexId clothesTexId)
-        {
-            var ccc = GetCustomClothesComponent(clothesTexId.ClothesName);
-            if (ccc != null)
-            {
-                var arr = GetRendererArrays(ccc).ElementAtOrDefault((int)clothesTexId.RendererGroup);
-                if (arr != null)
-                    return arr.ElementAtOrDefault(clothesTexId.RendererId);
-            }
-            return null;
         }
     }
 }

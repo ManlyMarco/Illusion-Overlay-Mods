@@ -12,13 +12,7 @@ namespace KoiClothesOverlayX
     {
         public const string GUID = KoiSkinOverlayMgr.GUID + "_Clothes";
 
-        private void Awake()
-        {
-            CharacterApi.RegisterExtraBehaviour<KoiClothesOverlayController>(GUID);
-            KoiClothesOverlayController.Hooks.Init(GUID);
-        }
-
-        public static readonly string[] MainClothesNames = new[]
+        public static readonly string[] MainClothesNames =
         {
             "ct_clothesTop",
             "ct_clothesBot",
@@ -31,11 +25,17 @@ namespace KoiClothesOverlayX
             "ct_shoes_outer"
         };
 
-        public static readonly string[] SubClothesNames = new[]
+        public static readonly string[] SubClothesNames =
         {
             "ct_top_parts_A",
             "ct_top_parts_B",
             "ct_top_parts_C"
         };
+
+        private void Awake()
+        {
+            CharacterApi.RegisterExtraBehaviour<KoiClothesOverlayController>(GUID);
+            KoiClothesOverlayController.Hooks.Init(GUID);
+        }
     }
 }

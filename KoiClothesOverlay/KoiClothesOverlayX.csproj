@@ -73,6 +73,7 @@
     <Compile Include="KoiClothesOverlayController.cs" />
     <Compile Include="KoiClothesOverlayController.Hooks.cs" />
     <Compile Include="KoiClothesOverlayGui.cs" />
+    <Compile Include="KoiClothesOverlayGui.Hooks.cs" />
     <Compile Include="KoiClothesOverlayMgr.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
