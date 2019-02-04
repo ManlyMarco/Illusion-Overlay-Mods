@@ -17,8 +17,7 @@ namespace KoiClothesOverlayX
     public class KoiClothesOverlayController : CharaCustomFunctionController
     {
         private const string OverlayDataKey = "Overlays";
-
-        // todo change based on coord event, maybe listen for updates in ui? or not necessary
+        
         private Dictionary<ChaFileDefine.CoordinateType, Dictionary<ClothesTexId, ClothesTexData>> _allOverlayTextures;
 
         private Dictionary<ClothesTexId, ClothesTexData> CurrentOverlayTextures
@@ -45,6 +44,12 @@ namespace KoiClothesOverlayX
 
         public void SetOverlayTex(ClothesTexData tex, ClothesTexId texType)
         {
+            if (CurrentOverlayTextures.TryGetValue(texType, out var existing))
+            {
+                if (existing != null && existing.Texture != tex?.Texture)
+                    Destroy(existing.Texture);
+            }
+
             if (tex == null || tex.IsEmpty())
                 CurrentOverlayTextures.Remove(texType);
             else
@@ -166,6 +171,8 @@ namespace KoiClothesOverlayX
             if (_dumpCallback != null && _dumpClothesId.ClothesName == clothesName)
                 DumpBaseTextureImpl(rendererArrs);
 
+            if (CurrentOverlayTextures.Count == 0) return;
+            
             var overlays = CurrentOverlayTextures.Where(x => x.Key.ClothesName == clothesName).ToList();
 
             for (var i = 0; i < rendererArrs.Length; i++)
@@ -178,6 +185,7 @@ namespace KoiClothesOverlayX
                         var mat = renderers[overlay.Key.RendererId].material;
 
                         var mainTexture = (RenderTexture)mat.mainTexture;
+                        if (mainTexture == null) return;
 
                         if (overlay.Value.Override)
                         {
@@ -252,6 +260,23 @@ namespace KoiClothesOverlayX
                 var clothesCtrl = GetCustomClothesComponent(__instance, main, kind);
                 if (clothesCtrl == null) return;
 
+                // Clean up no longer used textures when switching between top clothes with 3 parts and 1 part
+                if (MakerAPI.MakerAPI.Instance.InsideMaker && controller.CurrentOverlayTextures != null)
+                {
+                    List<KeyValuePair<ClothesTexId, ClothesTexData>> toRemoveList = null;
+                    if (main && kind == 0)
+                        toRemoveList = controller.CurrentOverlayTextures.Where(x => KoiClothesOverlayMgr.SubClothesNames.Contains(x.Key.ClothesName)).ToList();
+                    else if (!main)
+                        toRemoveList = controller.CurrentOverlayTextures.Where(x => KoiClothesOverlayMgr.MainClothesNames[0] == x.Key.ClothesName).ToList();
+
+                    if (toRemoveList != null && toRemoveList.Count > 0)
+                    {
+                        Logger.Log(LogLevel.Warning | LogLevel.Message, $"[KCOX] Removing {toRemoveList.Count} no longer used Top overlays");
+                        foreach (var toRemove in toRemoveList)
+                            controller.SetOverlayTex(null, toRemove.Key);
+                    }
+                }
+
                 controller.ApplyOverlays(clothesCtrl);
             }
 
@@ -262,20 +287,9 @@ namespace KoiClothesOverlayX
 
             private static ChaClothesComponent GetCustomClothesComponent(ChaControl chaControl, bool main, int kind)
             {
-                /* for top clothes it fires once at start with first bool true (main load), then for each subpart with bool false
-                * if true, objClothes are used, if false objParts
-                * ignore 0 main, handle separate sub parts instead
-                */
-
-                if (main)
-                {
-                    if (kind == 0)
-                        return null;
-
-                    return chaControl.GetCustomClothesComponent(kind);
-                }
-
-                return chaControl.GetCustomClothesSubComponent(kind);
+                // for top clothes it fires once at start with first bool true (main load), then for each subpart with bool false
+                // if true, objClothes are used, if false objParts                
+                return main ? chaControl.GetCustomClothesComponent(kind) : chaControl.GetCustomClothesSubComponent(kind);
             }
         }
 

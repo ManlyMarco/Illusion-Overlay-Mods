@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using BepInEx;
@@ -21,6 +22,10 @@ namespace KoiClothesOverlayX
     [BepInDependency(KoiClothesOverlayMgr.GUID)]
     public class KoiClothesOverlayGui : BaseUnityPlugin
     {
+        [DisplayName("Advanced mode")]
+        [Description("Show additional texture slots for each clothing item")]
+        public ConfigWrapper<bool> AdvancedMode { get; private set; }
+
         private const string GUID = KoiClothesOverlayMgr.GUID + "_GUI";
 
         private static class Hooks
@@ -152,11 +157,11 @@ namespace KoiClothesOverlayX
 
             var makerCategory = MakerConstants.GetBuiltInCategory("03_ClothesTop", "tglTop");
 
-            SetupTexControls(e, makerCategory, owner, "ct_top_parts_A", 0, "Overlay textures (Piece 1)");
-            e.AddControl(new MakerSeparator(makerCategory, owner));
-            SetupTexControls(e, makerCategory, owner, "ct_top_parts_B", 0, "Overlay textures (Piece 2)");
-            e.AddControl(new MakerSeparator(makerCategory, owner));
-            SetupTexControls(e, makerCategory, owner, "ct_top_parts_C", 0, "Overlay textures (Piece 3)");
+            SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[0], 0, "Overlay textures (Piece 1)");
+            SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[1], 0, "Overlay textures (Piece 2)", true);
+            SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[2], 0, "Overlay textures (Piece 3)", true);
+
+            SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.MainClothesNames[0], 0);
 
             var cats = new[]
             {
@@ -193,9 +198,11 @@ namespace KoiClothesOverlayX
             _textureChanged.OnNext(new KeyValuePair<ClothesTexId, ClothesTexData>(texType, tex));
         }
 
-        private void SetupTexControls(RegisterCustomControlsEvent e, MakerCategory makerCategory, BaseUnityPlugin owner, string clothesId, int clothesIndex, string title = "Overlay textures")
+        private void SetupTexControls(RegisterCustomControlsEvent e, MakerCategory makerCategory, BaseUnityPlugin owner, string clothesId, int clothesIndex, string title = "Overlay textures", bool addSeparator = false)
         {
-            e.AddControl(new MakerText(title, makerCategory, owner));
+            var controlSeparator = addSeparator ? e.AddControl(new MakerSeparator(makerCategory, owner)) : null;
+
+            var controlTitle = e.AddControl(new MakerText(title, makerCategory, owner));
 
             var rCat = e.AddControl(new MakerRadioButtons(makerCategory, owner, "Renderer group", "Normal 1", "Normal 2", "Alpha 1", "Alpha 2"));
             var rNum = e.AddControl(new MakerRadioButtons(makerCategory, owner, "Renderer number", "1", "2", "3", "4", "5", "6"));
@@ -286,36 +293,58 @@ namespace KoiClothesOverlayX
             {
                 if (!rNum.Exists) return;
 
+                var any = false;
+
                 var ctrl = GetOverlayController();
                 var clothes = ctrl.GetCustomClothesComponent(clothesId);
+
                 var renderers = clothes == null ? null : KoiClothesOverlayController.GetRendererArrays(clothes).ElementAtOrDefault(categoryNum);
 
-                var resetSelection = false;
-                var any = false;
-                var anyCats = rCat.Buttons.Any(x => x.gameObject.activeSelf);
-                for (var i = 0; i < rNum.Buttons.Count; i++)
+                if (AdvancedMode.Value)
                 {
-                    var visible = anyCats && renderers != null && i < renderers.Length;
-                    rNum.Buttons[i].gameObject.SetActive(visible);
+                    if (rCat.Visible.Value)
+                    {
+                        rNum.Visible.OnNext(true);
 
-                    if (!visible && rNum.Buttons[i].isOn)
-                        resetSelection = true;
-                    if (visible)
-                        any = true;
+                        var resetSelection = false;
+                        var anyCats = rCat.Buttons.Any(x => x.gameObject.activeSelf);
+                        for (var i = 0; i < rNum.Buttons.Count; i++)
+                        {
+                            var visible = anyCats && renderers != null && i < renderers.Length;
+                            rNum.Buttons[i].gameObject.SetActive(visible);
+
+                            if (!visible && rNum.Buttons[i].isOn)
+                                resetSelection = true;
+                            if (visible)
+                                any = true;
+                        }
+
+                        if (resetSelection || rNum.Buttons.All(x => !x.isOn))
+                        {
+                            var toggle = rNum.Buttons.TakeWhile(x => !x.gameObject.activeSelf).Count();
+                            rNum.Value = toggle;
+                        }
+                    }
+                    else
+                    {
+                        rNum.Visible.OnNext(false);
+                    }
+                }
+                else
+                {
+                    rNum.Visible.OnNext(false);
+                    rNum.Value = 0;
+                    any = renderers != null && renderers.Length > 0 && renderers[0] != null;
                 }
 
-                if (resetSelection || rNum.Buttons.All(x => !x.isOn))
-                {
-                    var toggle = rNum.Buttons.TakeWhile(x => !x.gameObject.activeSelf).Count();
-                    rNum.Value = toggle;
-                }
-
+                controlTitle.Visible.OnNext(any);
                 controlGen.Visible.OnNext(any);
                 controlImage.Visible.OnNext(any);
                 controlOverride.Visible.OnNext(any);
                 controlLoad.Visible.OnNext(any);
                 controlClear.Visible.OnNext(any);
                 controlExport.Visible.OnNext(any);
+                controlSeparator?.Visible.OnNext(any);
             }
 
             _refresh.Subscribe(
@@ -329,11 +358,20 @@ namespace KoiClothesOverlayX
                     refreshing = true;
                     try
                     {
+                        if (!AdvancedMode.Value)
+                        {
+                            rCat.Visible.OnNext(false);
+                            rCat.Value = 0;
+                            return;
+                        }
+
                         var clothes = ctrl?.GetCustomClothesComponent(clothesId);
                         var resetSelection = false;
 
                         if (clothes != null)
                         {
+                            rCat.Visible.OnNext(true);
+
                             var rendererArrays = KoiClothesOverlayController.GetRendererArrays(clothes);
 
                             for (var i = 0; i < rendererArrays.Length; i++)
@@ -344,6 +382,11 @@ namespace KoiClothesOverlayX
                                 if (!any && rCat.Buttons[i].isOn)
                                     resetSelection = true;
                             }
+
+                        }
+                        else
+                        {
+                            rCat.Visible.OnNext(false);
                         }
 
                         if (resetSelection)
@@ -369,6 +412,7 @@ namespace KoiClothesOverlayX
 
         private void Start()
         {
+            AdvancedMode = new ConfigWrapper<bool>(nameof(AdvancedMode), this);
             _api = MakerAPI.MakerAPI.Instance;
             Hooks.Init();
 

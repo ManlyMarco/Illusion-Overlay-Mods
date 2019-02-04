@@ -17,5 +17,25 @@ namespace KoiClothesOverlayX
             CharacterApi.RegisterExtraBehaviour<KoiClothesOverlayController>(GUID);
             KoiClothesOverlayController.Hooks.Init(GUID);
         }
+
+        public static readonly string[] MainClothesNames = new[]
+        {
+            "ct_clothesTop",
+            "ct_clothesBot",
+            "ct_bra",
+            "ct_shorts",
+            "ct_gloves",
+            "ct_panst",
+            "ct_socks",
+            "ct_shoes_inner",
+            "ct_shoes_outer"
+        };
+
+        public static readonly string[] SubClothesNames = new[]
+        {
+            "ct_top_parts_A",
+            "ct_top_parts_B",
+            "ct_top_parts_C"
+        };
     }
 }
