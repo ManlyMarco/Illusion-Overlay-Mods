@@ -24,10 +24,12 @@ using Resources = KoiSkinOverlayX.Properties.Resources;
 namespace KoiSkinOverlayX
 {
     [BepInProcess("Koikatu")]
-    [BepInPlugin(KoiSkinOverlayMgr.GUID + "_GUI", "KSOX GUI", KoiSkinOverlayMgr.Version)]
+    [BepInPlugin(GUID, "KSOX GUI", KoiSkinOverlayMgr.Version)]
     [BepInDependency(KoiSkinOverlayMgr.GUID)]
     public class KoiSkinOverlayGui : BaseUnityPlugin
     {
+        public const string GUID = KoiSkinOverlayMgr.GUID + "_GUI";
+
         public const string FileExt = ".png";
         public const string FileFilter = "Overlay images (*.png)|*.png|All files|*.*";
         private static MakerAPI.MakerAPI _api;
@@ -37,9 +39,10 @@ namespace KoiSkinOverlayX
         private bool _loadFromLoadedCards;
 
         [Browsable(false)]
-        private static ConfigWrapper<bool> _removeOldFiles;
+        public static ConfigWrapper<bool> RemoveOldFiles;
+
         [Browsable(false)]
-        private static ConfigWrapper<bool> _watchLoadedTexForChanges;
+        public static ConfigWrapper<bool> WatchLoadedTexForChanges;
 
         private Subject<KeyValuePair<TexType, Texture2D>> _textureChanged;
         private TexType _typeToLoad;
@@ -54,7 +57,7 @@ namespace KoiSkinOverlayX
 
             KoiSkinOverlayMgr.SaveAllOverlayTextures(ctrl, chaFile);
 
-            if (_removeOldFiles.Value)
+            if (RemoveOldFiles.Value)
             {
                 foreach (var overlay in ctrl.Overlays)
                 {
@@ -111,7 +114,7 @@ namespace KoiSkinOverlayX
             ReadTex(texPath);
 
             _texChangeWatcher?.Dispose();
-            if (_watchLoadedTexForChanges.Value)
+            if (WatchLoadedTexForChanges.Value)
             {
                 var directory = Path.GetDirectoryName(texPath);
                 if (directory != null)
@@ -137,7 +140,8 @@ namespace KoiSkinOverlayX
             _loadFromLoadedCards = true;
             e.AddLoadToggle(new MakerLoadToggle("Overlays")).ValueChanged.Subscribe(b => _loadFromLoadedCards = b);
 
-            var makerCategory = new MakerCategory("01_BodyTop", "tglOverlayKSOX",
+            var makerCategory = new MakerCategory(
+                "01_BodyTop", "tglOverlayKSOX",
                 MakerConstants.GetBuiltInCategory("01_BodyTop", "tglPaint").Position + 5, "Overlays");
             e.AddSubCategory(makerCategory);
 
@@ -147,11 +151,11 @@ namespace KoiSkinOverlayX
                 .OnClick.AddListener(() => WriteAndOpenPng(Resources.body));
 
             var tRemove = e.AddControl(new MakerToggle(makerCategory, "Remove overlays imported from BepInEx\\KoiSkinOverlay when saving cards (they are saved inside the card now and no longer necessary)", owner));
-            tRemove.Value = _removeOldFiles.Value;
-            tRemove.ValueChanged.Subscribe(b => _removeOldFiles.Value = b);
+            tRemove.Value = RemoveOldFiles.Value;
+            tRemove.ValueChanged.Subscribe(b => RemoveOldFiles.Value = b);
             var tWatch = e.AddControl(new MakerToggle(makerCategory, "Watch last loaded texture file for changes", owner));
-            tWatch.Value = _watchLoadedTexForChanges.Value;
-            tWatch.ValueChanged.Subscribe(b => _watchLoadedTexForChanges.Value = b);
+            tWatch.Value = WatchLoadedTexForChanges.Value;
+            tWatch.ValueChanged.Subscribe(b => WatchLoadedTexForChanges.Value = b);
 
             e.AddControl(new MakerSeparator(makerCategory, owner));
 
@@ -191,7 +195,7 @@ namespace KoiSkinOverlayX
         {
             e.AddControl(new MakerText(title, makerCategory, owner));
 
-            var bi = e.AddControl(new MakerImage(null, makerCategory, owner) { Height = 150, Width = 150 });
+            var bi = e.AddControl(new MakerImage(null, makerCategory, owner) {Height = 150, Width = 150});
             _textureChanged.Subscribe(
                 d =>
                 {
@@ -229,18 +233,21 @@ namespace KoiSkinOverlayX
             return File.Exists(KoiSkinOverlayMgr.OverlayDirectory) ? KoiSkinOverlayMgr.OverlayDirectory : Paths.GameRootPath;
         }
 
+        private void Awake()
+        {
+            var owner = GetComponent<KoiSkinOverlayMgr>();
+            RemoveOldFiles = new ConfigWrapper<bool>("removeOldFiles", owner, true);
+            WatchLoadedTexForChanges = new ConfigWrapper<bool>("watchLoadedTexForChanges", owner, true);
+            WatchLoadedTexForChanges.SettingChanged += (sender, args) =>
+            {
+                if (!WatchLoadedTexForChanges.Value)
+                    _texChangeWatcher?.Dispose();
+            };
+        }
+
         private void Start()
         {
             _api = MakerAPI.MakerAPI.Instance;
-
-            var owner = GetComponent<KoiSkinOverlayMgr>();
-            _removeOldFiles = new ConfigWrapper<bool>("removeOldFiles", owner, true);
-            _watchLoadedTexForChanges = new ConfigWrapper<bool>("watchLoadedTexForChanges", owner, true);
-            _watchLoadedTexForChanges.SettingChanged += (sender, args) =>
-            {
-                if (!_watchLoadedTexForChanges.Value)
-                    _texChangeWatcher?.Dispose();
-            };
 
             _api.RegisterCustomSubCategories += RegisterCustomSubCategories;
             _api.MakerExiting += MakerExiting;

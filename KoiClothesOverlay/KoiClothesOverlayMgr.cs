@@ -10,7 +10,7 @@ namespace KoiClothesOverlayX
     [BepInDependency(KoiSkinOverlayMgr.GUID)]
     public class KoiClothesOverlayMgr : BaseUnityPlugin
     {
-        public const string GUID = KoiSkinOverlayMgr.GUID + "_Clothes";
+        public const string GUID = "KCOX";
 
         public static readonly string[] MainClothesNames =
         {

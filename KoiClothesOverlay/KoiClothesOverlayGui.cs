@@ -15,8 +15,9 @@ using Logger = BepInEx.Logger;
 namespace KoiClothesOverlayX
 {
     [BepInProcess("Koikatu")]
-    [BepInPlugin(GUID, "KCOX (KoiClothesOverlay) GUI", KoiSkinOverlayMgr.Version)]
+    [BepInPlugin(GUID, "KCOX GUI", KoiSkinOverlayMgr.Version)]
     [BepInDependency(KoiClothesOverlayMgr.GUID)]
+    [BepInDependency(KoiSkinOverlayGui.GUID)]
     public partial class KoiClothesOverlayGui : BaseUnityPlugin
     {
         private const string GUID = KoiClothesOverlayMgr.GUID + "_GUI";
@@ -29,6 +30,8 @@ namespace KoiClothesOverlayX
         private Subject<KeyValuePair<string, ClothesTexData>> _textureChanged;
         private static Subject<int> _refreshInterface;
         private static bool _refreshInterfaceRunning;
+
+        private static FileSystemWatcher _texChangeWatcher;
 
         private Exception _lastError;
         private bool _hideMainToLoad;
@@ -71,6 +74,24 @@ namespace KoiClothesOverlayX
             }
 
             ReadTex(texPath);
+
+            _texChangeWatcher?.Dispose();
+            if (KoiSkinOverlayGui.WatchLoadedTexForChanges?.Value ?? true)
+            {
+                var directory = Path.GetDirectoryName(texPath);
+                if (directory != null)
+                {
+                    _texChangeWatcher = new FileSystemWatcher(directory, Path.GetFileName(texPath));
+                    _texChangeWatcher.Changed += (sender, args) =>
+                    {
+                        if (File.Exists(texPath))
+                            ReadTex(texPath);
+                    };
+                    _texChangeWatcher.Deleted += (sender, args) => _texChangeWatcher?.Dispose();
+                    _texChangeWatcher.Error += (sender, args) => _texChangeWatcher?.Dispose();
+                    _texChangeWatcher.EnableRaisingEvents = true;
+                }
+            }
         }
 
         private static void RefreshInterface(int category)
@@ -83,6 +104,7 @@ namespace KoiClothesOverlayX
 
         private static IEnumerator RefreshInterfaceCo(int category)
         {
+            _texChangeWatcher?.Dispose();
             yield return null;
             _refreshInterface?.OnNext(category);
             _refreshInterfaceRunning = false;
@@ -224,6 +246,8 @@ namespace KoiClothesOverlayX
 
         private void MakerExiting(object sender, EventArgs e)
         {
+            _texChangeWatcher?.Dispose();
+
             _textureChanged?.Dispose();
             _textureChanged = null;
 
@@ -245,6 +269,13 @@ namespace KoiClothesOverlayX
             _api.MakerFinishedLoading += (sender, args) => RefreshInterface(-1);
             _api.MakerExiting += MakerExiting;
             _api.ChaFileLoaded += (sender, e) => RefreshInterface(-1);
+
+            if (KoiSkinOverlayGui.WatchLoadedTexForChanges != null)
+                KoiSkinOverlayGui.WatchLoadedTexForChanges.SettingChanged += (sender, args) =>
+                {
+                    if (!KoiSkinOverlayGui.WatchLoadedTexForChanges.Value)
+                        _texChangeWatcher?.Dispose();
+                };
         }
 
         private void Update()
