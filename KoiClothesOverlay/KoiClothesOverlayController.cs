@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using BepInEx.Logging;
@@ -18,21 +19,21 @@ namespace KoiClothesOverlayX
         private const string OverlayDataKey = "Overlays";
 
         private Action<byte[]> _dumpCallback;
-        private ClothesTexId _dumpClothesId;
+        private string _dumpClothesId;
 
-        private Dictionary<ChaFileDefine.CoordinateType, Dictionary<ClothesTexId, ClothesTexData>> _allOverlayTextures;
-        private Dictionary<ClothesTexId, ClothesTexData> CurrentOverlayTextures
+        private Dictionary<ChaFileDefine.CoordinateType, Dictionary<string, ClothesTexData>> _allOverlayTextures;
+        private Dictionary<string, ClothesTexData> CurrentOverlayTextures
         {
             get
             {
                 if (_allOverlayTextures == null) return null;
 
-                var coordinateType = (ChaFileDefine.CoordinateType) ChaControl.fileStatus.coordinateType;
+                var coordinateType = (ChaFileDefine.CoordinateType)ChaControl.fileStatus.coordinateType;
                 _allOverlayTextures.TryGetValue(coordinateType, out var dict);
 
                 if (dict == null)
                 {
-                    dict = new Dictionary<ClothesTexId, ClothesTexData>();
+                    dict = new Dictionary<string, ClothesTexData>();
                     _allOverlayTextures.Add(coordinateType, dict);
                 }
 
@@ -40,7 +41,7 @@ namespace KoiClothesOverlayX
             }
         }
 
-        public void DumpBaseTexture(ClothesTexId clothesId, Action<byte[]> callback)
+        public void DumpBaseTexture(string clothesId, Action<byte[]> callback)
         {
             _dumpCallback = callback;
             _dumpClothesId = clothesId;
@@ -54,7 +55,7 @@ namespace KoiClothesOverlayX
             return ChaControl.cusClothesCmp.Concat(ChaControl.cusClothesSubCmp).FirstOrDefault(x => x != null && x.gameObject.name == clothesObjectName);
         }
 
-        public ClothesTexData GetOverlayTex(ClothesTexId clothesId)
+        public ClothesTexData GetOverlayTex(string clothesId)
         {
             if (CurrentOverlayTextures != null)
             {
@@ -64,21 +65,37 @@ namespace KoiClothesOverlayX
             return null;
         }
 
-        public Renderer GetRenderer(ClothesTexId clothesTexId)
+        public IEnumerable<Renderer> GetApplicableRenderers(string clothesId)
         {
-            var ccc = GetCustomClothesComponent(clothesTexId.ClothesName);
-            if (ccc != null)
+            var clothesCtrl = GetCustomClothesComponent(clothesId);
+            if (clothesCtrl == null) return Enumerable.Empty<Renderer>();
+
+            return GetApplicableRenderers(GetRendererArrays(clothesCtrl));
+        }
+
+        public static IEnumerable<Renderer> GetApplicableRenderers(Renderer[][] rendererArrs)
+        {
+            for (var i = 0; i < rendererArrs.Length; i += 2)
             {
-                var arr = GetRendererArrays(ccc).ElementAtOrDefault((int) clothesTexId.RendererGroup);
-                if (arr != null)
-                    return arr.ElementAtOrDefault(clothesTexId.RendererId);
+                var renderers = rendererArrs[i];
+                var renderer1 = renderers?.ElementAtOrDefault(0);
+                if (renderer1 != null)
+                {
+                    yield return renderer1;
+
+                    renderers = rendererArrs.ElementAtOrDefault(i + 1);
+                    var renderer2 = renderers?.ElementAtOrDefault(0);
+                    if (renderer2 != null)
+                        yield return renderer2;
+
+                    yield break;
+                }
             }
-            return null;
         }
 
         public static Renderer[][] GetRendererArrays(ChaClothesComponent clothesCtrl)
         {
-            return new[] {clothesCtrl.rendNormal01, clothesCtrl.rendNormal02, clothesCtrl.rendAlpha01, clothesCtrl.rendAlpha02};
+            return new[] { clothesCtrl.rendNormal01, clothesCtrl.rendNormal02, clothesCtrl.rendAlpha01, clothesCtrl.rendAlpha02 };
         }
 
         public void RefreshAllTextures()
@@ -90,18 +107,18 @@ namespace KoiClothesOverlayX
                 ChaControl.ChangeCustomClothes(false, i, true, false, false, false, false);
         }
 
-        public void RefreshTexture(ClothesTexId texType)
+        public void RefreshTexture(string texType)
         {
-            if (texType?.ClothesName != null)
+            if (texType != null)
             {
-                var i = Array.FindIndex(ChaControl.objClothes, x => x != null && x.name == texType.ClothesName);
+                var i = Array.FindIndex(ChaControl.objClothes, x => x != null && x.name == texType);
                 if (i >= 0)
                 {
                     ChaControl.ChangeCustomClothes(true, i, true, false, false, false, false);
                     return;
                 }
 
-                i = Array.FindIndex(ChaControl.objParts, x => x != null && x.name == texType.ClothesName);
+                i = Array.FindIndex(ChaControl.objParts, x => x != null && x.name == texType);
                 if (i >= 0)
                 {
                     ChaControl.ChangeCustomClothes(false, i, true, false, false, false, false);
@@ -112,7 +129,7 @@ namespace KoiClothesOverlayX
             RefreshAllTextures();
         }
 
-        public void SetOverlayTex(ClothesTexData tex, ClothesTexId texType)
+        public void SetOverlayTex(ClothesTexData tex, string texType)
         {
             if (CurrentOverlayTextures.TryGetValue(texType, out var existing))
             {
@@ -164,20 +181,27 @@ namespace KoiClothesOverlayX
                     try
                     {
                         _allOverlayTextures = MessagePackSerializer.Deserialize<
-                            Dictionary<ChaFileDefine.CoordinateType, Dictionary<ClothesTexId, ClothesTexData>>>(
+                            Dictionary<ChaFileDefine.CoordinateType, Dictionary<string, ClothesTexData>>>(
                             overlayBytes);
                     }
                     catch (Exception ex)
                     {
-                        Logger.Log(LogLevel.Warning, "[KCOX] Failed to deserialize overlay data for " + (ChaFileControl?.charaFileName ?? "?"));
+                        var logLevel = currentGameMode == GameMode.Maker ? LogLevel.Message | LogLevel.Warning : LogLevel.Warning;
+                        Logger.Log(logLevel, "[KCOX] WARNING: Failed to load embedded overlay data for " + (ChaFileControl?.charaFileName ?? "?"));
                         Logger.Log(LogLevel.Debug, ex);
                     }
                 }
             }
 
             if (_allOverlayTextures == null)
-                _allOverlayTextures = new Dictionary<ChaFileDefine.CoordinateType, Dictionary<ClothesTexId, ClothesTexData>>();
+                _allOverlayTextures = new Dictionary<ChaFileDefine.CoordinateType, Dictionary<string, ClothesTexData>>();
 
+            StartCoroutine(RefreshAllTexturesCo());
+        }
+
+        private IEnumerator RefreshAllTexturesCo()
+        {
+            yield return null;
             RefreshAllTextures();
         }
 
@@ -186,46 +210,44 @@ namespace KoiClothesOverlayX
             if (CurrentOverlayTextures == null) return;
 
             var clothesName = clothesCtrl.name;
-
             var rendererArrs = GetRendererArrays(clothesCtrl);
 
-            if (_dumpCallback != null && _dumpClothesId.ClothesName == clothesName)
+            if (_dumpCallback != null && _dumpClothesId == clothesName)
+            {
                 DumpBaseTextureImpl(rendererArrs);
+            }
 
             if (CurrentOverlayTextures.Count == 0) return;
 
-            var overlays = CurrentOverlayTextures.Where(x => x.Key.ClothesName == clothesName).ToList();
+            if (!CurrentOverlayTextures.TryGetValue(clothesName, out var overlay) || overlay == null) return;
 
-            for (var i = 0; i < rendererArrs.Length; i++)
+            var applicableRenderers = GetApplicableRenderers(rendererArrs).ToList();
+            if (applicableRenderers.Count == 0)
             {
-                var renderers = rendererArrs[i];
-                foreach (var overlay in overlays.Where(x => x.Key.RendererGroup == (ClothesRendererGroup) i).ToList())
+                Logger.Log(MakerAPI.MakerAPI.Instance.InsideMaker ? LogLevel.Warning | LogLevel.Message : LogLevel.Debug, $"[KCOX] Removing unused overlay for {clothesName}");
+
+                Destroy(overlay.Texture);
+                CurrentOverlayTextures.Remove(clothesName);
+                return;
+            }
+
+            foreach (var renderer in applicableRenderers)
+            {
+                var mat = renderer.material;
+
+                var mainTexture = (RenderTexture)mat.mainTexture;
+                if (mainTexture == null) return;
+
+                if (overlay.Override)
                 {
-                    if (renderers.Length > overlay.Key.RendererId)
-                    {
-                        var mat = renderers[overlay.Key.RendererId].material;
-
-                        var mainTexture = (RenderTexture) mat.mainTexture;
-                        if (mainTexture == null) return;
-
-                        if (overlay.Value.Override)
-                        {
-                            var rta = RenderTexture.active;
-                            RenderTexture.active = mainTexture;
-                            GL.Clear(false, true, Color.clear);
-                            RenderTexture.active = rta;
-                        }
-
-                        if (overlay.Value.Texture != null)
-                            KoiSkinOverlayController.ApplyOverlay(mainTexture, overlay.Value.Texture);
-                    }
-                    else
-                    {
-                        Logger.Log(MakerAPI.MakerAPI.Instance.InsideMaker ? LogLevel.Warning | LogLevel.Message : LogLevel.Debug, $"[KCOX] Removing unused overlay for {overlay.Key.ClothesName}");
-                        Destroy(overlay.Value.Texture);
-                        overlays.Remove(overlay);
-                    }
+                    var rta = RenderTexture.active;
+                    RenderTexture.active = mainTexture;
+                    GL.Clear(false, true, Color.clear);
+                    RenderTexture.active = rta;
                 }
+
+                if (overlay.Texture != null)
+                    KoiSkinOverlayController.ApplyOverlay(mainTexture, overlay.Texture);
             }
         }
 
@@ -243,20 +265,19 @@ namespace KoiClothesOverlayX
 
         private void DumpBaseTextureImpl(Renderer[][] rendererArrs)
         {
+            var act = RenderTexture.active;
             try
             {
-                var renderer = rendererArrs.ElementAtOrDefault((int) _dumpClothesId.RendererGroup)?.ElementAtOrDefault(_dumpClothesId.RendererId);
-                if (renderer == null) throw new Exception("Specified renderer doesn't exist");
+                var renderer = GetApplicableRenderers(rendererArrs).FirstOrDefault();
+                var renderTexture = (RenderTexture)renderer?.material?.mainTexture;
 
-                var renderTexture = (RenderTexture) renderer.material.mainTexture;
+                if (renderTexture == null)
+                    throw new Exception("There are no renderers or textures to dump");
 
-                var act = RenderTexture.active;
                 RenderTexture.active = renderTexture;
 
                 var tex = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.ARGB32, false);
                 tex.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
-
-                RenderTexture.active = act;
 
                 var png = tex.EncodeToPNG();
 
@@ -266,12 +287,13 @@ namespace KoiClothesOverlayX
             }
             catch (Exception e)
             {
-                Logger.Log(LogLevel.Error | LogLevel.Message, "Dumping texture failed - " + e.Message);
+                Logger.Log(LogLevel.Error | LogLevel.Message, "[KCOX] Dumping texture failed - " + e.Message);
                 Logger.Log(LogLevel.Debug, e);
                 RenderTexture.active = null;
             }
             finally
             {
+                RenderTexture.active = act;
                 _dumpCallback = null;
             }
         }

@@ -275,15 +275,10 @@ namespace KoiSkinOverlayX
 
             if (_lastError != null)
             {
-                ShowTextureLoadError(_lastError);
+                Logger.Log(LogLevel.Error | LogLevel.Message, "[KSOX] Failed to load texture from file - " + _lastError.Message);
+                Logger.Log(LogLevel.Debug, _lastError);
                 _lastError = null;
             }
-        }
-
-        public static void ShowTextureLoadError(Exception texLoadError)
-        {
-            Logger.Log(LogLevel.Error | LogLevel.Message, "[KSOX] Failed to load texture from file - " + texLoadError.Message);
-            Logger.Log(LogLevel.Debug, texLoadError);
         }
 
         private void OnChaFileLoaded(object sender, ChaFileLoadedEventArgs e)

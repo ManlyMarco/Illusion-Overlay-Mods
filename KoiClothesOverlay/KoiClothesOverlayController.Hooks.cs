@@ -23,15 +23,15 @@ namespace KoiClothesOverlayX
                 // Clean up no longer used textures when switching between top clothes with 3 parts and 1 part
                 if (MakerAPI.MakerAPI.Instance.InsideMaker && controller.CurrentOverlayTextures != null)
                 {
-                    List<KeyValuePair<ClothesTexId, ClothesTexData>> toRemoveList = null;
+                    List<KeyValuePair<string, ClothesTexData>> toRemoveList = null;
                     if (main && kind == 0)
-                        toRemoveList = controller.CurrentOverlayTextures.Where(x => KoiClothesOverlayMgr.SubClothesNames.Contains(x.Key.ClothesName)).ToList();
+                        toRemoveList = controller.CurrentOverlayTextures.Where(x => KoiClothesOverlayMgr.SubClothesNames.Contains(x.Key)).ToList();
                     else if (!main)
-                        toRemoveList = controller.CurrentOverlayTextures.Where(x => KoiClothesOverlayMgr.MainClothesNames[0] == x.Key.ClothesName).ToList();
+                        toRemoveList = controller.CurrentOverlayTextures.Where(x => KoiClothesOverlayMgr.MainClothesNames[0] == x.Key).ToList();
 
                     if (toRemoveList != null && toRemoveList.Count > 0)
                     {
-                        Logger.Log(LogLevel.Warning | LogLevel.Message, $"[KCOX] Removing {toRemoveList.Count} no longer used Top overlays");
+                        Logger.Log(LogLevel.Warning | LogLevel.Message, $"[KCOX] Removing {toRemoveList.Count} no longer used Top overlay(s)");
                         foreach (var toRemove in toRemoveList)
                             controller.SetOverlayTex(null, toRemove.Key);
                     }
