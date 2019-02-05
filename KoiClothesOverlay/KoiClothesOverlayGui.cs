@@ -162,6 +162,8 @@ namespace KoiClothesOverlayX
             controlOverride.ValueChanged.Subscribe(
                 b =>
                 {
+                    _hideMainToLoad = b;
+
                     var c = GetOverlayController();
                     if (c != null)
                     {
