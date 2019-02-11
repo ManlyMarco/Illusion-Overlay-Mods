@@ -25,7 +25,9 @@ namespace KoiClothesOverlayX
         private static MakerAPI.MakerAPI _api;
 
         private static MakerLoadToggle _makerLoadToggle;
+        private static MakerCoordinateLoadToggle _makerCoordLoadToggle;
         internal static bool MakerLoadFromCharas => _makerLoadToggle == null || _makerLoadToggle.Value;
+        internal static bool MakerCoordLoadFromCharas => _makerCoordLoadToggle == null || _makerCoordLoadToggle.Value;
 
         private Subject<KeyValuePair<string, ClothesTexData>> _textureChanged;
         private static Subject<int> _refreshInterface;
@@ -117,6 +119,7 @@ namespace KoiClothesOverlayX
             _refreshInterface = new Subject<int>();
 
             _makerLoadToggle = e.AddLoadToggle(new MakerLoadToggle("Clothes overlays"));
+            _makerCoordLoadToggle = e.AddCoordinateLoadToggle(new MakerCoordinateLoadToggle("Clothes overlays"));
 
             var makerCategory = MakerConstants.GetBuiltInCategory("03_ClothesTop", "tglTop");
 
@@ -258,8 +261,10 @@ namespace KoiClothesOverlayX
             _refreshInterfaceRunning = false;
 
             _bytesToLoad = null;
-            _makerLoadToggle = null;
             _lastError = null;
+
+            _makerLoadToggle = null;
+            _makerCoordLoadToggle = null;
         }
 
         private void Start()

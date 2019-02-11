@@ -28,6 +28,7 @@ namespace KoiClothesOverlayX
             {
                 if (_allOverlayTextures == null) return null;
 
+                // Need to do this instead of polling the CurrentCoordinate prop because it's updated too late
                 var coordinateType = (ChaFileDefine.CoordinateType)ChaControl.fileStatus.coordinateType;
                 _allOverlayTextures.TryGetValue(coordinateType, out var dict);
 
@@ -195,6 +196,38 @@ namespace KoiClothesOverlayX
 
             if (_allOverlayTextures == null)
                 _allOverlayTextures = new Dictionary<ChaFileDefine.CoordinateType, Dictionary<string, ClothesTexData>>();
+
+            StartCoroutine(RefreshAllTexturesCo());
+        }
+
+        protected override void OnCoordinateBeingSaved(ChaFileCoordinate coordinate)
+        {
+            if (CurrentOverlayTextures == null || CurrentOverlayTextures.Count == 0) return;
+
+            var data = new PluginData { version = 1 };
+            data.data.Add(OverlayDataKey, MessagePackSerializer.Serialize(CurrentOverlayTextures));
+            SetCoordinateExtendedData(coordinate, data);
+        }
+
+        protected override void OnCoordinateBeingLoaded(ChaFileCoordinate coordinate)
+        {
+            if(!KoiClothesOverlayGui.MakerCoordLoadFromCharas) return;
+
+            var currentOverlayTextures = CurrentOverlayTextures;
+            if (currentOverlayTextures == null) return;
+
+            currentOverlayTextures.Clear();
+
+            var data = GetCoordinateExtendedData(coordinate);
+            if (data != null && data.data.TryGetValue(OverlayDataKey, out var bytes) && bytes is byte[] byteArr)
+            {
+                var dict = MessagePackSerializer.Deserialize<Dictionary<string, ClothesTexData>>(byteArr);
+                if (dict != null)
+                {
+                    foreach (var texData in dict)
+                        currentOverlayTextures.Add(texData.Key, texData.Value);
+                }
+            }
 
             StartCoroutine(RefreshAllTexturesCo());
         }
