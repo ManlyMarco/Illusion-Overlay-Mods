@@ -100,20 +100,7 @@ namespace KoiSkinOverlayX
             }
             return null;
         }
-
-        internal static TexType ParseTexStr(string texName)
-        {
-            try
-            {
-                return (TexType)Enum.Parse(typeof(TexType), texName);
-            }
-            catch (Exception ex)
-            {
-                Logger.Log(LogLevel.Error | LogLevel.Message, $"[KSOX] Failed to load embedded texture {texName} - {ex.Message}");
-                return TexType.Unknown;
-            }
-        }
-
+        
         internal static RenderTexture GetOverlayRT(TexType overlayType)
         {
             switch (overlayType)

@@ -44,9 +44,7 @@ namespace KoiSkinOverlayX
         private FileSystemWatcher _texChangeWatcher;
 
         private static MakerLoadToggle _loadToggle;
-        private static MakerCoordinateLoadToggle _loadCoordToggle;
         internal static bool MakerLoadFromCharas => _loadToggle == null || _loadToggle.Value;
-        internal static bool MakerCoordLoadFromCharas => _loadCoordToggle == null || _loadCoordToggle.Value;
 
         [Browsable(false)]
         public static ConfigWrapper<bool> RemoveOldFiles;
@@ -90,7 +88,6 @@ namespace KoiSkinOverlayX
             _bytesToLoad = null;
             _lastError = null;
             _loadToggle = null;
-            _loadCoordToggle = null;
         }
 
         private void OnFileAccept(string[] strings, TexType type)
@@ -142,7 +139,6 @@ namespace KoiSkinOverlayX
             _textureChanged = new Subject<KeyValuePair<TexType, Texture2D>>();
 
             _loadToggle = e.AddLoadToggle(new MakerLoadToggle("Skin overlays"));
-            _loadCoordToggle = e.AddCoordinateLoadToggle(new MakerCoordinateLoadToggle("Skin overlays"));
 
             var makerCategory = new MakerCategory(
                 "01_BodyTop", "tglOverlayKSOX",

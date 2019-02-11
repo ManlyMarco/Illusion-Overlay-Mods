@@ -29,7 +29,7 @@ namespace KoiSkinOverlayX
 
             SetExtendedData(pd);
         }
-        
+
         protected override void OnReload(GameMode currentGameMode)
         {
             if (!KoiSkinOverlayGui.MakerLoadFromCharas) return;
@@ -37,28 +37,27 @@ namespace KoiSkinOverlayX
             _overlays.Clear();
 
             var data = GetExtendedData();
-            foreach (var texData in data.data)
+            foreach (TexType texType in Enum.GetValues(typeof(TexType)))
             {
-                var texType = KoiSkinOverlayMgr.ParseTexStr(texData.Key);
                 if (texType == TexType.Unknown) continue;
 
-                var tex = texData.Value is byte[] bytes 
-                    ? Util.TextureFromBytes(bytes) 
-                    : KoiSkinOverlayMgr.GetOldStyleOverlayTex(texType, ChaControl);
+                if (data != null
+                    && data.data.TryGetValue(texType.ToString(), out var texData)
+                    && texData is byte[] bytes)
+                {
+                    var tex = Util.TextureFromBytes(bytes);
+                    if (tex != null)
+                    {
+                        _overlays.Add(texType, tex);
+                        continue;
+                    }
+                }
 
-                if (tex != null)
-                    _overlays.Add(texType, tex);
+                // Fall back to old-style overlays in a folder
+                var oldTex = KoiSkinOverlayMgr.GetOldStyleOverlayTex(texType, ChaControl);
+                if (oldTex != null)
+                    _overlays.Add(texType, oldTex);
             }
-        }
-
-        protected override void OnCoordinateBeingSaved(ChaFileCoordinate coordinate)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override void OnCoordinateBeingLoaded(ChaFileCoordinate coordinate)
-        {
-            throw new NotImplementedException();
         }
 
         public void ApplyOverlayToRT(RenderTexture bodyTexture, TexType overlayType)
@@ -98,8 +97,10 @@ namespace KoiSkinOverlayX
             UpdateTexture(ChaControl, type);
         }
 
-        private void OnDestroy()
+        protected override void OnDestroy()
         {
+            base.OnDestroy();
+
             foreach (var kvp in _overlays)
                 Destroy(kvp.Value);
             _overlays.Clear();
