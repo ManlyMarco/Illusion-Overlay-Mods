@@ -211,7 +211,7 @@ namespace KoiClothesOverlayX
 
         protected override void OnCoordinateBeingLoaded(ChaFileCoordinate coordinate)
         {
-            if(!KoiClothesOverlayGui.MakerCoordLoadFromCharas) return;
+            if (!KoiClothesOverlayGui.MakerCoordLoadFromCharas) return;
 
             var currentOverlayTextures = CurrentOverlayTextures;
             if (currentOverlayTextures == null) return;
@@ -329,6 +329,20 @@ namespace KoiClothesOverlayX
                 RenderTexture.active = act;
                 _dumpCallback = null;
             }
+        }
+
+        protected override void OnDestroy()
+        {
+            base.OnDestroy();
+
+            foreach (var textures in _allOverlayTextures.SelectMany(x => x.Value))
+            {
+                var texture = textures.Value.Texture;
+                if (texture != null)
+                    Destroy(texture);
+            }
+
+            _allOverlayTextures.Clear();
         }
     }
 }
