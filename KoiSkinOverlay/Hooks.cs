@@ -8,13 +8,9 @@
   
 */
 
-using System.Collections;
 using System.Collections.Generic;
 using System.Reflection.Emit;
-using ChaCustom;
-using ExtensibleSaveFormat;
 using Harmony;
-using Studio;
 using UnityEngine;
 
 namespace KoiSkinOverlayX
@@ -24,43 +20,6 @@ namespace KoiSkinOverlayX
         public static void Init()
         {
             HarmonyInstance.Create(nameof(Hooks)).PatchAll(typeof(Hooks));
-        }
-
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(ChaFile), "CopyChaFile")]
-        public static void CopyChaFile(ChaFile dst, ChaFile src)
-        {
-            var extendedData = ExtendedSave.GetExtendedDataById(src, KoiSkinOverlayMgr.GUID);
-            if (extendedData != null)
-                ExtendedSave.SetExtendedDataById(dst, KoiSkinOverlayMgr.GUID, extendedData);
-        }
-
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(CvsExit), "ExitSceneRestoreStatus", new[]
-        {
-            typeof(string)
-        })]
-        public static void CvsExit_ExitSceneRestoreStatus(string strInput, CvsExit __instance)
-        {
-            if (MakerAPI.MakerAPI.Instance.InsideMaker)
-                KoiSkinOverlayGui.ExtendedSaveOnCardBeingSaved(Singleton<CustomBase>.Instance.chaCtrl.chaFile);
-        }
-
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(ChaControl), "Initialize", new[]
-            {
-            typeof(byte),
-            typeof(bool),
-            typeof(GameObject),
-            typeof(int),
-            typeof(int),
-            typeof(ChaFileControl)
-        })]
-        public static void ChaControl_InitializePostHook(byte _sex, bool _hiPoly, GameObject _objRoot, int _id, int _no,
-                ChaFileControl _chaFile, ChaControl __instance)
-        {
-            if (!MakerAPI.MakerAPI.Instance.CharaListIsLoading)
-                KoiSkinOverlayMgr.GetOrAttachController(__instance);
         }
 
         #region New method
@@ -156,23 +115,5 @@ namespace KoiSkinOverlayX
         }
 
         #endregion
-
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(OCIChar), "ChangeChara", new[]
-        {
-            typeof(string)
-        })]
-        public static void OCIChar_ChangeCharaPostHook(string _path, OCIChar __instance)
-        {
-            var component = __instance.charInfo.gameObject.GetComponent<KoiSkinOverlayController>();
-            if (component != null)
-                component.StartCoroutine(DelayedLoad(component));
-        }
-
-        private static IEnumerator DelayedLoad(KoiSkinOverlayController controller)
-        {
-            yield return null;
-            KoiSkinOverlayMgr.LoadAllOverlayTextures(controller);
-        }
     }
 }

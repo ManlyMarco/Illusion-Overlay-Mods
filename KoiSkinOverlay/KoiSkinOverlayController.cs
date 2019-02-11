@@ -1,11 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using ExtensibleSaveFormat;
+using MakerAPI;
+using MakerAPI.Chara;
 using UnityEngine;
 
 namespace KoiSkinOverlayX
 {
-    [RequireComponent(typeof(ChaControl))]
-    public class KoiSkinOverlayController : MonoBehaviour
+    public class KoiSkinOverlayController : CharaCustomFunctionController
     {
         /// <summary>
         /// Additional overlays to be applied over the KSOX overlay (if any).
@@ -17,7 +20,46 @@ namespace KoiSkinOverlayX
 
         public IEnumerable<KeyValuePair<TexType, Texture2D>> Overlays => _overlays.AsEnumerable();
 
-        internal ChaControl ChaControl { get; private set; }
+        protected override void OnCardBeingSaved(GameMode currentGameMode)
+        {
+            var pd = new PluginData { version = 1 };
+
+            foreach (var overlay in Overlays)
+                pd.data.Add(overlay.Key.ToString(), overlay.Value.EncodeToPNG());
+
+            SetExtendedData(pd);
+        }
+        
+        protected override void OnReload(GameMode currentGameMode)
+        {
+            if (!KoiSkinOverlayGui.MakerLoadFromCharas) return;
+
+            _overlays.Clear();
+
+            var data = GetExtendedData();
+            foreach (var texData in data.data)
+            {
+                var texType = KoiSkinOverlayMgr.ParseTexStr(texData.Key);
+                if (texType == TexType.Unknown) continue;
+
+                var tex = texData.Value is byte[] bytes 
+                    ? Util.TextureFromBytes(bytes) 
+                    : KoiSkinOverlayMgr.GetOldStyleOverlayTex(texType, ChaControl);
+
+                if (tex != null)
+                    _overlays.Add(texType, tex);
+            }
+        }
+
+        protected override void OnCoordinateBeingSaved(ChaFileCoordinate coordinate)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override void OnCoordinateBeingLoaded(ChaFileCoordinate coordinate)
+        {
+            throw new NotImplementedException();
+        }
 
         public void ApplyOverlayToRT(RenderTexture bodyTexture, TexType overlayType)
         {
@@ -62,12 +104,6 @@ namespace KoiSkinOverlayX
                 Destroy(kvp.Value);
             _overlays.Clear();
             AdditionalTextures.Clear();
-        }
-
-        private void Start()
-        {
-            ChaControl = gameObject.GetComponent<ChaControl>();
-            KoiSkinOverlayMgr.LoadAllOverlayTextures(this);
         }
 
         public static void UpdateTexture(ChaControl cc, TexType type)

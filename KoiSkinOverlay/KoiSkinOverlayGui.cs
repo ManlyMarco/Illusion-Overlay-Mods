@@ -15,6 +15,7 @@ using BepInEx;
 using BepInEx.Logging;
 using ExtensibleSaveFormat;
 using MakerAPI;
+using MakerAPI.Chara;
 using MakerAPI.Utilities;
 using UniRx;
 using UnityEngine;
@@ -32,11 +33,20 @@ namespace KoiSkinOverlayX
 
         public const string FileExt = ".png";
         public const string FileFilter = "Overlay images (*.png)|*.png|All files|*.*";
+
         private static MakerAPI.MakerAPI _api;
+
+        private Subject<KeyValuePair<TexType, Texture2D>> _textureChanged;
+
         private byte[] _bytesToLoad;
         private Exception _lastError;
+        private TexType _typeToLoad;
+        private FileSystemWatcher _texChangeWatcher;
 
-        private bool _loadFromLoadedCards;
+        private static MakerLoadToggle _loadToggle;
+        private static MakerCoordinateLoadToggle _loadCoordToggle;
+        internal static bool MakerLoadFromCharas => _loadToggle == null || _loadToggle.Value;
+        internal static bool MakerCoordLoadFromCharas => _loadCoordToggle == null || _loadCoordToggle.Value;
 
         [Browsable(false)]
         public static ConfigWrapper<bool> RemoveOldFiles;
@@ -44,21 +54,13 @@ namespace KoiSkinOverlayX
         [Browsable(false)]
         public static ConfigWrapper<bool> WatchLoadedTexForChanges;
 
-        private Subject<KeyValuePair<TexType, Texture2D>> _textureChanged;
-        private TexType _typeToLoad;
-
-        private FileSystemWatcher _texChangeWatcher;
-
-        internal static void ExtendedSaveOnCardBeingSaved(ChaFile chaFile)
+        private static void ExtendedSaveOnCardBeingSaved(ChaFile chaFile)
         {
             if (!_api.InsideMaker) return;
 
-            var ctrl = GetOverlayController();
-
-            KoiSkinOverlayMgr.SaveAllOverlayTextures(ctrl, chaFile);
-
             if (RemoveOldFiles.Value)
             {
+                var ctrl = GetOverlayController();
                 foreach (var overlay in ctrl.Overlays)
                 {
                     var path = KoiSkinOverlayMgr.GetTexFilename(chaFile.parameter.fullname, overlay.Key);
@@ -87,6 +89,8 @@ namespace KoiSkinOverlayX
             _texChangeWatcher?.Dispose();
             _bytesToLoad = null;
             _lastError = null;
+            _loadToggle = null;
+            _loadCoordToggle = null;
         }
 
         private void OnFileAccept(string[] strings, TexType type)
@@ -137,8 +141,8 @@ namespace KoiSkinOverlayX
             var owner = GetComponent<KoiSkinOverlayMgr>();
             _textureChanged = new Subject<KeyValuePair<TexType, Texture2D>>();
 
-            _loadFromLoadedCards = true;
-            e.AddLoadToggle(new MakerLoadToggle("Overlays")).ValueChanged.Subscribe(b => _loadFromLoadedCards = b);
+            _loadToggle = e.AddLoadToggle(new MakerLoadToggle("Skin overlays"));
+            _loadCoordToggle = e.AddCoordinateLoadToggle(new MakerCoordinateLoadToggle("Skin overlays"));
 
             var makerCategory = new MakerCategory(
                 "01_BodyTop", "tglOverlayKSOX",
@@ -195,7 +199,7 @@ namespace KoiSkinOverlayX
         {
             e.AddControl(new MakerText(title, makerCategory, owner));
 
-            var bi = e.AddControl(new MakerImage(null, makerCategory, owner) {Height = 150, Width = 150});
+            var bi = e.AddControl(new MakerImage(null, makerCategory, owner) { Height = 150, Width = 150 });
             _textureChanged.Subscribe(
                 d =>
                 {
@@ -251,10 +255,7 @@ namespace KoiSkinOverlayX
 
             _api.RegisterCustomSubCategories += RegisterCustomSubCategories;
             _api.MakerExiting += MakerExiting;
-            _api.ChaFileLoaded += OnChaFileLoaded;
-            // Needed for starting maker in class roster. There is no ChaFileLoaded event fired
-            _api.MakerFinishedLoading += (sender, args) => UpdateInterface(GetOverlayController());
-
+            CharacterApi.CharacterReloaded += (sender, args) => OnChaFileLoaded();
             ExtendedSave.CardBeingSaved += ExtendedSaveOnCardBeingSaved;
         }
 
@@ -288,15 +289,13 @@ namespace KoiSkinOverlayX
             }
         }
 
-        private void OnChaFileLoaded(object sender, ChaFileLoadedEventArgs e)
+        private void OnChaFileLoaded()
         {
+            if (!_api.InsideMaker) return;
+
             _texChangeWatcher?.Dispose();
 
             var ctrl = GetOverlayController();
-
-            if (_loadFromLoadedCards)
-                KoiSkinOverlayMgr.LoadAllOverlayTextures(ctrl);
-
             UpdateInterface(ctrl);
         }
 

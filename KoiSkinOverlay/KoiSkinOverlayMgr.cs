@@ -2,7 +2,7 @@
 using System.IO;
 using BepInEx;
 using BepInEx.Logging;
-using ExtensibleSaveFormat;
+using MakerAPI.Chara;
 using UnityEngine;
 using Logger = BepInEx.Logger;
 using Resources = KoiSkinOverlayX.Properties.Resources;
@@ -35,6 +35,7 @@ namespace KoiSkinOverlayX
             DontDestroyOnLoad(rt_Body);
 
             Hooks.Init();
+            CharacterApi.RegisterExtraBehaviour<KoiSkinOverlayController>(GUID);
         }
 
 #if DEBUG
@@ -48,46 +49,7 @@ namespace KoiSkinOverlayX
         }
 #endif
 
-        private static Texture2D GetOverlayTex(ChaInfo cc, TexType texType)
-        {
-            // Old loading logic, import if possible
-            var charFullname = cc.fileParam?.fullname;
-            if (!string.IsNullOrEmpty(charFullname))
-            {
-                var texFilename = GetTexFilename(charFullname, texType);
-
-                if (File.Exists(texFilename))
-                {
-                    Logger.Log(LogLevel.Info, $"[KSOX] Importing texture data for {cc.fileParam.fullname} from file {texFilename}");
-
-                    try
-                    {
-                        var fileTexBytes = File.ReadAllBytes(texFilename);
-                        var overlayTex = Util.TextureFromBytes(fileTexBytes);
-
-                        if (overlayTex != null)
-                            return overlayTex;
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Log(LogLevel.Error, "[KSOX] Failed to load texture from file - " + ex.Message);
-                    }
-                }
-            }
-
-            // New loading logic from extended data
-            var chaFile = MakerAPI.MakerAPI.Instance.InsideMaker ? MakerAPI.MakerAPI.Instance.LastLoadedChaFile : cc.chaFile;
-            var embeddedTex = GetTexExtData(chaFile, texType.ToString(), GUID);
-            if (embeddedTex != null)
-            {
-                Logger.Log(LogLevel.Info, $"[KSOX] Loading embedded overlay texture data {texType} from card: {cc.fileParam?.fullname ?? "?"}");
-                return embeddedTex;
-            }
-
-            return null;
-        }
-
-        public static string GetTexFilename(string charFullname, TexType texType)
+        internal static string GetTexFilename(string charFullname, TexType texType)
         {
             string name;
 
@@ -108,49 +70,51 @@ namespace KoiSkinOverlayX
             return texFilename;
         }
 
-        private static void SetTexExtData(ChaFile chaFile, Texture2D tex, string texType, string guid)
+        /// <summary>
+        /// Old loading logic from folders
+        /// </summary>
+        internal static Texture2D GetOldStyleOverlayTex(TexType texType, ChaControl chaControl)
         {
-            var data = ExtendedSave.GetExtendedDataById(chaFile, guid);
-            if (data == null)
+            var charFullname = chaControl.fileParam?.fullname;
+            if (!string.IsNullOrEmpty(charFullname))
             {
-                if (tex == null) return;
-                data = new PluginData { version = 1 };
-                ExtendedSave.SetExtendedDataById(chaFile, guid, data);
-            }
+                var texFilename = GetTexFilename(charFullname, texType);
 
-            if (tex != null)
-                data.data[texType] = tex.EncodeToPNG();
-            else
-                data.data.Remove(texType);
-        }
-
-        private static Texture2D GetTexExtData(ChaFile chaFile, string texType, string guid)
-        {
-            var data = ExtendedSave.GetExtendedDataById(chaFile, guid);
-            if (data != null && data.data.TryGetValue(texType, out var texData))
-            {
-
-                if (texData is byte[] texBytes)
+                if (File.Exists(texFilename))
                 {
-                    var loadedTex = Util.TextureFromBytes(texBytes);
-                    if (loadedTex != null) return loadedTex;
-                }
+                    Logger.Log(LogLevel.Info, $"[KSOX] Importing texture data for {charFullname} from file {texFilename}");
 
-                Logger.Log(LogLevel.Debug, $"[KSOX] Embedded overlay texture data {texType} is empty or invalid in card {chaFile.charaFileName}");
+                    try
+                    {
+                        var fileTexBytes = File.ReadAllBytes(texFilename);
+                        var overlayTex = Util.TextureFromBytes(fileTexBytes);
+
+                        if (overlayTex != null)
+                            return overlayTex;
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Log(LogLevel.Error, "[KSOX] Failed to load texture from file - " + ex.Message);
+                    }
+                }
             }
             return null;
         }
 
-        public static KoiSkinOverlayController GetOrAttachController(ChaControl charInfo)
+        internal static TexType ParseTexStr(string texName)
         {
-            if (charInfo == null)
-                return null;
-
-            var existing = charInfo.gameObject.GetComponent<KoiSkinOverlayController>();
-            return existing ?? charInfo.gameObject.AddComponent<KoiSkinOverlayController>();
+            try
+            {
+                return (TexType)Enum.Parse(typeof(TexType), texName);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(LogLevel.Error | LogLevel.Message, $"[KSOX] Failed to load embedded texture {texName} - {ex.Message}");
+                return TexType.Unknown;
+            }
         }
 
-        public static RenderTexture GetOverlayRT(TexType overlayType)
+        internal static RenderTexture GetOverlayRT(TexType overlayType)
         {
             switch (overlayType)
             {
@@ -163,21 +127,6 @@ namespace KoiSkinOverlayX
                 default:
                     return null;
             }
-        }
-
-        internal static void LoadAllOverlayTextures(KoiSkinOverlayController controller)
-        {
-            foreach (var texType in new[] { TexType.BodyOver, TexType.BodyUnder, TexType.FaceOver, TexType.FaceUnder })
-            {
-                var tex = GetOverlayTex(controller.ChaControl, texType);
-                controller.SetOverlayTex(tex, texType);
-            }
-        }
-
-        internal static void SaveAllOverlayTextures(KoiSkinOverlayController controller, ChaFile chaFile)
-        {
-            foreach (var controllerOverlay in controller.Overlays)
-                SetTexExtData(chaFile, controllerOverlay.Value, controllerOverlay.Key.ToString(), GUID);
         }
     }
 }
