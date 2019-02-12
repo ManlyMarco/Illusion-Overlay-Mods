@@ -156,11 +156,7 @@ namespace KoiClothesOverlayX
 
         protected override void OnCardBeingSaved(GameMode currentGameMode)
         {
-            // Let the previously loaded values get copied if not in maker since there's no way for them to be changed
-            if (currentGameMode != GameMode.Maker) return;
-
-            var data = new PluginData();
-            data.version = 1;
+            var data = new PluginData { version = 1 };
 
             CleanupTextureList();
             data.data.Add(OverlayDataKey, MessagePackSerializer.Serialize(_allOverlayTextures));
