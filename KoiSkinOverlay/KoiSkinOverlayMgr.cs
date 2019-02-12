@@ -15,11 +15,13 @@ namespace KoiSkinOverlayX
     public class KoiSkinOverlayMgr : BaseUnityPlugin
     {
         public const string GUID = "KSOX";
-        public const string Version = "3.0";
+        public const string Version = "3.1";
+
         public static readonly string OverlayDirectory = Path.Combine(Paths.PluginPath, "KoiSkinOverlay");
+
+        private static RenderTexture _rtBody;
+        private static RenderTexture _rtFace;
         internal static Material OverlayMat { get; private set; }
-        private static RenderTexture rt_Face;
-        private static RenderTexture rt_Body;
 
         private void Awake()
         {
@@ -28,26 +30,15 @@ namespace KoiSkinOverlayX
             DontDestroyOnLoad(OverlayMat);
             ab.Unload(false);
 
-            rt_Face = new RenderTexture(1024, 1024, 8);
-            DontDestroyOnLoad(rt_Face);
+            _rtFace = new RenderTexture(1024, 1024, 8);
+            DontDestroyOnLoad(_rtFace);
 
-            rt_Body = new RenderTexture(2048, 2048, 8);
-            DontDestroyOnLoad(rt_Body);
+            _rtBody = new RenderTexture(2048, 2048, 8);
+            DontDestroyOnLoad(_rtBody);
 
             Hooks.Init();
             CharacterApi.RegisterExtraBehaviour<KoiSkinOverlayController>(GUID);
         }
-
-#if DEBUG
-        private void Update()
-        {
-            if (Input.GetKeyDown(KeyCode.RightControl))
-            {
-                foreach (var cc in FindObjectsOfType<KoiSkinOverlayController>())
-                    cc.UpdateTexture(TexType.Unknown);
-            }
-        }
-#endif
 
         internal static string GetTexFilename(string charFullname, TexType texType)
         {
@@ -100,17 +91,17 @@ namespace KoiSkinOverlayX
             }
             return null;
         }
-        
+
         internal static RenderTexture GetOverlayRT(TexType overlayType)
         {
             switch (overlayType)
             {
                 case TexType.BodyOver:
                 case TexType.BodyUnder:
-                    return rt_Body;
+                    return _rtBody;
                 case TexType.FaceUnder:
                 case TexType.FaceOver:
-                    return rt_Face;
+                    return _rtFace;
                 default:
                     return null;
             }
