@@ -13,7 +13,6 @@ using Logger = BepInEx.Logger;
 
 namespace KoiClothesOverlayX
 {
-    [RequireComponent(typeof(ChaControl))]
     public partial class KoiClothesOverlayController : CharaCustomFunctionController
     {
         private const string OverlayDataKey = "Overlays";
