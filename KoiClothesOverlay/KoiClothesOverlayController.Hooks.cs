@@ -2,6 +2,7 @@
 using System.Linq;
 using BepInEx.Logging;
 using Harmony;
+using KKAPI.Maker;
 using Logger = BepInEx.Logger;
 
 namespace KoiClothesOverlayX
@@ -21,7 +22,7 @@ namespace KoiClothesOverlayX
                 if (clothesCtrl == null) return;
 
                 // Clean up no longer used textures when switching between top clothes with 3 parts and 1 part
-                if (MakerAPI.MakerAPI.Instance.InsideMaker && controller.CurrentOverlayTextures != null)
+                if (MakerAPI.InsideMaker && controller.CurrentOverlayTextures != null)
                 {
                     List<KeyValuePair<string, ClothesTexData>> toRemoveList = null;
                     if (main && kind == 0)

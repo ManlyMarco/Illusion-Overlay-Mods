@@ -51,9 +51,8 @@
       <HintPath>..\lib\ExtensibleSaveFormat.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="MakerAPI">
-      <HintPath>..\..\..\..\Games\Koikatsu\BepInEx\MakerAPI.dll</HintPath>
-      <Private>False</Private>
+    <Reference Include="KKAPI">
+      <HintPath>..\..\..\..\Games\Koikatsu\BepInEx\KKAPI.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

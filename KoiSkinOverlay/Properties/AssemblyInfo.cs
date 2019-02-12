@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using KoiSkinOverlayX;
 
@@ -31,3 +32,5 @@ using KoiSkinOverlayX;
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyFileVersion(KoiSkinOverlayMgr.Version)]
+
+[assembly: InternalsVisibleTo("KoiClothesOverlay")]

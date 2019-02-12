@@ -1,12 +1,13 @@
 ﻿using BepInEx;
+using KKAPI;
+using KKAPI.Chara;
 using KoiSkinOverlayX;
-using MakerAPI.Chara;
 
 namespace KoiClothesOverlayX
 {
     [BepInPlugin(GUID, "KCOX (KoiClothesOverlay)", KoiSkinOverlayMgr.Version)]
     [BepInDependency("com.bepis.bepinex.extendedsave")]
-    [BepInDependency(MakerAPI.MakerAPI.GUID)]
+    [BepInDependency(KoikatuAPI.GUID)]
     [BepInDependency(KoiSkinOverlayMgr.GUID)]
     public class KoiClothesOverlayMgr : BaseUnityPlugin
     {

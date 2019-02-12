@@ -5,9 +5,10 @@ using System.IO;
 using System.Linq;
 using BepInEx;
 using BepInEx.Logging;
+using KKAPI.Maker;
+using KKAPI.Maker.UI;
+using KKAPI.Utilities;
 using KoiSkinOverlayX;
-using MakerAPI;
-using MakerAPI.Utilities;
 using UniRx;
 using UnityEngine;
 using Logger = BepInEx.Logger;
@@ -21,9 +22,7 @@ namespace KoiClothesOverlayX
     public partial class KoiClothesOverlayGui : BaseUnityPlugin
     {
         private const string GUID = KoiClothesOverlayMgr.GUID + "_GUI";
-
-        private static MakerAPI.MakerAPI _api;
-
+        
         private static MakerLoadToggle _makerLoadToggle;
         private static MakerCoordinateLoadToggle _makerCoordLoadToggle;
         internal static bool MakerLoadFromCharas => _makerLoadToggle == null || _makerLoadToggle.Value;
@@ -42,7 +41,7 @@ namespace KoiClothesOverlayX
 
         private static KoiClothesOverlayController GetOverlayController()
         {
-            return _api.GetCharacterControl().gameObject.GetComponent<KoiClothesOverlayController>();
+            return MakerAPI.GetCharacterControl().gameObject.GetComponent<KoiClothesOverlayController>();
         }
 
         private void SetTexAndUpdate(ClothesTexData tex, string texType)
@@ -101,7 +100,7 @@ namespace KoiClothesOverlayX
             if (_refreshInterfaceRunning || _refreshInterface == null) return;
 
             _refreshInterfaceRunning = true;
-            _api.StartCoroutine(RefreshInterfaceCo(category));
+            MakerAPI.GetMakerBase().StartCoroutine(RefreshInterfaceCo(category));
         }
 
         private static IEnumerator RefreshInterfaceCo(int category)
@@ -269,13 +268,12 @@ namespace KoiClothesOverlayX
 
         private void Start()
         {
-            _api = MakerAPI.MakerAPI.Instance;
             Hooks.Init();
 
-            _api.MakerBaseLoaded += RegisterCustomControls;
-            _api.MakerFinishedLoading += (sender, args) => RefreshInterface(-1);
-            _api.MakerExiting += MakerExiting;
-            _api.ChaFileLoaded += (sender, e) => RefreshInterface(-1);
+            MakerAPI.MakerBaseLoaded += RegisterCustomControls;
+            MakerAPI.MakerFinishedLoading += (sender, args) => RefreshInterface(-1);
+            MakerAPI.MakerExiting += MakerExiting;
+            MakerAPI.ChaFileLoaded += (sender, e) => RefreshInterface(-1);
 
             if (KoiSkinOverlayGui.WatchLoadedTexForChanges != null)
                 KoiSkinOverlayGui.WatchLoadedTexForChanges.SettingChanged += (sender, args) =>

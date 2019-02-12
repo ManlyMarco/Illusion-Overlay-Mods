@@ -4,9 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using BepInEx.Logging;
 using ExtensibleSaveFormat;
+using KKAPI;
+using KKAPI.Chara;
+using KKAPI.Maker;
+using KKAPI.Studio;
 using KoiSkinOverlayX;
-using MakerAPI;
-using MakerAPI.Chara;
 using MessagePack;
 using UnityEngine;
 using Logger = BepInEx.Logger;
@@ -102,7 +104,7 @@ namespace KoiClothesOverlayX
         {
             // todo test if needed for main game as well
             // Studio needs a more aggresive refresh to update the textures
-            if (MakerAPI.MakerAPI.Instance.InsideStudio)
+            if (StudioAPI.InsideStudio)
             {
                 ChaControl.ChangeClothes(true);
                 return;
@@ -262,7 +264,7 @@ namespace KoiClothesOverlayX
             var applicableRenderers = GetApplicableRenderers(rendererArrs).ToList();
             if (applicableRenderers.Count == 0)
             {
-                Logger.Log(MakerAPI.MakerAPI.Instance.InsideMaker ? LogLevel.Warning | LogLevel.Message : LogLevel.Debug, $"[KCOX] Removing unused overlay for {clothesName}");
+                Logger.Log(MakerAPI.InsideMaker ? LogLevel.Warning | LogLevel.Message : LogLevel.Debug, $"[KCOX] Removing unused overlay for {clothesName}");
 
                 Destroy(overlay.Texture);
                 CurrentOverlayTextures.Remove(clothesName);

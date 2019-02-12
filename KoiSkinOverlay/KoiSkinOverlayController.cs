@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using ExtensibleSaveFormat;
-using MakerAPI;
-using MakerAPI.Chara;
+using KKAPI;
+using KKAPI.Chara;
 using UnityEngine;
 
 namespace KoiSkinOverlayX

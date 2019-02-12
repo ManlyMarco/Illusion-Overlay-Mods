@@ -2,7 +2,8 @@
 using System.IO;
 using BepInEx;
 using BepInEx.Logging;
-using MakerAPI.Chara;
+using KKAPI;
+using KKAPI.Chara;
 using UnityEngine;
 using Logger = BepInEx.Logger;
 using Resources = KoiSkinOverlayX.Properties.Resources;
@@ -11,11 +12,11 @@ namespace KoiSkinOverlayX
 {
     [BepInPlugin(GUID, "KSOX (KoiSkinOverlay)", Version)]
     [BepInDependency("com.bepis.bepinex.extendedsave")]
-    [BepInDependency(MakerAPI.MakerAPI.GUID)]
+    [BepInDependency(KoikatuAPI.GUID)]
     public class KoiSkinOverlayMgr : BaseUnityPlugin
     {
         public const string GUID = "KSOX";
-        public const string Version = "3.1";
+        internal const string Version = "3.2";
 
         public static readonly string OverlayDirectory = Path.Combine(Paths.PluginPath, "KoiSkinOverlay");
 

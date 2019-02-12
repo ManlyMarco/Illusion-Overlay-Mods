@@ -14,9 +14,10 @@ using System.Linq;
 using BepInEx;
 using BepInEx.Logging;
 using ExtensibleSaveFormat;
-using MakerAPI;
-using MakerAPI.Chara;
-using MakerAPI.Utilities;
+using KKAPI.Chara;
+using KKAPI.Maker;
+using KKAPI.Maker.UI;
+using KKAPI.Utilities;
 using UniRx;
 using UnityEngine;
 using Logger = BepInEx.Logger;
@@ -33,9 +34,7 @@ namespace KoiSkinOverlayX
 
         public const string FileExt = ".png";
         public const string FileFilter = "Overlay images (*.png)|*.png|All files|*.*";
-
-        private static MakerAPI.MakerAPI _api;
-
+        
         private Subject<KeyValuePair<TexType, Texture2D>> _textureChanged;
 
         private byte[] _bytesToLoad;
@@ -54,7 +53,7 @@ namespace KoiSkinOverlayX
 
         private static void ExtendedSaveOnCardBeingSaved(ChaFile chaFile)
         {
-            if (!_api.InsideMaker) return;
+            if (!MakerAPI.InsideMaker) return;
 
             if (RemoveOldFiles.Value)
             {
@@ -70,7 +69,7 @@ namespace KoiSkinOverlayX
 
         private static KoiSkinOverlayController GetOverlayController()
         {
-            return _api.GetCharacterControl().gameObject.GetComponent<KoiSkinOverlayController>();
+            return MakerAPI.GetCharacterControl().gameObject.GetComponent<KoiSkinOverlayController>();
         }
 
         public static string GetUniqueTexDumpFilename()
@@ -247,10 +246,8 @@ namespace KoiSkinOverlayX
 
         private void Start()
         {
-            _api = MakerAPI.MakerAPI.Instance;
-
-            _api.RegisterCustomSubCategories += RegisterCustomSubCategories;
-            _api.MakerExiting += MakerExiting;
+            MakerAPI.RegisterCustomSubCategories += RegisterCustomSubCategories;
+            MakerAPI.MakerExiting += MakerExiting;
             CharacterApi.CharacterReloaded += (sender, args) => OnChaFileLoaded();
             ExtendedSave.CardBeingSaved += ExtendedSaveOnCardBeingSaved;
         }
@@ -287,7 +284,7 @@ namespace KoiSkinOverlayX
 
         private void OnChaFileLoaded()
         {
-            if (!_api.InsideMaker) return;
+            if (!MakerAPI.InsideMaker) return;
 
             _texChangeWatcher?.Dispose();
 
