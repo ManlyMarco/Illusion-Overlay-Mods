@@ -101,6 +101,14 @@ namespace KoiClothesOverlayX
 
         public void RefreshAllTextures()
         {
+            // todo test if needed for main game as well
+            // Studio needs a more aggresive refresh to update the textures
+            if (MakerAPI.MakerAPI.Instance.InsideStudio)
+            {
+                ChaControl.ChangeClothes(true);
+                return;
+            }
+
             for (var i = 0; i < ChaControl.cusClothesCmp.Length; i++)
                 ChaControl.ChangeCustomClothes(true, i, true, false, false, false, false);
 
@@ -162,9 +170,10 @@ namespace KoiClothesOverlayX
 
         protected override void OnReload(GameMode currentGameMode)
         {
-            if (currentGameMode == GameMode.Maker && !KoiClothesOverlayGui.MakerLoadFromCharas) return;
+            if (!KoiClothesOverlayGui.MakerLoadFromCharas) return;
 
-            if (_allOverlayTextures != null)
+            var anyPrevious = _allOverlayTextures != null && _allOverlayTextures.Any();
+            if (anyPrevious)
             {
                 foreach (var textures in _allOverlayTextures)
                 {
@@ -197,7 +206,8 @@ namespace KoiClothesOverlayX
             if (_allOverlayTextures == null)
                 _allOverlayTextures = new Dictionary<ChaFileDefine.CoordinateType, Dictionary<string, ClothesTexData>>();
 
-            StartCoroutine(RefreshAllTexturesCo());
+            if (anyPrevious || _allOverlayTextures.Any())
+                StartCoroutine(RefreshAllTexturesCo());
         }
 
         protected override void OnCoordinateBeingSaved(ChaFileCoordinate coordinate)

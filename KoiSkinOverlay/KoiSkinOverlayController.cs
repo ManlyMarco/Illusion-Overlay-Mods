@@ -34,6 +34,7 @@ namespace KoiSkinOverlayX
         {
             if (!KoiSkinOverlayGui.MakerLoadFromCharas) return;
 
+            var needsUpdate = _overlays.Any();
             _overlays.Clear();
 
             var data = GetExtendedData();
@@ -58,6 +59,9 @@ namespace KoiSkinOverlayX
                 if (oldTex != null)
                     _overlays.Add(texType, oldTex);
             }
+
+            if (needsUpdate || _overlays.Any())
+                UpdateTexture(TexType.Unknown);
         }
 
         public void ApplyOverlayToRT(RenderTexture bodyTexture, TexType overlayType)
