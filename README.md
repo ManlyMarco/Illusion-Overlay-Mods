@@ -3,7 +3,7 @@
 Koikatu! mods that allow adding overlay textures (also called tattoos) to character's face and body, as well as to the clothes. These additional textures are saved inside the card and used by the main game and studio.
 
 ## How to use 
-1. Make sure [BepInEx](https://github.com/BepInEx/BepInEx) and [BepisPlugins](https://github.com/bbepis/BepisPlugins) are installed, and your game is updated. [MakerAPI](https://github.com/ManlyMarco/MakerAPI) is used for the GUI and you might need to get it as well.
+1. Make sure at least [BepInEx v4.1](https://github.com/BepInEx/BepInEx), [BepisPlugins r7](https://github.com/bbepis/BepisPlugins) and [KKAPI v1.0](https://github.com/ManlyMarco/KKAPI) are installed, and your game is updated.
 2. Download the latest release from [here](https://github.com/ManlyMarco/KoiSkinOverlayX/releases).
 3. Extract the dll files into the folder `Koikatu\BepInEx` in your game's directory.
 4. Start character maker. You should see new tab "Overlays" show up under the Body tab, and overlay controls under clothes tabs.
