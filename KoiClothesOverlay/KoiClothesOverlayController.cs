@@ -342,6 +342,8 @@ namespace KoiClothesOverlayX
         {
             base.OnDestroy();
 
+            if (_allOverlayTextures == null) return;
+
             foreach (var textures in _allOverlayTextures.SelectMany(x => x.Value))
             {
                 var texture = textures.Value.Texture;
