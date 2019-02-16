@@ -11,6 +11,9 @@ dedicated tools for painting that made life easier. If you think I am doing
 something wrong, or know a better way to do anything in this guide, feel free to
 contact me, and I’ll update the guide.*
 
+# Change Log: 
+16/2/2019 Updated the import configurations in Part 3.
+
 This tutorial is split into 3 Parts. (You will always want to read Part 1, but
 feel free to only read Part 2 or Part 3, depending on what you’re trying to
 do).
@@ -34,13 +37,12 @@ Here are a few 3D Coat brush alpha packs to get you started. You can find more
 online. Just drag and drop the .3dcpack files on 3D Coat to load them in, then
 restart the application.
 
-[https://drive.google.com/file/d/0B5zx7iMKxeu5Z016VFZGR3FYQ00](https://drive.google.com/file/d/0B5zx7iMKxeu5Z016VFZGR3FYQ00/edit)
+[https://drive.Google.com/file/d/0B5zx7iMKxeu5Z016VFZGR3FYQ00](https://drive.Google.com/file/d/0B5zx7iMKxeu5Z016VFZGR3FYQ00/edit)
 
-[https://drive.google.com/file/d/0B5zx7iMKxeu5SHRValA5Qk9iWTQ](https://drive.google.com/file/d/0B5zx7iMKxeu5SHRValA5Qk9iWTQ/edit)
+[https://drive.Google.com/file/d/0B5zx7iMKxeu5SHRValA5Qk9iWTQ](https://drive.Google.com/file/d/0B5zx7iMKxeu5SHRValA5Qk9iWTQ/edit)
 
-[https://drive.google.com/file/d/0B5zx7iMKxeu5bC1JNGYwbGgyRjA](https://drive.google.com/file/d/0B5zx7iMKxeu5bC1JNGYwbGgyRjA/edit)
+[https://drive.Google.com/file/d/0B5zx7iMKxeu5bC1JNGYwbGgyRjA](https://drive.Google.com/file/d/0B5zx7iMKxeu5bC1JNGYwbGgyRjA/edit)
 
-<https://gumroad.com/d/baf9006383771d4256d026966f700b98>
 
 # Part 1: KSOX <a name="p1"></a>
 
@@ -106,7 +108,7 @@ only go over doing this for the body. But the same steps apply for the face.
 #### Step 1
 Now to start with, you need a pre-made illustration. It can be
 something you downloaded, or something you made in a 2D editor. For example, we
-will be using a tattoo downloaded from google.
+will be using a tattoo downloaded from Google.
 
 ![](media/77ebc84e070a348feef91e98969c0f36.png)
 
@@ -188,16 +190,18 @@ editor.
 
 You will then need to adjust the model import configuration, this is what I use:
 
+Note: The import configuration has been updated to eliminate the appearance of seams. The Template.3b file has also been updated to reflect the new configuration, so re-download the file for best results if you're using the old one.
+
 ![](media/96c2ff305b2b171c38296b41a010c76d.png)
 
 The only thing worth elaborating on is the Texture Width x Height. It’s always a
 1:1 ratio, and the overlays work with 1024x1024px by default. However, you could
-go up with multiplies of x2 if you wish. But I haven’t tested whether the
-difference in quality is there or not once KK loads up the overlays. So, upscale
-at your own discretion. If you do this step yourself, you will have to manually
+go up with multiplies of x2 if you wish. If you do this step yourself, you will have to manually
 move the head model to align it to the body. You will need to use the Tweak
 panel for that, but I would rather not get into that in this tutorial, in order
 to keep things simple.
+
+Note 2: At present, due to how the Overlay framework processes textures, the ideal dimensions for the Body Overlay is no higher than 2048x2048 (1024 is fine if your PC can't handle higher textures), while the Face Overlay shouldn't exceed 1024x1024 (it shows pixel artifacts at higher resolutions).
 
 ![](media/1aa3b6a08df09dac1ca695154c06fd88.png)
 
@@ -242,7 +246,7 @@ texture).
 
 ![](media/7cbd966b8a7fdf4af23fd3b54ef94d3d.png)
 
-This is the *layers* panel. Somewhat similar to the one in photoshop, but with
+This is the *layers* panel. Somewhat similar to the one in Photoshop, but with
 more limited functionality.
 
 In the file Template.3B, I included 3 base layers. The first layer Body/Face
@@ -414,7 +418,7 @@ hit Ok.
 
 ![](media/8cc08dca31d03b2cf64bde30ba3164eb.png)
 
-All the layers in 3DC are going to open in a new photoshop file. If you make an
+All the layers in 3DC are going to open in a new Photoshop file. If you make an
 edit to any of these layers and save (ctrl+s), it will automatically change in
 3DC. This is useful if you want to add quick photo filters, small details, or
 fix any minor pixel issues. As it’s much easier to do that in a dedicated 2D
