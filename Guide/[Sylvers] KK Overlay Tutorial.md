@@ -43,7 +43,6 @@ restart the application.
 
 [https://drive.Google.com/file/d/0B5zx7iMKxeu5bC1JNGYwbGgyRjA](https://drive.Google.com/file/d/0B5zx7iMKxeu5bC1JNGYwbGgyRjA/edit)
 
-<https://gumroad.com/d/baf9006383771d4256d026966f700b98>
 
 # Part 1: KSOX <a name="p1"></a>
 
