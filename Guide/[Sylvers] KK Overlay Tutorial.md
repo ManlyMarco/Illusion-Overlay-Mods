@@ -11,7 +11,7 @@ dedicated tools for painting that made life easier. If you think I am doing
 something wrong, or know a better way to do anything in this guide, feel free to
 contact me, and I’ll update the guide.*
 
-#Change Log: 
+# Change Log: 
 16/2/2019 Updated the import configurations in Part 3.
 
 This tutorial is split into 3 Parts. (You will always want to read Part 1, but
@@ -190,6 +190,7 @@ editor.
 ![](media/bb69b957dd6cbe64a476b00ae819c230.png)
 
 You will then need to adjust the model import configuration, this is what I use:
+
 Note: The import configuration has been updated to eliminate the appearance of seams. The Template.3b file has also been updated to reflect the new configuration, so re-download the file for best results if you're using the old one.
 
 ![](media/96c2ff305b2b171c38296b41a010c76d.png)
