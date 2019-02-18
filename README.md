@@ -24,6 +24,7 @@ This mod is based on the original KoiSkinOverlay mod by essu and many new featur
 - Added clothes overlays. It allows adding overlays to textures of almost all clothes.
 - And more as time goes on...
 
-![preview 2](https://user-images.githubusercontent.com/39247311/49687441-f5f85880-fb02-11e8-90e9-a5103ca13a51.png)
-![preview 3](https://user-images.githubusercontent.com/39247311/52307974-66551600-299c-11e9-8a8c-183006541530.png)
-Preview pictures 1 and 3 by @DeathWeasel1337 and 2 by HCM06
+![preview 2](https://user-images.githubusercontent.com/39247311/52307974-66551600-299c-11e9-8a8c-183006541530.png)
+![preview 3](https://user-images.githubusercontent.com/39247311/49687441-f5f85880-fb02-11e8-90e9-a5103ca13a51.png)
+![Eye overlay preview](https://user-images.githubusercontent.com/39247311/52975293-41fa3000-33c5-11e9-9735-07b25613520d.png)
+Preview pictures 1 and 2 by @DeathWeasel1337. Character in picture 3 by HCM06, in picture 4 by Yata.
