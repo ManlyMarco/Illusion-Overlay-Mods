@@ -27,6 +27,8 @@ namespace KoiSkinOverlayX
 
         private void Awake()
         {
+            KoikatuAPI.CheckRequiredPlugin(this, KoikatuAPI.GUID, new Version(KoikatuAPI.VersionConst));
+
             var ab = AssetBundle.LoadFromMemory(Resources.composite);
             OverlayMat = new Material(ab.LoadAsset<Shader>("assets/composite.shader"));
             DontDestroyOnLoad(OverlayMat);
