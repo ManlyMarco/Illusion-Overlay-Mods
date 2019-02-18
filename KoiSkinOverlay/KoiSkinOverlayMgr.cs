@@ -110,6 +110,7 @@ namespace KoiSkinOverlayX
                 case TexType.FaceOver:
                     return _rtFace;
                 case TexType.EyeUnder:
+                case TexType.EyeOver:
                     return _rtEye;
                 default:
                     return null;

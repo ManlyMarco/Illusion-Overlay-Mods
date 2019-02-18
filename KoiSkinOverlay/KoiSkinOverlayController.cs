@@ -129,6 +129,7 @@ namespace KoiSkinOverlayX
                     cc.CreateFaceTexture();
                     break;
                 case TexType.EyeUnder:
+                case TexType.EyeOver:
                     cc.ChangeSettingEye(true, false, false);
                     break;
                 default:

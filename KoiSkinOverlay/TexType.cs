@@ -10,6 +10,7 @@
         FaceOver,
         BodyUnder,
         FaceUnder,
-        EyeUnder
+        EyeUnder,
+        EyeOver
     }
 }

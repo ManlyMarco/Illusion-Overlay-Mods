@@ -21,7 +21,7 @@ namespace KoiSkinOverlayX
         {
             HarmonyInstance.Create(nameof(Hooks)).PatchAll(typeof(Hooks));
         }
-        
+
         /// <summary>
         /// Skin underlay logic
         /// </summary>
@@ -81,7 +81,7 @@ namespace KoiSkinOverlayX
 
             return instructions;
         }
-        
+
         /// <summary>
         /// Skin overlay
         /// </summary>
@@ -101,6 +101,20 @@ namespace KoiSkinOverlayX
                 else if (overlay.ChaControl.customTexCtrlBody == __instance)
                     overlay.ApplyOverlayToRT(createTex, TexType.BodyOver);
             }
+        }
+
+        /// <summary>
+        /// Eye overlay
+        /// </summary>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(CustomTextureCreate), nameof(CustomTextureCreate.RebuildTextureAndSetMaterial))]
+        public static void EyeChangeSettingEyePostfix(CustomTextureCreate __instance, Texture __result)
+        {
+            var overlay = __instance.trfParent?.GetComponent<KoiSkinOverlayController>();
+            if (overlay == null) return;
+            
+            if (__instance == overlay.ChaControl.ctCreateEyeL || __instance == overlay.ChaControl.ctCreateEyeR)
+                overlay.ApplyOverlayToRT((RenderTexture)__result, TexType.EyeOver);
         }
 
         /// <summary>

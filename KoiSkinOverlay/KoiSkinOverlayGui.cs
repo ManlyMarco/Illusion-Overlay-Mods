@@ -187,7 +187,11 @@ namespace KoiSkinOverlayX
 
             e.AddControl(new MakerSeparator(eyeCategory, owner));
 
-            SetupTexControls(e, eyeCategory, owner, TexType.EyeUnder, "Eye underlay texture (Under reflections)");
+            SetupTexControls(e, eyeCategory, owner, TexType.EyeOver, "Iris overlay texture (On top of original iris)");
+
+            e.AddControl(new MakerSeparator(eyeCategory, owner));
+
+            SetupTexControls(e, eyeCategory, owner, TexType.EyeUnder, "Iris underlay texture (Before coloring and effects)");
         }
 
         private static void AddConfigSettings(RegisterSubCategoriesEvent e, KoiSkinOverlayMgr owner, MakerCategory makerCategory)
@@ -321,7 +325,7 @@ namespace KoiSkinOverlayX
 
         private void UpdateInterface(KoiSkinOverlayController ctrl)
         {
-            foreach (var texType in new[] { TexType.BodyOver, TexType.BodyUnder, TexType.FaceOver, TexType.FaceUnder })
+            foreach (TexType texType in Enum.GetValues(typeof(TexType)))
             {
                 var tex = ctrl.Overlays.FirstOrDefault(x => x.Key == texType).Value;
                 _textureChanged.OnNext(new KeyValuePair<TexType, Texture2D>(texType, tex));
