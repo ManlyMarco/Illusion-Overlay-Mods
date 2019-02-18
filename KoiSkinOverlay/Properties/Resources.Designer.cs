@@ -83,6 +83,16 @@ namespace KoiSkinOverlayX.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        internal static byte[] eye {
+            get {
+                object obj = ResourceManager.GetObject("eye", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         internal static byte[] face {
             get {
                 object obj = ResourceManager.GetObject("face", resourceCulture);

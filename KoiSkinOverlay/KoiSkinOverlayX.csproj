@@ -105,5 +105,8 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\face.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="Resources\eye.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -34,7 +34,7 @@ namespace KoiSkinOverlayX
 
         public const string FileExt = ".png";
         public const string FileFilter = "Overlay images (*.png)|*.png|All files|*.*";
-        
+
         private Subject<KeyValuePair<TexType, Texture2D>> _textureChanged;
 
         private byte[] _bytesToLoad;
@@ -137,11 +137,17 @@ namespace KoiSkinOverlayX
             var owner = GetComponent<KoiSkinOverlayMgr>();
             _textureChanged = new Subject<KeyValuePair<TexType, Texture2D>>();
 
-            _loadToggle = e.AddLoadToggle(new MakerLoadToggle("Skin overlays"));
+            _loadToggle = e.AddLoadToggle(new MakerLoadToggle("Skin/eye overlays"));
 
-            var makerCategory = new MakerCategory(
-                "01_BodyTop", "tglOverlayKSOX",
-                MakerConstants.GetBuiltInCategory("01_BodyTop", "tglPaint").Position + 5, "Overlays");
+            SetupBodyInterface(e, owner);
+
+            SetupEyeInterface(e, owner);
+        }
+
+        private void SetupBodyInterface(RegisterSubCategoriesEvent e, KoiSkinOverlayMgr owner)
+        {
+            var paintCategory = MakerConstants.Body.Paint;
+            var makerCategory = new MakerCategory(paintCategory.CategoryName, "tglOverlayKSOX", paintCategory.Position + 5, "Skin Overlays");
             e.AddSubCategory(makerCategory);
 
             e.AddControl(new MakerButton("Get face overlay template", makerCategory, owner))
@@ -149,12 +155,7 @@ namespace KoiSkinOverlayX
             e.AddControl(new MakerButton("Get body overlay template", makerCategory, owner))
                 .OnClick.AddListener(() => WriteAndOpenPng(Resources.body));
 
-            var tRemove = e.AddControl(new MakerToggle(makerCategory, "Remove overlays imported from BepInEx\\KoiSkinOverlay when saving cards (they are saved inside the card now and no longer necessary)", owner));
-            tRemove.Value = RemoveOldFiles.Value;
-            tRemove.ValueChanged.Subscribe(b => RemoveOldFiles.Value = b);
-            var tWatch = e.AddControl(new MakerToggle(makerCategory, "Watch last loaded texture file for changes", owner));
-            tWatch.Value = WatchLoadedTexForChanges.Value;
-            tWatch.ValueChanged.Subscribe(b => WatchLoadedTexForChanges.Value = b);
+            AddConfigSettings(e, owner, makerCategory);
 
             e.AddControl(new MakerSeparator(makerCategory, owner));
 
@@ -171,6 +172,32 @@ namespace KoiSkinOverlayX
             e.AddControl(new MakerSeparator(makerCategory, owner));
 
             SetupTexControls(e, makerCategory, owner, TexType.BodyUnder, "Body underlay texture (Under tattoos, blushes, etc.)");
+        }
+
+        private void SetupEyeInterface(RegisterSubCategoriesEvent e, KoiSkinOverlayMgr owner)
+        {
+            var irisCategory = MakerConstants.Face.Iris;
+            var eyeCategory = new MakerCategory(irisCategory.CategoryName, "tglEyeOverlayKSOX", irisCategory.Position + 5, "Eye Overlays");
+            e.AddSubCategory(eyeCategory);
+
+            e.AddControl(new MakerButton("Get eye overlay template", eyeCategory, owner))
+                .OnClick.AddListener(() => WriteAndOpenPng(Resources.eye));
+
+            AddConfigSettings(e, owner, eyeCategory);
+
+            e.AddControl(new MakerSeparator(eyeCategory, owner));
+
+            SetupTexControls(e, eyeCategory, owner, TexType.EyeUnder, "Eye underlay texture (Under reflections)");
+        }
+
+        private static void AddConfigSettings(RegisterSubCategoriesEvent e, KoiSkinOverlayMgr owner, MakerCategory makerCategory)
+        {
+            var tRemove = e.AddControl(new MakerToggle(makerCategory, "Remove overlays imported from BepInEx\\KoiSkinOverlay when saving cards (they are saved inside the card now and no longer necessary)", owner));
+            tRemove.Value = RemoveOldFiles.Value;
+            tRemove.ValueChanged.Subscribe(b => RemoveOldFiles.Value = b);
+            var tWatch = e.AddControl(new MakerToggle(makerCategory, "Watch last loaded texture file for changes", owner));
+            tWatch.Value = WatchLoadedTexForChanges.Value;
+            tWatch.ValueChanged.Subscribe(b => WatchLoadedTexForChanges.Value = b);
         }
 
         public static void WriteAndOpenPng(byte[] pngData)

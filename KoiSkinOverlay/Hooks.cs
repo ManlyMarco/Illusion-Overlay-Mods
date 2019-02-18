@@ -21,9 +21,10 @@ namespace KoiSkinOverlayX
         {
             HarmonyInstance.Create(nameof(Hooks)).PatchAll(typeof(Hooks));
         }
-
-        #region New method
-
+        
+        /// <summary>
+        /// Skin underlay logic
+        /// </summary>
         private static Texture RebuildTextureHook(CustomTextureCreate __instance, Texture texMain)
         {
             if (__instance is CustomTextureControl)
@@ -40,6 +41,9 @@ namespace KoiSkinOverlayX
             return texMain;
         }
 
+        /// <summary>
+        /// Skin underlay hook
+        /// </summary>
         [HarmonyTranspiler, HarmonyPatch(typeof(CustomTextureCreate), "RebuildTextureAndSetMaterial")]
         public static IEnumerable<CodeInstruction> tpl_CustomTextureCreate_RebuildTextureAndSetMaterial(IEnumerable<CodeInstruction> _instructions)
         {
@@ -77,11 +81,10 @@ namespace KoiSkinOverlayX
 
             return instructions;
         }
-
-        #endregion
-
-        #region Old method
-
+        
+        /// <summary>
+        /// Skin overlay
+        /// </summary>
         [HarmonyPostfix, HarmonyPatch(typeof(CustomTextureCreate), "RebuildTextureAndSetMaterial")]
         public static void post_CustomTextureCreate_RebuildTextureAndSetMaterial(CustomTextureCreate __instance, ref Texture __result)
         {
@@ -100,6 +103,18 @@ namespace KoiSkinOverlayX
             }
         }
 
-        #endregion
+        /// <summary>
+        /// Eye underlay
+        /// </summary>
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(CustomTextureCreate), nameof(CustomTextureCreate.SetMainTexture), new[] { typeof(Texture) })]
+        public static void EyeSetMainTexturePrefix(CustomTextureCreate __instance, ref Texture tex)
+        {
+            var overlay = __instance.trfParent?.GetComponent<KoiSkinOverlayController>();
+            if (overlay == null) return;
+
+            if (__instance == overlay.ChaControl.ctCreateEyeL || __instance == overlay.ChaControl.ctCreateEyeR)
+                tex = overlay.ApplyOverlayToTex(tex, TexType.EyeUnder);
+        }
     }
 }

@@ -128,11 +128,15 @@ namespace KoiSkinOverlayX
                     cc.AddUpdateCMFaceTexFlags(true, true, true, true, true, true, true);
                     cc.CreateFaceTexture();
                     break;
+                case TexType.EyeUnder:
+                    cc.ChangeSettingEye(true, false, false);
+                    break;
                 default:
                     cc.AddUpdateCMBodyTexFlags(true, true, true, true, true);
                     cc.CreateBodyTexture();
                     cc.AddUpdateCMFaceTexFlags(true, true, true, true, true, true, true);
                     cc.CreateFaceTexture();
+                    cc.ChangeSettingEye(true, false, false);
                     break;
             }
         }

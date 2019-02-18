@@ -9,6 +9,7 @@
         BodyOver,
         FaceOver,
         BodyUnder,
-        FaceUnder
+        FaceUnder,
+        EyeUnder
     }
 }

@@ -22,6 +22,7 @@ namespace KoiSkinOverlayX
 
         private static RenderTexture _rtBody;
         private static RenderTexture _rtFace;
+        private static RenderTexture _rtEye;
         internal static Material OverlayMat { get; private set; }
 
         private void Awake()
@@ -36,6 +37,9 @@ namespace KoiSkinOverlayX
 
             _rtBody = new RenderTexture(2048, 2048, 8);
             DontDestroyOnLoad(_rtBody);
+
+            _rtEye = new RenderTexture(512, 512, 8);
+            DontDestroyOnLoad(_rtEye);
 
             Hooks.Init();
             CharacterApi.RegisterExtraBehaviour<KoiSkinOverlayController>(GUID);
@@ -103,6 +107,8 @@ namespace KoiSkinOverlayX
                 case TexType.FaceUnder:
                 case TexType.FaceOver:
                     return _rtFace;
+                case TexType.EyeUnder:
+                    return _rtEye;
                 default:
                     return null;
             }
