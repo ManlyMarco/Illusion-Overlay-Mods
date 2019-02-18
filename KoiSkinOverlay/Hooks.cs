@@ -26,21 +26,18 @@ namespace KoiSkinOverlayX
 
         private static Texture RebuildTextureHook(CustomTextureCreate __instance, Texture texMain)
         {
-            if (!(__instance is CustomTextureControl)) return texMain;
-            var overlay = __instance.trfParent?.GetComponent<KoiSkinOverlayController>();
-            if (overlay == null) return texMain;
-
-            switch (texMain.name)
+            if (__instance is CustomTextureControl)
             {
-                //ChaControl.InitBaseCustomTextureBody
-                case "cf_body_00_t":
-                    return overlay.ApplyOverlayToTex(texMain, TexType.BodyUnder);
-                //ChaControl.InitBaseCustomTextureFace
-                case "cf_face_00_t":
+                var overlay = __instance.trfParent?.GetComponent<KoiSkinOverlayController>();
+                if (overlay == null) return texMain;
+
+                if (overlay.ChaControl.customTexCtrlFace == __instance)
                     return overlay.ApplyOverlayToTex(texMain, TexType.FaceUnder);
-                default:
-                    return texMain;
+
+                if (overlay.ChaControl.customTexCtrlBody == __instance)
+                    return overlay.ApplyOverlayToTex(texMain, TexType.BodyUnder);
             }
+            return texMain;
         }
 
         [HarmonyTranspiler, HarmonyPatch(typeof(CustomTextureCreate), "RebuildTextureAndSetMaterial")]
@@ -85,32 +82,21 @@ namespace KoiSkinOverlayX
 
         #region Old method
 
-        [HarmonyPostfix, HarmonyPatch(typeof(CustomTextureCreate), "Initialize")]
-        public static void post_CustomTextureControl_Initialize(CustomTextureCreate __instance, ref string createMatName)
-        {
-            var t = __instance.GetCreateTexture();
-            if (t == null) return;
-            t.name = createMatName;
-        }
-
         [HarmonyPostfix, HarmonyPatch(typeof(CustomTextureCreate), "RebuildTextureAndSetMaterial")]
         public static void post_CustomTextureCreate_RebuildTextureAndSetMaterial(CustomTextureCreate __instance, ref Texture __result)
         {
-            if (!(__instance is CustomTextureControl)) return;
-            var overlay = __instance.trfParent?.GetComponent<KoiSkinOverlayController>();
-            if (overlay == null) return;
-
-            var createTex = __result as RenderTexture;
-            switch (createTex?.name)
+            if (__instance is CustomTextureControl)
             {
-                //ChaControl.InitBaseCustomTextureBody
-                case "cf_m_body_create":
-                    overlay.ApplyOverlayToRT(createTex, TexType.BodyOver);
-                    break;
-                //ChaControl.InitBaseCustomTextureFace
-                case "cf_m_face_create":
+                var overlay = __instance.trfParent?.GetComponent<KoiSkinOverlayController>();
+                if (overlay == null) return;
+
+                var createTex = __result as RenderTexture;
+                if (createTex == null) return;
+
+                if (overlay.ChaControl.customTexCtrlFace == __instance)
                     overlay.ApplyOverlayToRT(createTex, TexType.FaceOver);
-                    break;
+                else if (overlay.ChaControl.customTexCtrlBody == __instance)
+                    overlay.ApplyOverlayToRT(createTex, TexType.BodyOver);
             }
         }
 
