@@ -291,8 +291,9 @@ namespace KoiSkinOverlayX
                 {
                     var tex = Util.TextureFromBytes(_bytesToLoad);
 
-                    if (tex.width != tex.height || tex.height % 1024 != 0 || tex.height == 0)
-                        Logger.Log(LogLevel.Message | LogLevel.Warning, "[KSOX] WARNING - Unusual texture resolution! It's recommended to use 1024x1024 for face and 2048x2048 for body.");
+                    var recommendedSize = GetRecommendedTexSize(_typeToLoad);
+                    if (tex.width != tex.height || tex.height != recommendedSize)
+                        Logger.Log(LogLevel.Message | LogLevel.Warning, $"[KSOX] WARNING - Unusual texture resolution! It's recommended to use {recommendedSize}x{recommendedSize} for {_typeToLoad}.");
                     else
                         Logger.Log(LogLevel.Message, "[KSOX] Texture imported successfully");
 
@@ -310,6 +311,24 @@ namespace KoiSkinOverlayX
                 Logger.Log(LogLevel.Error | LogLevel.Message, "[KSOX] Failed to load texture from file - " + _lastError.Message);
                 Logger.Log(LogLevel.Debug, _lastError);
                 _lastError = null;
+            }
+        }
+
+        private int GetRecommendedTexSize(TexType texType)
+        {
+            switch (texType)
+            {
+                case TexType.BodyOver:
+                case TexType.BodyUnder:
+                    return 2048;
+                case TexType.FaceOver:
+                case TexType.FaceUnder:
+                    return 1024;
+                case TexType.EyeUnder:
+                case TexType.EyeOver:
+                    return 512;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(texType), texType, null);
             }
         }
 
