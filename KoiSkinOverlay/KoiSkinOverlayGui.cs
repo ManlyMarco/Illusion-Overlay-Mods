@@ -177,7 +177,7 @@ namespace KoiSkinOverlayX
         private void SetupEyeInterface(RegisterSubCategoriesEvent e, KoiSkinOverlayMgr owner)
         {
             var irisCategory = MakerConstants.Face.Iris;
-            var eyeCategory = new MakerCategory(irisCategory.CategoryName, "tglEyeOverlayKSOX", irisCategory.Position + 5, "Eye Overlays");
+            var eyeCategory = new MakerCategory(irisCategory.CategoryName, "tglEyeOverlayKSOX", irisCategory.Position + 5, "Iris Overlays");
             e.AddSubCategory(eyeCategory);
 
             e.AddControl(new MakerButton("Get eye overlay template", eyeCategory, owner))
