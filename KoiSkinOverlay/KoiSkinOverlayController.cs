@@ -169,13 +169,13 @@ namespace KoiSkinOverlayX
             
             Destroy(mainTex);
 
-            var newTex = new Texture2D(destTex.width, destTex.height, TextureFormat.ARGB32, false);
-            newTex.ReadPixels(new Rect(0, 0, destTex.width, destTex.height), 0, 0, false);
-            newTex.Apply(false);
+            var outRt = new RenderTexture(destTex.width, destTex.height, destTex.depth, destTex.format);
 
+            Graphics.Blit(destTex, outRt);
+            
             RenderTexture.active = atex;
 
-            return newTex;
+            return outRt;
         }
 
         public static void ApplyOverlay(RenderTexture mainTex, Texture2D blitTex)
