@@ -155,13 +155,27 @@ namespace KoiSkinOverlayX
             }
         }
 
-        public static Texture ApplyOverlay(Texture mainTex, RenderTexture destTex, Texture2D blitTex)
+        private static Texture ApplyOverlay(Texture mainTex, RenderTexture destTex, Texture2D blitTex)
         {
             if (blitTex == null || destTex == null) return mainTex;
 
+            var atex = RenderTexture.active;
+            RenderTexture.active = destTex;
+
+            GL.Clear(true, true, Color.clear);
+
             KoiSkinOverlayMgr.OverlayMat.SetTexture("_Overlay", blitTex);
             Graphics.Blit(mainTex, destTex, KoiSkinOverlayMgr.OverlayMat);
-            return destTex;
+            
+            Destroy(mainTex);
+
+            var newTex = new Texture2D(destTex.width, destTex.height, TextureFormat.ARGB32, false);
+            newTex.ReadPixels(new Rect(0, 0, destTex.width, destTex.height), 0, 0, false);
+            newTex.Apply(false);
+
+            RenderTexture.active = atex;
+
+            return newTex;
         }
 
         public static void ApplyOverlay(RenderTexture mainTex, Texture2D blitTex)
