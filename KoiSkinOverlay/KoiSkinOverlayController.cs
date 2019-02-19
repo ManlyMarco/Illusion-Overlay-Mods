@@ -25,7 +25,10 @@ namespace KoiSkinOverlayX
             var pd = new PluginData { version = 1 };
 
             foreach (var overlay in Overlays)
-                pd.data.Add(overlay.Key.ToString(), overlay.Value.EncodeToPNG());
+            {
+                if (overlay.Value != null)
+                    pd.data.Add(overlay.Key.ToString(), overlay.Value.EncodeToPNG());
+            }
 
             SetExtendedData(pd);
         }
@@ -92,7 +95,17 @@ namespace KoiSkinOverlayX
 
         public void SetOverlayTex(Texture2D overlayTex, TexType overlayType)
         {
-            _overlays[overlayType] = overlayTex;
+            if (_overlays.TryGetValue(overlayType, out var existing))
+            {
+                if (existing != null && existing != overlayTex)
+                    Destroy(existing);
+            }
+
+            if (overlayTex == null)
+                _overlays.Remove(overlayType);
+            else
+                _overlays[overlayType] = overlayTex;
+
             UpdateTexture(overlayType);
         }
 
