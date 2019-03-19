@@ -59,8 +59,11 @@ namespace KoiSkinOverlayX
                 case TexType.FaceOver:
                     name = "Face";
                     break;
-                default:
+                case TexType.Unknown:
                     return null;
+                default:
+                    name = texType.ToString();
+                    break;
             }
 
             var charFolder = $"{OverlayDirectory}/{charFullname}";
