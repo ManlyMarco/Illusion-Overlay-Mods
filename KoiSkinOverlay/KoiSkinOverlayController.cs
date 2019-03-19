@@ -79,20 +79,6 @@ namespace KoiSkinOverlayX
             }
         }
 
-        public Texture ApplyOverlayToTex(Texture bodyTexture, TexType overlayType)
-        {
-            if (_overlays.TryGetValue(overlayType, out var tex))
-                bodyTexture = ApplyOverlay(bodyTexture, KoiSkinOverlayMgr.GetOverlayRT(overlayType), tex);
-
-            foreach (var additionalTexture in AdditionalTextures)
-            {
-                if (additionalTexture.OverlayType == overlayType && additionalTexture.Texture != null)
-                    bodyTexture = ApplyOverlay(bodyTexture, KoiSkinOverlayMgr.GetOverlayRT(overlayType), additionalTexture.Texture);
-            }
-
-            return bodyTexture;
-        }
-
         public void SetOverlayTex(Texture2D overlayTex, TexType overlayType)
         {
             if (_overlays.TryGetValue(overlayType, out var existing))
@@ -153,29 +139,6 @@ namespace KoiSkinOverlayX
                     cc.ChangeSettingEye(true, true, true);
                     break;
             }
-        }
-
-        private static Texture ApplyOverlay(Texture mainTex, RenderTexture destTex, Texture2D blitTex)
-        {
-            if (blitTex == null || destTex == null) return mainTex;
-
-            var atex = RenderTexture.active;
-            RenderTexture.active = destTex;
-
-            GL.Clear(true, true, Color.clear);
-
-            KoiSkinOverlayMgr.OverlayMat.SetTexture("_Overlay", blitTex);
-            Graphics.Blit(mainTex, destTex, KoiSkinOverlayMgr.OverlayMat);
-            
-            Destroy(mainTex);
-
-            var outRt = new RenderTexture(destTex.width, destTex.height, destTex.depth, destTex.format);
-
-            Graphics.Blit(destTex, outRt);
-            
-            RenderTexture.active = atex;
-
-            return outRt;
         }
 
         public static void ApplyOverlay(RenderTexture mainTex, Texture2D blitTex)

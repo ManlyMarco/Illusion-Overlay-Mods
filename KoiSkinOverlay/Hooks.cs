@@ -1,6 +1,6 @@
 ﻿/*
     
-    Original KoiSkinOverlay by essu, the poem too
+    Based on original KoiSkinOverlay by essu, the poem too
 
     Yea,
     though I walk through the valley of the shadow of death, I will fear no takedown
@@ -9,6 +9,7 @@
 */
 
 using System.Collections.Generic;
+using System.Reflection;
 using System.Reflection.Emit;
 using Harmony;
 using UnityEngine;
@@ -21,114 +22,86 @@ namespace KoiSkinOverlayX
         {
             HarmonyInstance.Create(nameof(Hooks)).PatchAll(typeof(Hooks));
         }
-
-        /// <summary>
-        /// Skin underlay logic
-        /// </summary>
-        private static Texture RebuildTextureHook(CustomTextureCreate __instance, Texture texMain)
+        
+        private static void OverlayBlit(Texture source, RenderTexture dest, Material mat, int pass, CustomTextureCreate instance)
         {
-            if (__instance is CustomTextureControl)
+            if (source == null) throw new System.ArgumentNullException(nameof(source));
+            if (dest == null) throw new System.ArgumentNullException(nameof(dest));
+            if (mat == null) throw new System.ArgumentNullException(nameof(mat));
+
+            var overlay = instance.trfParent?.GetComponent<KoiSkinOverlayController>();
+            if (overlay != null)
             {
-                var overlay = __instance.trfParent?.GetComponent<KoiSkinOverlayController>();
-                if (overlay == null) return texMain;
-
-                if (overlay.ChaControl.customTexCtrlFace == __instance)
-                    return overlay.ApplyOverlayToTex(texMain, TexType.FaceUnder);
-
-                if (overlay.ChaControl.customTexCtrlBody == __instance)
-                    return overlay.ApplyOverlayToTex(texMain, TexType.BodyUnder);
+                if (overlay.ChaControl.customTexCtrlFace == instance)
+                {
+                    OverlayBlitImpl(source, dest, mat, pass, overlay, TexType.FaceUnder);
+                    return;
+                }
+                if (overlay.ChaControl.customTexCtrlBody == instance)
+                {
+                    OverlayBlitImpl(source, dest, mat, pass, overlay, TexType.BodyUnder);
+                    return;
+                }
+                if (overlay.ChaControl.ctCreateEyeL == instance || overlay.ChaControl.ctCreateEyeR == instance)
+                {
+                    OverlayBlitImpl(source, dest, mat, pass, overlay, TexType.EyeUnder);
+                    return;
+                }
             }
-            return texMain;
+
+            // Fall back to original code
+            Graphics.Blit(source, dest, mat, pass);
+        }
+
+        private static void OverlayBlitImpl(Texture source, RenderTexture dest, Material mat, int pass, KoiSkinOverlayController overlayController, TexType overlayType)
+        {
+            var trt = RenderTexture.GetTemporary(source.width, source.height, dest.depth, dest.format);
+            Graphics.Blit(source, trt);
+            overlayController.ApplyOverlayToRT(trt, overlayType);
+            Graphics.Blit(trt, dest, mat, pass);
+            RenderTexture.ReleaseTemporary(trt);
         }
 
         /// <summary>
-        /// Skin underlay hook
+        /// Underlay hook
         /// </summary>
-        [HarmonyTranspiler, HarmonyPatch(typeof(CustomTextureCreate), "RebuildTextureAndSetMaterial")]
+        [HarmonyTranspiler, HarmonyPatch(typeof(CustomTextureCreate), nameof(CustomTextureCreate.RebuildTextureAndSetMaterial))]
         public static IEnumerable<CodeInstruction> tpl_CustomTextureCreate_RebuildTextureAndSetMaterial(IEnumerable<CodeInstruction> _instructions)
         {
-            /*
-                 After SetRenderTarget, before Graphics.Blit
-                 Composite texMain + overlay, using cache if available.
-             */
-
-            var instructions = new List<CodeInstruction>(_instructions);
-            var texMain = AccessTools.Field(typeof(CustomTextureCreate), "texMain");
-
-            var inserts = new[] {
-                new CodeInstruction(OpCodes.Ldarg_0),
-                new CodeInstruction(OpCodes.Ldarg_0),
-                new CodeInstruction(OpCodes.Ldarg_0),
-                new CodeInstruction(OpCodes.Ldfld, texMain),
-                new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(Hooks), nameof(RebuildTextureHook))),
-                new CodeInstruction(OpCodes.Stfld, texMain),
-            };
-
-            OpCode prev = OpCodes.Add;
-
-            for (var i = 0; i < instructions.Count; i++)
+            foreach (var instruction in _instructions)
             {
-                var instruction = instructions[i];
-                if (instruction.opcode == OpCodes.Call)
+                if (instruction.opcode == OpCodes.Call && instruction.operand is MethodInfo mi && mi.Name == "Blit")
                 {
-                    if (instruction.ToString() != "call Void SetRenderTarget(UnityEngine.RenderTexture)") continue;
-                    if (prev != OpCodes.Ldnull) continue;
-                    instructions.InsertRange(i, inserts);
-                    break;
+                    // Add the instance to the method call as last argument
+                    yield return new CodeInstruction(OpCodes.Ldarg_0);
+                    // Call custom Blit instead
+                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(Hooks), nameof(OverlayBlit)));
                 }
-                prev = instruction.opcode;
+                else
+                {
+                    yield return instruction;
+                }
             }
-
-            return instructions;
         }
 
         /// <summary>
-        /// Skin overlay
+        /// Overlay hook
         /// </summary>
-        [HarmonyPostfix, HarmonyPatch(typeof(CustomTextureCreate), "RebuildTextureAndSetMaterial")]
+        [HarmonyPostfix, HarmonyPatch(typeof(CustomTextureCreate), nameof(CustomTextureCreate.RebuildTextureAndSetMaterial))]
         public static void post_CustomTextureCreate_RebuildTextureAndSetMaterial(CustomTextureCreate __instance, ref Texture __result)
         {
-            if (__instance is CustomTextureControl)
-            {
-                var overlay = __instance.trfParent?.GetComponent<KoiSkinOverlayController>();
-                if (overlay == null) return;
-
-                var createTex = __result as RenderTexture;
-                if (createTex == null) return;
-
-                if (overlay.ChaControl.customTexCtrlFace == __instance)
-                    overlay.ApplyOverlayToRT(createTex, TexType.FaceOver);
-                else if (overlay.ChaControl.customTexCtrlBody == __instance)
-                    overlay.ApplyOverlayToRT(createTex, TexType.BodyOver);
-            }
-        }
-
-        /// <summary>
-        /// Eye overlay
-        /// </summary>
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(CustomTextureCreate), nameof(CustomTextureCreate.RebuildTextureAndSetMaterial))]
-        public static void EyeChangeSettingEyePostfix(CustomTextureCreate __instance, Texture __result)
-        {
-            var overlay = __instance.trfParent?.GetComponent<KoiSkinOverlayController>();
-            if (overlay == null) return;
-            
-            if (__instance == overlay.ChaControl.ctCreateEyeL || __instance == overlay.ChaControl.ctCreateEyeR)
-                overlay.ApplyOverlayToRT((RenderTexture)__result, TexType.EyeOver);
-        }
-
-        /// <summary>
-        /// Eye underlay
-        /// </summary>
-        [HarmonyPrefix]
-        [HarmonyPatch(typeof(CustomTextureCreate), nameof(CustomTextureCreate.SetMainTexture), new[] { typeof(Texture) })]
-        public static void EyeSetMainTexturePrefix(CustomTextureCreate __instance, ref Texture tex)
-        {
             var overlay = __instance.trfParent?.GetComponent<KoiSkinOverlayController>();
             if (overlay == null) return;
 
-            if (__instance == overlay.ChaControl.ctCreateEyeL || __instance == overlay.ChaControl.ctCreateEyeR)
-                tex = overlay.ApplyOverlayToTex(tex, TexType.EyeUnder);
+            var createTex = __result as RenderTexture;
+            if (createTex == null) return;
+
+            if (overlay.ChaControl.customTexCtrlFace == __instance)
+                overlay.ApplyOverlayToRT(createTex, TexType.FaceOver);
+            else if (overlay.ChaControl.customTexCtrlBody == __instance)
+                overlay.ApplyOverlayToRT(createTex, TexType.BodyOver);
+            else if (overlay.ChaControl.ctCreateEyeL == __instance || overlay.ChaControl.ctCreateEyeR == __instance)
+                overlay.ApplyOverlayToRT(createTex, TexType.EyeOver);
         }
     }
 }
