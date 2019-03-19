@@ -35,16 +35,19 @@ namespace KoiSkinOverlayX
                 if (overlay.ChaControl.customTexCtrlFace == instance)
                 {
                     OverlayBlitImpl(source, dest, mat, pass, overlay, TexType.FaceUnder);
+                    overlay.ApplyOverlayToRT(dest, TexType.FaceOver);
                     return;
                 }
                 if (overlay.ChaControl.customTexCtrlBody == instance)
                 {
                     OverlayBlitImpl(source, dest, mat, pass, overlay, TexType.BodyUnder);
+                    overlay.ApplyOverlayToRT(dest, TexType.BodyOver);
                     return;
                 }
                 if (overlay.ChaControl.ctCreateEyeL == instance || overlay.ChaControl.ctCreateEyeR == instance)
                 {
                     OverlayBlitImpl(source, dest, mat, pass, overlay, TexType.EyeUnder);
+                    overlay.ApplyOverlayToRT(dest, TexType.EyeOver);
                     return;
                 }
             }
@@ -61,10 +64,7 @@ namespace KoiSkinOverlayX
             Graphics.Blit(trt, dest, mat, pass);
             RenderTexture.ReleaseTemporary(trt);
         }
-
-        /// <summary>
-        /// Underlay hook
-        /// </summary>
+        
         [HarmonyTranspiler, HarmonyPatch(typeof(CustomTextureCreate), nameof(CustomTextureCreate.RebuildTextureAndSetMaterial))]
         public static IEnumerable<CodeInstruction> tpl_CustomTextureCreate_RebuildTextureAndSetMaterial(IEnumerable<CodeInstruction> _instructions)
         {
@@ -82,26 +82,6 @@ namespace KoiSkinOverlayX
                     yield return instruction;
                 }
             }
-        }
-
-        /// <summary>
-        /// Overlay hook
-        /// </summary>
-        [HarmonyPostfix, HarmonyPatch(typeof(CustomTextureCreate), nameof(CustomTextureCreate.RebuildTextureAndSetMaterial))]
-        public static void post_CustomTextureCreate_RebuildTextureAndSetMaterial(CustomTextureCreate __instance, ref Texture __result)
-        {
-            var overlay = __instance.trfParent?.GetComponent<KoiSkinOverlayController>();
-            if (overlay == null) return;
-
-            var createTex = __result as RenderTexture;
-            if (createTex == null) return;
-
-            if (overlay.ChaControl.customTexCtrlFace == __instance)
-                overlay.ApplyOverlayToRT(createTex, TexType.FaceOver);
-            else if (overlay.ChaControl.customTexCtrlBody == __instance)
-                overlay.ApplyOverlayToRT(createTex, TexType.BodyOver);
-            else if (overlay.ChaControl.ctCreateEyeL == __instance || overlay.ChaControl.ctCreateEyeR == __instance)
-                overlay.ApplyOverlayToRT(createTex, TexType.EyeOver);
         }
     }
 }
