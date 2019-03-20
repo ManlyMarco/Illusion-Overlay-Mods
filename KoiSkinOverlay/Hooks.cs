@@ -22,9 +22,11 @@ namespace KoiSkinOverlayX
         {
             HarmonyInstance.Create(nameof(Hooks)).PatchAll(typeof(Hooks));
         }
-        
+
         private static void OverlayBlit(Texture source, RenderTexture dest, Material mat, int pass, CustomTextureCreate instance)
         {
+            if (!instance.CreateInitEnd) return;
+
             if (source == null) throw new System.ArgumentNullException(nameof(source));
             if (dest == null) throw new System.ArgumentNullException(nameof(dest));
             if (mat == null) throw new System.ArgumentNullException(nameof(mat));
@@ -64,7 +66,7 @@ namespace KoiSkinOverlayX
             Graphics.Blit(trt, dest, mat, pass);
             RenderTexture.ReleaseTemporary(trt);
         }
-        
+
         [HarmonyTranspiler, HarmonyPatch(typeof(CustomTextureCreate), nameof(CustomTextureCreate.RebuildTextureAndSetMaterial))]
         public static IEnumerable<CodeInstruction> tpl_CustomTextureCreate_RebuildTextureAndSetMaterial(IEnumerable<CodeInstruction> _instructions)
         {
