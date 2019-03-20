@@ -10,6 +10,7 @@ using KKAPI.Maker;
 using KKAPI.Studio;
 using KoiSkinOverlayX;
 using MessagePack;
+using Studio;
 using UnityEngine;
 using Logger = BepInEx.Logger;
 
@@ -102,24 +103,27 @@ namespace KoiClothesOverlayX
 
         public void RefreshAllTextures()
         {
-            // todo test if needed for main game as well
-            // Studio needs a more aggresive refresh to update the textures
             if (StudioAPI.InsideStudio)
             {
-                ChaControl.ChangeClothes(true);
-                return;
+                // Studio needs a more aggresive refresh to update the textures
+                // Refresh needs to happen through OCIChar or dynamic bones get messed up
+                Studio.Studio.Instance.dicInfo.Values.OfType<OCIChar>()
+                    .FirstOrDefault(x => x.charInfo == ChaControl)
+                    ?.SetCoordinateInfo(CurrentCoordinate.Value);
             }
+            else
+            {
+                for (var i = 0; i < ChaControl.cusClothesCmp.Length; i++)
+                    ChaControl.ChangeCustomClothes(true, i, true, false, false, false, false);
 
-            for (var i = 0; i < ChaControl.cusClothesCmp.Length; i++)
-                ChaControl.ChangeCustomClothes(true, i, true, false, false, false, false);
-
-            for (var i = 0; i < ChaControl.cusClothesSubCmp.Length; i++)
-                ChaControl.ChangeCustomClothes(false, i, true, false, false, false, false);
+                for (var i = 0; i < ChaControl.cusClothesSubCmp.Length; i++)
+                    ChaControl.ChangeCustomClothes(false, i, true, false, false, false, false);
+            }
         }
 
         public void RefreshTexture(string texType)
         {
-            if (texType != null)
+            if (texType != null && !StudioAPI.InsideStudio)
             {
                 var i = Array.FindIndex(ChaControl.objClothes, x => x != null && x.name == texType);
                 if (i >= 0)
@@ -136,6 +140,7 @@ namespace KoiClothesOverlayX
                 }
             }
 
+            // Fall back if the specific tex couldn't be refreshed
             RefreshAllTextures();
         }
 
