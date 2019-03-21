@@ -109,7 +109,7 @@ namespace KoiClothesOverlayX
                 // Refresh needs to happen through OCIChar or dynamic bones get messed up
                 Studio.Studio.Instance.dicInfo.Values.OfType<OCIChar>()
                     .FirstOrDefault(x => x.charInfo == ChaControl)
-                    ?.SetCoordinateInfo(CurrentCoordinate.Value);
+                    ?.SetCoordinateInfo(CurrentCoordinate.Value, true);
             }
             else
             {
