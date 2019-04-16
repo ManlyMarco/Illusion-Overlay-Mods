@@ -11,6 +11,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
+using BepInEx.Logging;
 using Harmony;
 using UnityEngine;
 
@@ -27,7 +28,12 @@ namespace KoiSkinOverlayX
         {
             if (!instance.CreateInitEnd) return;
 
-            if (source == null) throw new System.ArgumentNullException(nameof(source));
+            if (source == null)
+            {
+                BepInEx.Logger.Log(LogLevel.Error, instance.trfParent.name + " source texture is null, can't apply overlays!");
+                return;
+            }
+
             if (dest == null) throw new System.ArgumentNullException(nameof(dest));
             if (mat == null) throw new System.ArgumentNullException(nameof(mat));
 
