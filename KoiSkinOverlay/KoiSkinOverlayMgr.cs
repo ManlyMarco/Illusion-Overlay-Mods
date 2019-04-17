@@ -17,7 +17,7 @@ namespace KoiSkinOverlayX
     public class KoiSkinOverlayMgr : BaseUnityPlugin
     {
         public const string GUID = "KSOX";
-        internal const string Version = "4.1.3.1";
+        internal const string Version = "4.2";
 
         [DisplayName("Overlay export/open folder")]
         [Description("The value needs to be a valid full path to an existing folder. Default folder will be used if the value is invalid.\n\n" +
