@@ -147,10 +147,7 @@ namespace KoiClothesOverlayX
         public void SetOverlayTex(ClothesTexData tex, string texType)
         {
             if (CurrentOverlayTextures.TryGetValue(texType, out var existing))
-            {
-                if (existing != null && existing.Texture != tex?.Texture)
-                    Destroy(existing.Texture);
-            }
+                existing?.Dispose();
 
             if (tex == null || tex.IsEmpty())
                 CurrentOverlayTextures.Remove(texType);
@@ -176,14 +173,7 @@ namespace KoiClothesOverlayX
 
             var anyPrevious = _allOverlayTextures != null && _allOverlayTextures.Any();
             if (anyPrevious)
-            {
-                foreach (var textures in _allOverlayTextures)
-                {
-                    foreach (var texture in textures.Value)
-                        Destroy(texture.Value.Texture);
-                }
-                _allOverlayTextures = null;
-            }
+                RemoveAllOverlays();
 
             var pd = GetExtendedData();
             if (pd != null && pd.data.TryGetValue(OverlayDataKey, out var overlayData))
@@ -264,14 +254,15 @@ namespace KoiClothesOverlayX
 
             if (CurrentOverlayTextures.Count == 0) return;
 
-            if (!CurrentOverlayTextures.TryGetValue(clothesName, out var overlay) || overlay == null) return;
+            if (!CurrentOverlayTextures.TryGetValue(clothesName, out var overlay)) return;
+            if (overlay == null || overlay.IsEmpty()) return;
 
             var applicableRenderers = GetApplicableRenderers(rendererArrs).ToList();
             if (applicableRenderers.Count == 0)
             {
                 Logger.Log(MakerAPI.InsideMaker ? LogLevel.Warning | LogLevel.Message : LogLevel.Debug, $"[KCOX] Removing unused overlay for {clothesName}");
 
-                Destroy(overlay.Texture);
+                overlay.Dispose();
                 CurrentOverlayTextures.Remove(clothesName);
                 return;
             }
@@ -347,16 +338,17 @@ namespace KoiClothesOverlayX
         {
             base.OnDestroy();
 
+            RemoveAllOverlays();
+        }
+
+        private void RemoveAllOverlays()
+        {
             if (_allOverlayTextures == null) return;
 
             foreach (var textures in _allOverlayTextures.SelectMany(x => x.Value))
-            {
-                var texture = textures.Value.Texture;
-                if (texture != null)
-                    Destroy(texture);
-            }
+                textures.Value.Dispose();
 
-            _allOverlayTextures.Clear();
+            _allOverlayTextures = null;
         }
     }
 }

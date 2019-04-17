@@ -200,14 +200,14 @@ namespace KoiClothesOverlayX
                 {
                     try
                     {
-                        var tex = controlImage.Texture as Texture2D;
+                        var tex = GetOverlayController().GetOverlayTex(clothesId)?.TextureBytes;
                         if (tex == null)
                         {
                             Logger.Log(LogLevel.Message, "[KCOX] Nothing to export");
                             return;
                         }
 
-                        KoiSkinOverlayGui.WriteAndOpenPng(tex.EncodeToPNG());
+                        KoiSkinOverlayGui.WriteAndOpenPng(tex);
                     }
                     catch (Exception ex)
                     {
@@ -294,7 +294,7 @@ namespace KoiClothesOverlayX
             {
                 try
                 {
-                    var tex = Util.TextureFromBytes(_bytesToLoad);
+                    var tex = Util.TextureFromBytes(_bytesToLoad, TextureFormat.ARGB32);
 
                     var origTex = GetOverlayController().GetApplicableRenderers(_typeToLoad).First().material.mainTexture;
 
@@ -303,7 +303,7 @@ namespace KoiClothesOverlayX
                     else
                         Logger.Log(LogLevel.Message, "[KCOX] Texture imported successfully");
 
-                    SetTexAndUpdate(new ClothesTexData { Override = _hideMainToLoad, Texture = tex }, _typeToLoad);
+                    SetTexAndUpdate(new ClothesTexData { Override = _hideMainToLoad, TextureBytes = tex.EncodeToPNG() }, _typeToLoad);
                 }
                 catch (Exception ex)
                 {

@@ -7,11 +7,11 @@ namespace KoiSkinOverlayX
 {
     public static class Util
     {
-        public static Texture2D TextureFromBytes(byte[] texBytes)
+        public static Texture2D TextureFromBytes(byte[] texBytes, TextureFormat format)
         {
             if (texBytes == null || texBytes.Length == 0) return null;
 
-            var tex = new Texture2D(2, 2);
+            var tex = new Texture2D(2, 2, format, false);
             tex.LoadImage(texBytes);
             return tex;
         }

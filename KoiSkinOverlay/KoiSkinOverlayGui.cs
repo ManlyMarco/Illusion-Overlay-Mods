@@ -218,13 +218,12 @@ namespace KoiSkinOverlayX
             Util.OpenFileInExplorer(filename);
         }
 
-        private void SetTexAndUpdate(Texture2D tex, TexType texType)
+        private void SetTexAndUpdate(byte[] tex, TexType texType)
         {
             var ctrl = GetOverlayController();
-            ctrl.SetOverlayTex(tex, texType);
-            ctrl.UpdateTexture(texType);
+            var overlay = ctrl.SetOverlayTex(tex, texType);
 
-            _textureChanged.OnNext(new KeyValuePair<TexType, Texture2D>(texType, tex));
+            _textureChanged.OnNext(new KeyValuePair<TexType, Texture2D>(texType, overlay.Texture));
         }
 
         private void SetupTexControls(RegisterCustomControlsEvent e, MakerCategory makerCategory, BaseUnityPlugin owner, TexType texType, string title)
@@ -255,7 +254,7 @@ namespace KoiSkinOverlayX
                             var ctrl = GetOverlayController();
                             var tex = ctrl.Overlays.FirstOrDefault(x => x.Key == texType).Value;
                             if (tex == null) return;
-                            WriteAndOpenPng(tex.EncodeToPNG());
+                            WriteAndOpenPng(tex.Data);
                         }
                         catch (Exception ex)
                         {
@@ -295,7 +294,7 @@ namespace KoiSkinOverlayX
             {
                 try
                 {
-                    var tex = Util.TextureFromBytes(_bytesToLoad);
+                    var tex = Util.TextureFromBytes(_bytesToLoad, TextureFormat.ARGB32);
 
                     var recommendedSize = GetRecommendedTexSize(_typeToLoad);
                     if (tex.width != tex.height || tex.height != recommendedSize)
@@ -303,7 +302,7 @@ namespace KoiSkinOverlayX
                     else
                         Logger.Log(LogLevel.Message, "[KSOX] Texture imported successfully");
 
-                    SetTexAndUpdate(tex, _typeToLoad);
+                    SetTexAndUpdate(tex.EncodeToPNG(), _typeToLoad);
                 }
                 catch (Exception ex)
                 {
@@ -353,7 +352,7 @@ namespace KoiSkinOverlayX
             foreach (TexType texType in Enum.GetValues(typeof(TexType)))
             {
                 var tex = ctrl.Overlays.FirstOrDefault(x => x.Key == texType).Value;
-                _textureChanged.OnNext(new KeyValuePair<TexType, Texture2D>(texType, tex));
+                _textureChanged.OnNext(new KeyValuePair<TexType, Texture2D>(texType, tex?.Texture));
             }
         }
     }

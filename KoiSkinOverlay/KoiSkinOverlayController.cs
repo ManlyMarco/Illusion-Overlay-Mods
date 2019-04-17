@@ -16,9 +16,9 @@ namespace KoiSkinOverlayX
         /// </summary>
         public List<AdditionalTexture> AdditionalTextures { get; } = new List<AdditionalTexture>();
 
-        private readonly Dictionary<TexType, Texture2D> _overlays = new Dictionary<TexType, Texture2D>();
+        private readonly Dictionary<TexType, OverlayTexture> _overlays = new Dictionary<TexType, OverlayTexture>();
 
-        public IEnumerable<KeyValuePair<TexType, Texture2D>> Overlays => _overlays.AsEnumerable();
+        public IEnumerable<KeyValuePair<TexType, OverlayTexture>> Overlays => _overlays.AsEnumerable();
 
         protected override void OnCardBeingSaved(GameMode currentGameMode)
         {
@@ -27,7 +27,7 @@ namespace KoiSkinOverlayX
             foreach (var overlay in Overlays)
             {
                 if (overlay.Value != null)
-                    pd.data.Add(overlay.Key.ToString(), overlay.Value.EncodeToPNG());
+                    pd.data.Add(overlay.Key.ToString(), overlay.Value.Data);
             }
 
             SetExtendedData(pd);
@@ -38,7 +38,7 @@ namespace KoiSkinOverlayX
             if (maintainState) return;
 
             var needsUpdate = _overlays.Any();
-            _overlays.Clear();
+            RemoveAllOverlays(false);
 
             var data = GetExtendedData();
             foreach (TexType texType in Enum.GetValues(typeof(TexType)))
@@ -47,20 +47,16 @@ namespace KoiSkinOverlayX
 
                 if (data != null
                     && data.data.TryGetValue(texType.ToString(), out var texData)
-                    && texData is byte[] bytes)
+                    && texData is byte[] bytes && bytes.Length > 0)
                 {
-                    var tex = Util.TextureFromBytes(bytes);
-                    if (tex != null)
-                    {
-                        _overlays.Add(texType, tex);
-                        continue;
-                    }
+                    _overlays.Add(texType, new OverlayTexture(bytes));
+                    continue;
                 }
 
                 // Fall back to old-style overlays in a folder
                 var oldTex = KoiSkinOverlayMgr.GetOldStyleOverlayTex(texType, ChaControl);
                 if (oldTex != null)
-                    _overlays.Add(texType, oldTex);
+                    _overlays.Add(texType, new OverlayTexture(oldTex));
             }
 
             if (needsUpdate || _overlays.Any())
@@ -70,7 +66,7 @@ namespace KoiSkinOverlayX
         public void ApplyOverlayToRT(RenderTexture bodyTexture, TexType overlayType)
         {
             if (_overlays.TryGetValue(overlayType, out var tex))
-                ApplyOverlay(bodyTexture, tex);
+                ApplyOverlay(bodyTexture, tex.Texture);
 
             foreach (var additionalTexture in AdditionalTextures)
             {
@@ -79,20 +75,34 @@ namespace KoiSkinOverlayX
             }
         }
 
-        public void SetOverlayTex(Texture2D overlayTex, TexType overlayType)
+        public OverlayTexture SetOverlayTex(byte[] overlayTex, TexType overlayType)
         {
-            if (_overlays.TryGetValue(overlayType, out var existing))
-            {
-                if (existing != null && existing != overlayTex)
-                    Destroy(existing);
-            }
+            _overlays.TryGetValue(overlayType, out var existing);
 
             if (overlayTex == null)
+            {
+                // Remove the overlay
+                existing?.Dispose();
                 _overlays.Remove(overlayType);
+                existing = null;
+            }
             else
-                _overlays[overlayType] = overlayTex;
+            {
+                // Update or add
+                if (existing == null)
+                {
+                    existing = new OverlayTexture(overlayTex);
+                    _overlays.Add(overlayType, existing);
+                }
+                else
+                {
+                    existing.Data = overlayTex;
+                }
+            }
 
             UpdateTexture(overlayType);
+
+            return existing;
         }
 
         public void UpdateTexture(TexType type)
@@ -104,10 +114,17 @@ namespace KoiSkinOverlayX
         {
             base.OnDestroy();
 
+            RemoveAllOverlays(true);
+        }
+
+        private void RemoveAllOverlays(bool removeAdditional)
+        {
             foreach (var kvp in _overlays)
-                Destroy(kvp.Value);
+                kvp.Value.Dispose();
             _overlays.Clear();
-            AdditionalTextures.Clear();
+
+            if (removeAdditional)
+                AdditionalTextures.Clear();
         }
 
         public static void UpdateTexture(ChaControl cc, TexType type)

@@ -92,7 +92,7 @@ namespace KoiSkinOverlayX
         /// <summary>
         /// Old loading logic from folders
         /// </summary>
-        internal static Texture2D GetOldStyleOverlayTex(TexType texType, ChaControl chaControl)
+        internal static byte[] GetOldStyleOverlayTex(TexType texType, ChaControl chaControl)
         {
             var charFullname = chaControl.fileParam?.fullname;
             if (!string.IsNullOrEmpty(charFullname))
@@ -106,10 +106,10 @@ namespace KoiSkinOverlayX
                     try
                     {
                         var fileTexBytes = File.ReadAllBytes(texFilename);
-                        var overlayTex = Util.TextureFromBytes(fileTexBytes);
-
+                        var overlayTex = Util.TextureFromBytes(fileTexBytes, TextureFormat.ARGB32);
+                        // todo re-convert the texture, check for size
                         if (overlayTex != null)
-                            return overlayTex;
+                            return overlayTex.EncodeToPNG();
                     }
                     catch (Exception ex)
                     {
