@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.IO;
 using BepInEx;
 using BepInEx.Logging;
@@ -18,7 +19,19 @@ namespace KoiSkinOverlayX
         public const string GUID = "KSOX";
         internal const string Version = "4.1.3.1";
 
-        public static readonly string OverlayDirectory = Path.Combine(Paths.GameRootPath, "UserData\\Overlays");
+        [DisplayName("Overlay export/open folder")]
+        [Description("The value needs to be a valid full path to an existing folder. Default folder will be used if the value is invalid.\n\n" +
+                     "Exported overlays will be saved there, and by default open overlay dialog will show this directory.")]
+        private static ConfigWrapper<string> ExportDirectory { get; set; }
+        private static readonly string _defaultOverlayDirectory = Path.Combine(Paths.GameRootPath, "UserData\\Overlays");
+        public static string OverlayDirectory
+        {
+            get
+            {
+                var path = ExportDirectory.Value;
+                return Directory.Exists(path) ? path : _defaultOverlayDirectory;
+            }
+        }
 
         private static RenderTexture _rtBody;
         private static RenderTexture _rtFace;
@@ -27,6 +40,8 @@ namespace KoiSkinOverlayX
 
         private void Awake()
         {
+            ExportDirectory = new ConfigWrapper<string>(nameof(ExportDirectory), this, _defaultOverlayDirectory);
+
             KoikatuAPI.CheckRequiredPlugin(this, KoikatuAPI.GUID, new Version(KoikatuAPI.VersionConst));
 
             var ab = AssetBundle.LoadFromMemory(Resources.composite);
