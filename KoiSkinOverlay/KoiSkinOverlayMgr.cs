@@ -18,7 +18,7 @@ namespace KoiSkinOverlayX
         public const string GUID = "KSOX";
         internal const string Version = "4.1.3.1";
 
-        public static readonly string OverlayDirectory = Path.Combine(Paths.PluginPath, "KoiSkinOverlay");
+        public static readonly string OverlayDirectory = Path.Combine(Paths.GameRootPath, "UserData\\Overlays");
 
         private static RenderTexture _rtBody;
         private static RenderTexture _rtFace;
@@ -45,6 +45,8 @@ namespace KoiSkinOverlayX
 
             Hooks.Init();
             CharacterApi.RegisterExtraBehaviour<KoiSkinOverlayController>(GUID);
+
+            Directory.CreateDirectory(OverlayDirectory);
         }
 
         internal static string GetTexFilename(string charFullname, TexType texType)
@@ -66,7 +68,8 @@ namespace KoiSkinOverlayX
                     break;
             }
 
-            var charFolder = $"{OverlayDirectory}/{charFullname}";
+            var legacyDir = Path.Combine(Paths.PluginPath, "KoiSkinOverlay");
+            var charFolder = $"{legacyDir}/{charFullname}";
             var texFilename = $"{charFolder}/{name}.png";
             return texFilename;
         }

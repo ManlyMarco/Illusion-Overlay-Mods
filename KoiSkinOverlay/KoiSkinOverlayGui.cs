@@ -76,9 +76,11 @@ namespace KoiSkinOverlayX
 
         public static string GetUniqueTexDumpFilename()
         {
-            var path = Path.Combine(KoiSkinOverlayMgr.OverlayDirectory, "_Export");
+            var path = KoiSkinOverlayMgr.OverlayDirectory;
             Directory.CreateDirectory(path);
-            var file = Path.Combine(path, DateTime.Now.ToString("yyyy-dd-M--HH-mm-ss") + FileExt);
+            var file = Path.Combine(path, $"_Export_ {DateTime.Now:yyyy-MM-dd--HH-mm-ss}{FileExt}");
+            // Normalize just in case for open in explorer call later
+            file = Path.GetFullPath(file);
             return file;
         }
 
