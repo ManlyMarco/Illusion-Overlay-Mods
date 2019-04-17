@@ -42,9 +42,6 @@ namespace KoiSkinOverlayX
         private TexType _typeToLoad;
         private FileSystemWatcher _texChangeWatcher;
 
-        private static MakerLoadToggle _loadToggle;
-        internal static bool MakerLoadFromCharas => _loadToggle == null || _loadToggle.Value;
-
         [Browsable(false)]
         public static ConfigWrapper<bool> RemoveOldFiles;
 
@@ -72,6 +69,11 @@ namespace KoiSkinOverlayX
             return MakerAPI.GetCharacterControl().gameObject.GetComponent<KoiSkinOverlayController>();
         }
 
+        private static CharacterApi.ControllerRegistration GetControllerRegistration()
+        {
+            return CharacterApi.GetRegisteredBehaviour(KoiSkinOverlayMgr.GUID);
+        }
+
         public static string GetUniqueTexDumpFilename()
         {
             var path = Path.Combine(KoiSkinOverlayMgr.OverlayDirectory, "_Export");
@@ -86,7 +88,8 @@ namespace KoiSkinOverlayX
             _texChangeWatcher?.Dispose();
             _bytesToLoad = null;
             _lastError = null;
-            _loadToggle = null;
+
+            GetControllerRegistration().MaintainState = false;
         }
 
         private void OnFileAccept(string[] strings, TexType type)
@@ -137,7 +140,8 @@ namespace KoiSkinOverlayX
             var owner = GetComponent<KoiSkinOverlayMgr>();
             _textureChanged = new Subject<KeyValuePair<TexType, Texture2D>>();
 
-            _loadToggle = e.AddLoadToggle(new MakerLoadToggle("Skin/eye overlays"));
+            var loadToggle = e.AddLoadToggle(new MakerLoadToggle("Skin/eye overlays"));
+            loadToggle.ValueChanged.Subscribe(newValue => GetControllerRegistration().MaintainState = !newValue);
 
             SetupBodyInterface(e, owner);
 

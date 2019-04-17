@@ -33,9 +33,9 @@ namespace KoiSkinOverlayX
             SetExtendedData(pd);
         }
 
-        protected override void OnReload(GameMode currentGameMode)
+        protected override void OnReload(GameMode currentGameMode, bool maintainState)
         {
-            if (!KoiSkinOverlayGui.MakerLoadFromCharas) return;
+            if (maintainState) return;
 
             var needsUpdate = _overlays.Any();
             _overlays.Clear();

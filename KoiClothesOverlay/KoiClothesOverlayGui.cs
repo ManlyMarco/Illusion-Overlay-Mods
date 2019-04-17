@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using BepInEx;
 using BepInEx.Logging;
+using KKAPI.Chara;
 using KKAPI.Maker;
 using KKAPI.Maker.UI;
 using KKAPI.Utilities;
@@ -22,11 +23,6 @@ namespace KoiClothesOverlayX
     public partial class KoiClothesOverlayGui : BaseUnityPlugin
     {
         private const string GUID = KoiClothesOverlayMgr.GUID + "_GUI";
-        
-        private static MakerLoadToggle _makerLoadToggle;
-        private static MakerCoordinateLoadToggle _makerCoordLoadToggle;
-        internal static bool MakerLoadFromCharas => _makerLoadToggle == null || _makerLoadToggle.Value;
-        internal static bool MakerCoordLoadFromCharas => _makerCoordLoadToggle == null || _makerCoordLoadToggle.Value;
 
         private Subject<KeyValuePair<string, ClothesTexData>> _textureChanged;
         private static Subject<int> _refreshInterface;
@@ -42,6 +38,11 @@ namespace KoiClothesOverlayX
         private static KoiClothesOverlayController GetOverlayController()
         {
             return MakerAPI.GetCharacterControl().gameObject.GetComponent<KoiClothesOverlayController>();
+        }
+
+        private static CharacterApi.ControllerRegistration GetControllerRegistration()
+        {
+            return CharacterApi.GetRegisteredBehaviour(KoiClothesOverlayMgr.GUID);
         }
 
         private void SetTexAndUpdate(ClothesTexData tex, string texType)
@@ -117,8 +118,11 @@ namespace KoiClothesOverlayX
             _textureChanged = new Subject<KeyValuePair<string, ClothesTexData>>();
             _refreshInterface = new Subject<int>();
 
-            _makerLoadToggle = e.AddLoadToggle(new MakerLoadToggle("Clothes overlays"));
-            _makerCoordLoadToggle = e.AddCoordinateLoadToggle(new MakerCoordinateLoadToggle("Clothes overlays"));
+            var loadToggle = e.AddLoadToggle(new MakerLoadToggle("Clothes overlays"));
+            loadToggle.ValueChanged.Subscribe(newValue => GetControllerRegistration().MaintainState = !newValue);
+
+            var coordLoadToggle = e.AddCoordinateLoadToggle(new MakerCoordinateLoadToggle("Clothes overlays"));
+            coordLoadToggle.ValueChanged.Subscribe(newValue => GetControllerRegistration().MaintainCoordinateState = !newValue);
 
             var makerCategory = MakerConstants.GetBuiltInCategory("03_ClothesTop", "tglTop");
 
@@ -262,8 +266,9 @@ namespace KoiClothesOverlayX
             _bytesToLoad = null;
             _lastError = null;
 
-            _makerLoadToggle = null;
-            _makerCoordLoadToggle = null;
+            var registration = GetControllerRegistration();
+            registration.MaintainState = false;
+            registration.MaintainCoordinateState = false;
         }
 
         private void Start()

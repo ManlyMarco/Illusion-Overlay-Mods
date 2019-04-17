@@ -170,9 +170,9 @@ namespace KoiClothesOverlayX
             SetExtendedData(data);
         }
 
-        protected override void OnReload(GameMode currentGameMode)
+        protected override void OnReload(GameMode currentGameMode, bool maintainState)
         {
-            if (!KoiClothesOverlayGui.MakerLoadFromCharas) return;
+            if (maintainState) return;
 
             var anyPrevious = _allOverlayTextures != null && _allOverlayTextures.Any();
             if (anyPrevious)
@@ -221,9 +221,9 @@ namespace KoiClothesOverlayX
             SetCoordinateExtendedData(coordinate, data);
         }
 
-        protected override void OnCoordinateBeingLoaded(ChaFileCoordinate coordinate)
+        protected override void OnCoordinateBeingLoaded(ChaFileCoordinate coordinate, bool maintainState)
         {
-            if (!KoiClothesOverlayGui.MakerCoordLoadFromCharas) return;
+            if (maintainState) return;
 
             var currentOverlayTextures = CurrentOverlayTextures;
             if (currentOverlayTextures == null) return;
