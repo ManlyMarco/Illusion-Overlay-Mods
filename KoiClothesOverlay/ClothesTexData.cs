@@ -21,7 +21,7 @@ namespace KoiClothesOverlayX
                 if (_texture == null)
                 {
                     if (_data != null)
-                        _texture = Util.TextureFromBytes(_data, TextureFormat.DXT5);
+                        _texture = Util.TextureFromBytes(_data, KoiSkinOverlayMgr.GetSelectedOverlayTexFormat());
                 }
                 return _texture;
             }

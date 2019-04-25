@@ -17,7 +17,11 @@ namespace KoiSkinOverlayX
     public class KoiSkinOverlayMgr : BaseUnityPlugin
     {
         public const string GUID = "KSOX";
-        internal const string Version = "4.2";
+        internal const string Version = "4.2.1";
+
+        [DisplayName("Compress overlay textures in RAM")]
+        [Description("Reduces RAM usage to about 1/4th at the cost of lower quality. Use when loading lots of characters with overlays if you're running out of memory.")]
+        private static ConfigWrapper<bool> CompressTextures { get; set; }
 
         [DisplayName("Overlay export/open folder")]
         [Description("The value needs to be a valid full path to an existing folder. Default folder will be used if the value is invalid.\n\n" +
@@ -38,6 +42,7 @@ namespace KoiSkinOverlayX
         private void Awake()
         {
             ExportDirectory = new ConfigWrapper<string>(nameof(ExportDirectory), this, _defaultOverlayDirectory);
+            CompressTextures = new ConfigWrapper<bool>(nameof(CompressTextures), this, false);
 
             KoikatuAPI.CheckRequiredPlugin(this, KoikatuAPI.GUID, new Version(KoikatuAPI.VersionConst));
 
@@ -50,6 +55,11 @@ namespace KoiSkinOverlayX
             CharacterApi.RegisterExtraBehaviour<KoiSkinOverlayController>(GUID);
 
             Directory.CreateDirectory(OverlayDirectory);
+        }
+
+        public static TextureFormat GetSelectedOverlayTexFormat()
+        {
+            return CompressTextures.Value ? TextureFormat.DXT5 : TextureFormat.ARGB32;
         }
 
         internal static string GetTexFilename(string charFullname, TexType texType)
