@@ -3,16 +3,17 @@ using System.IO;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
+using EC.Core.ExtensibleSaveFormat;
 using KKAPI;
 using KKAPI.Chara;
 using OverlayMods;
 using UnityEngine;
-using Resources = KoiSkinOverlayX.Properties.Resources;
+using Resources = OverlayMods.Properties.Resources;
 
 namespace KoiSkinOverlayX
 {
     [BepInPlugin(GUID, "ECSOX (EC SkinOverlay)", Version)]
-    [BepInDependency("com.bepis.bepinex.extendedsave")]
+    [BepInDependency(ExtendedSave.GUID)]
     [BepInDependency(KoikatuAPI.GUID)]
     public class KoiSkinOverlayMgr : BaseUnityPlugin
     {
@@ -60,59 +61,11 @@ namespace KoiSkinOverlayX
             return CompressTextures.Value ? TextureFormat.DXT5 : TextureFormat.ARGB32;
         }
 
-        internal static string GetTexFilename(string charFullname, TexType texType)
-        {
-            string name;
-
-            switch (texType)
-            {
-                case TexType.BodyOver:
-                    name = "Body";
-                    break;
-                case TexType.FaceOver:
-                    name = "Face";
-                    break;
-                case TexType.Unknown:
-                    return null;
-                default:
-                    name = texType.ToString();
-                    break;
-            }
-
-            var legacyDir = Path.Combine(Paths.PluginPath, "KoiSkinOverlay");
-            var charFolder = $"{legacyDir}/{charFullname}";
-            var texFilename = $"{charFolder}/{name}.png";
-            return texFilename;
-        }
-
         /// <summary>
-        /// Old loading logic from folders
+        /// Old loading logic from folders. Not used in EC
         /// </summary>
         internal static byte[] GetOldStyleOverlayTex(TexType texType, ChaControl chaControl)
         {
-            var charFullname = chaControl.fileParam?.fullname;
-            if (!string.IsNullOrEmpty(charFullname))
-            {
-                var texFilename = GetTexFilename(charFullname, texType);
-
-                if (File.Exists(texFilename))
-                {
-                    Log(LogLevel.Info, $"[KSOX] Importing texture data for {charFullname} from file {texFilename}");
-
-                    try
-                    {
-                        var fileTexBytes = File.ReadAllBytes(texFilename);
-                        var overlayTex = Util.TextureFromBytes(fileTexBytes, TextureFormat.ARGB32);
-                        // todo re-convert the texture, check for size
-                        if (overlayTex != null)
-                            return overlayTex.EncodeToPNG();
-                    }
-                    catch (Exception ex)
-                    {
-                        Log(LogLevel.Error, "[KSOX] Failed to load texture from file - " + ex.Message);
-                    }
-                }
-            }
             return null;
         }
 

@@ -11,6 +11,7 @@ namespace KoiClothesOverlayX
     [BepInPlugin(GUID, "ECCOX (EC ClothesOverlay)", KoiSkinOverlayMgr.Version)]
     [BepInDependency(ExtendedSave.GUID)]
     [BepInDependency(KoikatuAPI.GUID)]
+    [BepInDependency(KoiSkinOverlayMgr.GUID)]
     public class KoiClothesOverlayMgr : BaseUnityPlugin
     {
         public const string GUID = Metadata.GUID_KCOX;

@@ -314,6 +314,16 @@ namespace KoiClothesOverlayX
             {
                 foreach (var texture in group.Where(x => x.Value.IsEmpty()).ToList())
                     group.Remove(texture.Key);
+
+#if EC
+                // Convert shoe overlays to EC format (1 pair instead of 2)
+                if (group.TryGetValue("ct_shoes_outer", out var data))
+                {
+                    group["ct_shoes"] = data;
+                    group.Remove("ct_shoes_outer");
+                }
+                group.Remove("ct_shoes_inner");
+#endif
             }
 
             foreach (var group in _allOverlayTextures.Where(x => !x.Value.Any()).ToList())

@@ -18,7 +18,7 @@ namespace KoiClothesOverlayX
 {
     [BepInProcess("Koikatu")]
     [BepInPlugin(GUID, "KCOX GUI", KoiSkinOverlayMgr.Version)]
-    [BepInDependency(KKAPI.KoikatuAPI.GUID)]
+    [BepInDependency(KoiClothesOverlayMgr.GUID)]
     public partial class KoiClothesOverlayGui : BaseUnityPlugin
     {
         private const string GUID = KoiClothesOverlayMgr.GUID + "_GUI";

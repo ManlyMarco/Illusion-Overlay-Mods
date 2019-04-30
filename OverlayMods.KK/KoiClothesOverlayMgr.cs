@@ -1,6 +1,5 @@
 ﻿using BepInEx;
 using BepInEx.Logging;
-using KKAPI;
 using KKAPI.Chara;
 using KoiSkinOverlayX;
 using OverlayMods;
@@ -9,7 +8,7 @@ namespace KoiClothesOverlayX
 {
     [BepInPlugin(GUID, "KCOX (KoiClothesOverlay)", KoiSkinOverlayMgr.Version)]
     [BepInDependency("com.bepis.bepinex.extendedsave")]
-    [BepInDependency(KoikatuAPI.GUID)]
+    [BepInDependency(KoiSkinOverlayMgr.GUID)]
     public class KoiClothesOverlayMgr : BaseUnityPlugin
     {
         public const string GUID = Metadata.GUID_KCOX;

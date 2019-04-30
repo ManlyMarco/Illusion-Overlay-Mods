@@ -17,7 +17,6 @@ namespace KoiClothesOverlayX
 {
     [BepInPlugin(GUID, "ECCOX GUI", KoiSkinOverlayMgr.Version)]
     [BepInDependency(KoiClothesOverlayMgr.GUID)]
-    [BepInDependency(KoiSkinOverlayGui.GUID)]
     public partial class KoiClothesOverlayGui : BaseUnityPlugin
     {
         private const string GUID = KoiClothesOverlayMgr.GUID + "_GUI";
@@ -140,8 +139,7 @@ namespace KoiClothesOverlayX
                 new KeyValuePair<string, string>("tglGloves", "ct_gloves"),
                 new KeyValuePair<string, string>("tglPanst", "ct_panst"),
                 new KeyValuePair<string, string>("tglSocks", "ct_socks"),
-                new KeyValuePair<string, string>("tglInnerShoes", "ct_shoes_inner"),
-                new KeyValuePair<string, string>("tglOuterShoes", "ct_shoes_outer")
+                new KeyValuePair<string, string>("tglShoes", "ct_shoes"),
             };
 
             for (var index = 0; index < cats.Length; index++)

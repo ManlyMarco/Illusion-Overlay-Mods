@@ -81,6 +81,29 @@
     <Compile Include="KoiSkinOverlayGui.cs" />
     <Compile Include="KoiSkinOverlayMgr.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <DependentUpon>Resources.resx</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\body.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\composite.shader" />
+    <None Include="Resources\composite.unity3d" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Resources\eye.png" />
+    <EmbeddedResource Include="Resources\face.png" />
   </ItemGroup>
   <Import Project="..\OverlayMods\OverlayMods.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

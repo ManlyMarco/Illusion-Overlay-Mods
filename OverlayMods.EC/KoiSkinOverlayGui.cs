@@ -8,13 +8,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
-using EC.Core.ExtensibleSaveFormat;
 using KKAPI.Chara;
 using KKAPI.Maker;
 using KKAPI.Maker.UI;
@@ -22,11 +20,10 @@ using KKAPI.Utilities;
 using UniRx;
 using UnityEngine;
 using Logger = KoiSkinOverlayX.KoiSkinOverlayMgr;
-using Resources = KoiSkinOverlayX.Properties.Resources;
+using Resources = OverlayMods.Properties.Resources;
 
 namespace KoiSkinOverlayX
 {
-    [BepInProcess("Koikatu")]
     [BepInPlugin(GUID, "ECSOX GUI", KoiSkinOverlayMgr.Version)]
     [BepInDependency(KoiSkinOverlayMgr.GUID)]
     public class KoiSkinOverlayGui : BaseUnityPlugin
@@ -43,27 +40,7 @@ namespace KoiSkinOverlayX
         private TexType _typeToLoad;
         private FileSystemWatcher _texChangeWatcher;
 
-        [Browsable(false)]
-        public static ConfigWrapper<bool> RemoveOldFiles;
-
-        [Browsable(false)]
         public static ConfigWrapper<bool> WatchLoadedTexForChanges;
-
-        private static void ExtendedSaveOnCardBeingSaved(ChaFile chaFile)
-        {
-            if (!MakerAPI.InsideMaker) return;
-
-            if (RemoveOldFiles.Value)
-            {
-                var ctrl = GetOverlayController();
-                foreach (var overlay in ctrl.Overlays)
-                {
-                    var path = KoiSkinOverlayMgr.GetTexFilename(chaFile.parameter.fullname, overlay.Key);
-                    if (File.Exists(path))
-                        File.Delete(path);
-                }
-            }
-        }
 
         private static KoiSkinOverlayController GetOverlayController()
         {
@@ -203,9 +180,6 @@ namespace KoiSkinOverlayX
 
         private static void AddConfigSettings(RegisterSubCategoriesEvent e, KoiSkinOverlayMgr owner, MakerCategory makerCategory)
         {
-            var tRemove = e.AddControl(new MakerToggle(makerCategory, "Remove overlays imported from BepInEx\\KoiSkinOverlay when saving cards (they are saved inside the card now and no longer necessary)", owner));
-            tRemove.Value = RemoveOldFiles.Value;
-            tRemove.ValueChanged.Subscribe(b => RemoveOldFiles.Value = b);
             var tWatch = e.AddControl(new MakerToggle(makerCategory, "Watch last loaded texture file for changes", owner));
             tWatch.Value = WatchLoadedTexForChanges.Value;
             tWatch.ValueChanged.Subscribe(b => WatchLoadedTexForChanges.Value = b);
@@ -271,8 +245,6 @@ namespace KoiSkinOverlayX
 
         private void Awake()
         {
-            var owner = GetComponent<KoiSkinOverlayMgr>();
-            RemoveOldFiles = Config.Wrap("", "Remove imported overlay textures", null, true);
             WatchLoadedTexForChanges = Config.Wrap("", "Watch loaded images for changes", null, true);
             WatchLoadedTexForChanges.SettingChanged += (sender, args) =>
             {
@@ -286,7 +258,6 @@ namespace KoiSkinOverlayX
             MakerAPI.RegisterCustomSubCategories += RegisterCustomSubCategories;
             MakerAPI.MakerExiting += MakerExiting;
             CharacterApi.CharacterReloaded += (sender, args) => OnChaFileLoaded();
-            ExtendedSave.CardBeingSaved += ExtendedSaveOnCardBeingSaved;
         }
 
         private void Update()

@@ -7,7 +7,7 @@ using KKAPI;
 using KKAPI.Chara;
 using OverlayMods;
 using UnityEngine;
-using Resources = KoiSkinOverlayX.Properties.Resources;
+using Resources = OverlayMods.Properties.Resources;
 
 namespace KoiSkinOverlayX
 {
