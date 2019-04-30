@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>86ecf2b4-e255-4fd4-a65c-98b2f21676c4</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>OverlayMods</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Clothes\ClothesTexData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Clothes\KoiClothesOverlayController.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Clothes\KoiClothesOverlayController.Hooks.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)HarmonyPatcher.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Metadata.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Skin\AdditionalTexture.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Skin\Hooks.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Skin\KoiSkinOverlayController.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Skin\OverlayTexture.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Skin\Resources\Resources.Designer.cs">
+      <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Skin\TexType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Skin\Util.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Skin\Resources\Resources.resx">
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <Generator>ResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Skin\Resources\body.png" />
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Skin\Resources\face.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)Skin\Resources\composite.shader" />
+    <None Include="$(MSBuildThisFileDirectory)Skin\Resources\composite.unity3d" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="$(MSBuildThisFileDirectory)Skin\Resources\eye.png" />
+  </ItemGroup>
+</Project>

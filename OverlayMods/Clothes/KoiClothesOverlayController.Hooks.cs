@@ -3,7 +3,8 @@ using System.Linq;
 using BepInEx.Logging;
 using Harmony;
 using KKAPI.Maker;
-using Logger = BepInEx.Logger;
+using OverlayMods;
+using Logger = KoiClothesOverlayX.KoiClothesOverlayMgr;
 
 namespace KoiClothesOverlayX
 {
@@ -43,7 +44,7 @@ namespace KoiClothesOverlayX
 
             public static void Init(string guid)
             {
-                HarmonyInstance.Create(guid).PatchAll(typeof(Hooks));
+                HarmonyPatcher.PatchAll(typeof(Hooks));
             }
 
             private static ChaClothesComponent GetCustomClothesComponent(ChaControl chaControl, bool main, int kind)

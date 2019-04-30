@@ -13,7 +13,9 @@ using System.Reflection;
 using System.Reflection.Emit;
 using BepInEx.Logging;
 using Harmony;
+using OverlayMods;
 using UnityEngine;
+using Logger = KoiSkinOverlayX.KoiSkinOverlayMgr;
 
 namespace KoiSkinOverlayX
 {
@@ -21,7 +23,7 @@ namespace KoiSkinOverlayX
     {
         public static void Init()
         {
-            HarmonyInstance.Create(nameof(Hooks)).PatchAll(typeof(Hooks));
+            HarmonyPatcher.PatchAll(typeof(Hooks));
         }
 
         private static void OverlayBlit(Texture source, RenderTexture dest, Material mat, int pass, CustomTextureCreate instance)
@@ -30,7 +32,7 @@ namespace KoiSkinOverlayX
 
             if (source == null)
             {
-                BepInEx.Logger.Log(LogLevel.Error, instance.trfParent.name + " source texture is null, can't apply overlays!");
+                Logger.Log(LogLevel.Error, instance.trfParent.name + " source texture is null, can't apply overlays!");
                 return;
             }
 

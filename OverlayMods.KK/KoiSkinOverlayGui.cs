@@ -20,14 +20,14 @@ using KKAPI.Maker.UI;
 using KKAPI.Utilities;
 using UniRx;
 using UnityEngine;
-using Logger = BepInEx.Logger;
+using Logger = KoiSkinOverlayX.KoiSkinOverlayMgr;
 using Resources = KoiSkinOverlayX.Properties.Resources;
 
 namespace KoiSkinOverlayX
 {
     [BepInProcess("Koikatu")]
     [BepInPlugin(GUID, "KSOX GUI", KoiSkinOverlayMgr.Version)]
-    [BepInDependency(KoiSkinOverlayMgr.GUID)]
+    [BepInDependency(KKAPI.KoikatuAPI.GUID)]
     public class KoiSkinOverlayGui : BaseUnityPlugin
     {
         public const string GUID = KoiSkinOverlayMgr.GUID + "_GUI";

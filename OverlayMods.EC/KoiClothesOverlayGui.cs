@@ -12,17 +12,17 @@ using KKAPI.Utilities;
 using KoiSkinOverlayX;
 using UniRx;
 using UnityEngine;
-using Logger = BepInEx.Logger;
 
 namespace KoiClothesOverlayX
 {
-    [BepInProcess("Koikatu")]
-    [BepInPlugin(GUID, "KCOX GUI", KoiSkinOverlayMgr.Version)]
+    [BepInPlugin(GUID, "ECCOX GUI", KoiSkinOverlayMgr.Version)]
     [BepInDependency(KoiClothesOverlayMgr.GUID)]
     [BepInDependency(KoiSkinOverlayGui.GUID)]
     public partial class KoiClothesOverlayGui : BaseUnityPlugin
     {
         private const string GUID = KoiClothesOverlayMgr.GUID + "_GUI";
+
+        private static MonoBehaviour _instance;
 
         private Subject<KeyValuePair<string, ClothesTexData>> _textureChanged;
         private static Subject<int> _refreshInterface;
@@ -101,7 +101,7 @@ namespace KoiClothesOverlayX
             if (_refreshInterfaceRunning || _refreshInterface == null) return;
 
             _refreshInterfaceRunning = true;
-            MakerAPI.GetMakerBase().StartCoroutine(RefreshInterfaceCo(category));
+            _instance.StartCoroutine(RefreshInterfaceCo(category));
         }
 
         private static IEnumerator RefreshInterfaceCo(int category)
@@ -149,8 +149,6 @@ namespace KoiClothesOverlayX
                 var pair = cats[index];
                 SetupTexControls(e, MakerConstants.GetBuiltInCategory("03_ClothesTop", pair.Key), owner, pair.Value, index + 1);
             }
-
-            GetOverlayController().CurrentCoordinate.Subscribe(type => RefreshInterface(-1));
         }
 
         private void SetupTexControls(RegisterCustomControlsEvent e, MakerCategory makerCategory, BaseUnityPlugin owner, string clothesId, int clothesIndex, string title = "Overlay textures", bool addSeparator = false)
@@ -273,6 +271,8 @@ namespace KoiClothesOverlayX
 
         private void Start()
         {
+            _instance = this;
+
             Hooks.Init();
 
             MakerAPI.MakerBaseLoaded += RegisterCustomControls;

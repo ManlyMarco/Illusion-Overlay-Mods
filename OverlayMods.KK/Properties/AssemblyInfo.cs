@@ -1,16 +1,13 @@
 ﻿using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using KoiSkinOverlayX;
+using OverlayMods;
 
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("KSOX")]
-[assembly: AssemblyDescription("")]
-[assembly: AssemblyConfiguration("")]
+[assembly: AssemblyTitle("Koikatsu Overlay Mods")]
 [assembly: AssemblyCompany("ManlyMarco")]
-[assembly: AssemblyProduct("KSOX")]
+[assembly: AssemblyProduct("Koikatsu Overlay Mods")]
 [assembly: AssemblyCopyright("Copyright © 2018")]
 
 // Setting ComVisible to false makes the types in this assembly not visible
@@ -31,6 +28,4 @@ using KoiSkinOverlayX;
 // You can specify all the values or you can default the Build and Revision Numbers
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyFileVersion(KoiSkinOverlayMgr.Version)]
-
-[assembly: InternalsVisibleTo("KoiClothesOverlay")]
+[assembly: AssemblyFileVersion(Metadata.Version)]

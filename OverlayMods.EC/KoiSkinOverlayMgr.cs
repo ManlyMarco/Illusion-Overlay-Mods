@@ -1,32 +1,27 @@
 ﻿using System;
-using System.ComponentModel;
 using System.IO;
 using BepInEx;
+using BepInEx.Configuration;
 using BepInEx.Logging;
 using KKAPI;
 using KKAPI.Chara;
+using OverlayMods;
 using UnityEngine;
-using Logger = BepInEx.Logger;
 using Resources = KoiSkinOverlayX.Properties.Resources;
 
 namespace KoiSkinOverlayX
 {
-    [BepInPlugin(GUID, "KSOX (KoiSkinOverlay)", Version)]
+    [BepInPlugin(GUID, "ECSOX (EC SkinOverlay)", Version)]
     [BepInDependency("com.bepis.bepinex.extendedsave")]
     [BepInDependency(KoikatuAPI.GUID)]
     public class KoiSkinOverlayMgr : BaseUnityPlugin
     {
-        public const string GUID = "KSOX";
-        internal const string Version = "4.2.1";
-
-        [DisplayName("Compress overlay textures in RAM")]
-        [Description("Reduces RAM usage to about 1/4th at the cost of lower quality. Use when loading lots of characters with overlays if you're running out of memory.")]
+        public const string GUID = Metadata.GUID_KSOX;
+        internal const string Version = Metadata.Version;
+        
         private static ConfigWrapper<bool> CompressTextures { get; set; }
-
-        [DisplayName("Overlay export/open folder")]
-        [Description("The value needs to be a valid full path to an existing folder. Default folder will be used if the value is invalid.\n\n" +
-                     "Exported overlays will be saved there, and by default open overlay dialog will show this directory.")]
         private static ConfigWrapper<string> ExportDirectory { get; set; }
+
         private static readonly string _defaultOverlayDirectory = Path.Combine(Paths.GameRootPath, "UserData\\Overlays");
         public static string OverlayDirectory
         {
@@ -38,11 +33,14 @@ namespace KoiSkinOverlayX
         }
 
         internal static Material OverlayMat { get; private set; }
+        private static ManualLogSource _logger;
 
         private void Awake()
         {
-            ExportDirectory = new ConfigWrapper<string>(nameof(ExportDirectory), this, _defaultOverlayDirectory);
-            CompressTextures = new ConfigWrapper<bool>(nameof(CompressTextures), this, false);
+            _logger = Logger;
+
+            ExportDirectory = Config.Wrap("", "Overlay export/open folder", "The value needs to be a valid full path to an existing folder. Default folder will be used if the value is invalid. Exported overlays will be saved there, and by default open overlay dialog will show this directory.", _defaultOverlayDirectory);
+            CompressTextures = Config.Wrap("", "Compress overlay textures in RAM", "Reduces RAM usage to about 1/4th at the cost of lower quality. Use when loading lots of characters with overlays if you're running out of memory.", false);
 
             KoikatuAPI.CheckRequiredPlugin(this, KoikatuAPI.GUID, new Version(KoikatuAPI.VersionConst));
 
@@ -50,7 +48,7 @@ namespace KoiSkinOverlayX
             OverlayMat = new Material(ab.LoadAsset<Shader>("assets/composite.shader"));
             DontDestroyOnLoad(OverlayMat);
             ab.Unload(false);
-            
+
             Hooks.Init();
             CharacterApi.RegisterExtraBehaviour<KoiSkinOverlayController>(GUID);
 
@@ -99,7 +97,7 @@ namespace KoiSkinOverlayX
 
                 if (File.Exists(texFilename))
                 {
-                    Logger.Log(LogLevel.Info, $"[KSOX] Importing texture data for {charFullname} from file {texFilename}");
+                    Log(LogLevel.Info, $"[KSOX] Importing texture data for {charFullname} from file {texFilename}");
 
                     try
                     {
@@ -111,11 +109,16 @@ namespace KoiSkinOverlayX
                     }
                     catch (Exception ex)
                     {
-                        Logger.Log(LogLevel.Error, "[KSOX] Failed to load texture from file - " + ex.Message);
+                        Log(LogLevel.Error, "[KSOX] Failed to load texture from file - " + ex.Message);
                     }
                 }
             }
             return null;
+        }
+
+        internal static void Log(LogLevel logLevel, object data)
+        {
+            _logger.Log(logLevel, data);
         }
     }
 }

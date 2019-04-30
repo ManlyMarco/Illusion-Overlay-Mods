@@ -3,16 +3,20 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using BepInEx.Logging;
-using ExtensibleSaveFormat;
 using KKAPI;
 using KKAPI.Chara;
 using KKAPI.Maker;
-using KKAPI.Studio;
 using KoiSkinOverlayX;
 using MessagePack;
-using Studio;
 using UnityEngine;
-using Logger = BepInEx.Logger;
+using Logger = KoiClothesOverlayX.KoiClothesOverlayMgr;
+#if KK
+using ExtensibleSaveFormat;
+using CoordinateType = ChaFileDefine.CoordinateType;
+#elif EC
+using EC.Core.ExtensibleSaveFormat;
+using CoordinateType = KoikatsuCharaFile.ChaFileDefine.CoordinateType;
+#endif
 
 namespace KoiClothesOverlayX
 {
@@ -23,15 +27,19 @@ namespace KoiClothesOverlayX
         private Action<byte[]> _dumpCallback;
         private string _dumpClothesId;
 
-        private Dictionary<ChaFileDefine.CoordinateType, Dictionary<string, ClothesTexData>> _allOverlayTextures;
+        private Dictionary<CoordinateType, Dictionary<string, ClothesTexData>> _allOverlayTextures;
         private Dictionary<string, ClothesTexData> CurrentOverlayTextures
         {
             get
             {
                 if (_allOverlayTextures == null) return null;
 
+#if KK
                 // Need to do this instead of polling the CurrentCoordinate prop because it's updated too late
-                var coordinateType = (ChaFileDefine.CoordinateType)ChaControl.fileStatus.coordinateType;
+                var coordinateType = (CoordinateType)ChaControl.fileStatus.coordinateType;
+#elif EC
+                var coordinateType = CoordinateType.School01;
+#endif
                 _allOverlayTextures.TryGetValue(coordinateType, out var dict);
 
                 if (dict == null)
@@ -98,20 +106,29 @@ namespace KoiClothesOverlayX
 
         public static Renderer[][] GetRendererArrays(ChaClothesComponent clothesCtrl)
         {
-            return new[] { clothesCtrl.rendNormal01, clothesCtrl.rendNormal02, clothesCtrl.rendAlpha01, clothesCtrl.rendAlpha02 };
+            return new[] {
+                clothesCtrl.rendNormal01,
+                clothesCtrl.rendNormal02,
+                clothesCtrl.rendAlpha01,
+#if KK
+                clothesCtrl.rendAlpha02
+#endif
+            };
         }
 
         public void RefreshAllTextures()
         {
-            if (StudioAPI.InsideStudio)
+#if KK
+            if (KKAPI.Studio.StudioAPI.InsideStudio)
             {
                 // Studio needs a more aggresive refresh to update the textures
                 // Refresh needs to happen through OCIChar or dynamic bones get messed up
-                Studio.Studio.Instance.dicInfo.Values.OfType<OCIChar>()
+                Studio.Studio.Instance.dicInfo.Values.OfType<Studio.OCIChar>()
                     .FirstOrDefault(x => x.charInfo == ChaControl)
                     ?.SetCoordinateInfo(CurrentCoordinate.Value, true);
             }
             else
+#endif
             {
                 for (var i = 0; i < ChaControl.cusClothesCmp.Length; i++)
                     ChaControl.ChangeCustomClothes(true, i, true, false, false, false, false);
@@ -123,7 +140,11 @@ namespace KoiClothesOverlayX
 
         public void RefreshTexture(string texType)
         {
-            if (texType != null && !StudioAPI.InsideStudio)
+            if (texType != null
+#if KK
+                && !KKAPI.Studio.StudioAPI.InsideStudio
+#endif
+                )
             {
                 var i = Array.FindIndex(ChaControl.objClothes, x => x != null && x.name == texType);
                 if (i >= 0)
@@ -183,7 +204,7 @@ namespace KoiClothesOverlayX
                     try
                     {
                         _allOverlayTextures = MessagePackSerializer.Deserialize<
-                            Dictionary<ChaFileDefine.CoordinateType, Dictionary<string, ClothesTexData>>>(
+                            Dictionary<CoordinateType, Dictionary<string, ClothesTexData>>>(
                             overlayBytes);
                     }
                     catch (Exception ex)
@@ -196,7 +217,7 @@ namespace KoiClothesOverlayX
             }
 
             if (_allOverlayTextures == null)
-                _allOverlayTextures = new Dictionary<ChaFileDefine.CoordinateType, Dictionary<string, ClothesTexData>>();
+                _allOverlayTextures = new Dictionary<CoordinateType, Dictionary<string, ClothesTexData>>();
 
             if (anyPrevious || _allOverlayTextures.Any())
                 StartCoroutine(RefreshAllTexturesCo());
@@ -297,6 +318,12 @@ namespace KoiClothesOverlayX
 
             foreach (var group in _allOverlayTextures.Where(x => !x.Value.Any()).ToList())
                 _allOverlayTextures.Remove(group.Key);
+
+#if EC
+            // Remove all overlays for clothes other than the main outfit since they can't be used in EC
+            foreach (var group in _allOverlayTextures.Where(x => x.Key != CoordinateType.School01).ToList())
+                _allOverlayTextures.Remove(group.Key);
+#endif
         }
 
         private void DumpBaseTextureImpl(Renderer[][] rendererArrs)

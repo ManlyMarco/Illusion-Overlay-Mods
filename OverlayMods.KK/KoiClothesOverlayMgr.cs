@@ -1,17 +1,18 @@
 ﻿using BepInEx;
+using BepInEx.Logging;
 using KKAPI;
 using KKAPI.Chara;
 using KoiSkinOverlayX;
+using OverlayMods;
 
 namespace KoiClothesOverlayX
 {
     [BepInPlugin(GUID, "KCOX (KoiClothesOverlay)", KoiSkinOverlayMgr.Version)]
     [BepInDependency("com.bepis.bepinex.extendedsave")]
     [BepInDependency(KoikatuAPI.GUID)]
-    [BepInDependency(KoiSkinOverlayMgr.GUID)]
     public class KoiClothesOverlayMgr : BaseUnityPlugin
     {
-        public const string GUID = "KCOX";
+        public const string GUID = Metadata.GUID_KCOX;
 
         public static readonly string[] MainClothesNames =
         {
@@ -37,6 +38,11 @@ namespace KoiClothesOverlayX
         {
             CharacterApi.RegisterExtraBehaviour<KoiClothesOverlayController>(GUID);
             KoiClothesOverlayController.Hooks.Init(GUID);
+        }
+
+        internal static void Log(LogLevel logLevel, object data)
+        {
+            Logger.Log(logLevel, data);
         }
     }
 }

@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+#if EC
+using EC.Core.ExtensibleSaveFormat;
+#else
 using ExtensibleSaveFormat;
+#endif
 using KKAPI;
 using KKAPI.Chara;
 using UnityEngine;
