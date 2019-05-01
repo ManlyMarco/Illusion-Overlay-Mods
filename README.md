@@ -1,20 +1,20 @@
 ![preview 1](https://user-images.githubusercontent.com/39247311/52307982-6bb26080-299c-11e9-9a64-99ede143fb6d.png)
-# Koikatsu Overlay Mods - KSOX (KoiSkinOverlayX) and KCOX (KoiClothesOverlayX)
-Koikatu! mods that allow adding overlay textures (also called tattoos) to character's face and body, as well as to the clothes. These additional textures are saved inside the card and used by the main game and studio.
+# Koikatsu Overlay Mods - formerely KSOX (KoiSkinOverlayX) and KCOX (KoiClothesOverlayX)
+Mod that allows adding overlay textures (tattoos) to character's face, body and clothes in Koikatu! and EmotionCreators. These additional textures are saved inside the card and used by the main game and studio.
 
 ## How to use 
-1. Make sure at least [BepInEx v4.1](https://github.com/BepInEx/BepInEx), [BepisPlugins r7](https://github.com/bbepis/BepisPlugins) and [KKAPI v1.0](https://github.com/ManlyMarco/KKAPI) are installed, and your game is updated.
-2. Download the latest release from [here](https://github.com/ManlyMarco/KoiSkinOverlayX/releases).
-3. Extract the dll files into the folder `Koikatu\BepInEx` in your game's directory.
+1. Make sure that the [latest KKAPI/ECAPI](https://github.com/ManlyMarco/KKAPI) (depending on your game) is installed, and your game is updated.
+2. Download the latest release from [here](https://github.com/ManlyMarco/Koikatu-Overlay-Mods/releases).
+3. Place the dll file(s) into the folder `Koikatu\BepInEx` in your game's directory in case of Koikatsu version, or inside `BepInEx\plugins` in case of EmotionCreators version. You only need the version specific for your game.
 4. Start character maker. You should see new tab "Overlays" show up under the Body tab, and overlay controls under clothes tabs.
 5. [A full guide on creating overlays available here](Guide/%5BSylvers%5D%20KK%20Overlay%20Tutorial.md).
 
-### Importing old overlays
+### Importing old overlays (only Koikatsu version)
 - Overlays from folders in BepInEx/KoiSkinOverlay with the char's name will be imported on character load. In these folders, "body.png" and/or "face.png" will be loaded. When you save the character, these files will be saved inside the character card and removed from the folder.
 - If you downloaded a character with additional overlay files (.png images) you can load the character, go to the "Overlays" tab in maker, and load them there. Once you save the chracter they will be saved inside the character card.
 - Old overlay files are of the "overlay", not "underlay" type. If you try to use old-style overlays as underlays, they will look different.
 
-## Changes from KoiSkinOverlay
+## Changes from KoiSkinOverlay (the precursor to this mod)
 This mod is based on the original KoiSkinOverlay mod by essu and many new features.
 - Overlays are saved to the cards now (no need to share overlays with the cards now).
 - Characters with identical names can have different overlays now.
