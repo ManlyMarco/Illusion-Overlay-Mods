@@ -118,6 +118,7 @@
   <Import Project="..\OverlayMods\OverlayMods.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy /Y ..\bin\* ..\..\..\..\Games\Koikatsu\BepInEx\</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
 </Project>
