@@ -17,6 +17,7 @@ using ExtensibleSaveFormat;
 using KKAPI.Chara;
 using KKAPI.Maker;
 using KKAPI.Maker.UI;
+using KKAPI.Studio;
 using KKAPI.Utilities;
 using UniRx;
 using UnityEngine;
@@ -25,7 +26,6 @@ using Resources = OverlayMods.Properties.Resources;
 
 namespace KoiSkinOverlayX
 {
-    [BepInProcess("Koikatu")]
     [BepInPlugin(GUID, "KSOX GUI", KoiSkinOverlayMgr.Version)]
     [BepInDependency(KoiSkinOverlayMgr.GUID)]
     public class KoiSkinOverlayGui : BaseUnityPlugin
@@ -270,6 +270,9 @@ namespace KoiSkinOverlayX
 
         private void Awake()
         {
+            if (StudioAPI.InsideStudio)
+                return;
+
             var owner = GetComponent<KoiSkinOverlayMgr>();
             RemoveOldFiles = new ConfigWrapper<bool>("removeOldFiles", owner, true);
             WatchLoadedTexForChanges = new ConfigWrapper<bool>("watchLoadedTexForChanges", owner, true);
@@ -282,6 +285,12 @@ namespace KoiSkinOverlayX
 
         private void Start()
         {
+            if (StudioAPI.InsideStudio)
+            {
+                enabled = false;
+                return;
+            }
+
             MakerAPI.RegisterCustomSubCategories += RegisterCustomSubCategories;
             MakerAPI.MakerExiting += MakerExiting;
             CharacterApi.CharacterReloaded += (sender, args) => OnChaFileLoaded();

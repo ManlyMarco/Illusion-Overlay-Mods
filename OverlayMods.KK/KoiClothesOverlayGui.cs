@@ -8,6 +8,7 @@ using BepInEx.Logging;
 using KKAPI.Chara;
 using KKAPI.Maker;
 using KKAPI.Maker.UI;
+using KKAPI.Studio;
 using KKAPI.Utilities;
 using KoiSkinOverlayX;
 using UniRx;
@@ -16,7 +17,6 @@ using Logger = BepInEx.Logger;
 
 namespace KoiClothesOverlayX
 {
-    [BepInProcess("Koikatu")]
     [BepInPlugin(GUID, "KCOX GUI", KoiSkinOverlayMgr.Version)]
     [BepInDependency(KoiClothesOverlayMgr.GUID)]
     public partial class KoiClothesOverlayGui : BaseUnityPlugin
@@ -272,6 +272,12 @@ namespace KoiClothesOverlayX
 
         private void Start()
         {
+            if(StudioAPI.InsideStudio)
+            {
+                enabled = false;
+                return;
+            }
+
             Hooks.Init();
 
             MakerAPI.MakerBaseLoaded += RegisterCustomControls;
