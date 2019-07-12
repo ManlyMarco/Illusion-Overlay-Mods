@@ -223,7 +223,7 @@ namespace KoiSkinOverlayX
             var ctrl = GetOverlayController();
             var overlay = ctrl.SetOverlayTex(tex, texType);
 
-            _textureChanged.OnNext(new KeyValuePair<TexType, Texture2D>(texType, overlay.Texture));
+            _textureChanged.OnNext(new KeyValuePair<TexType, Texture2D>(texType, overlay?.Texture));
         }
 
         private void SetupTexControls(RegisterCustomControlsEvent e, MakerCategory makerCategory, BaseUnityPlugin owner, TexType texType, string title)
