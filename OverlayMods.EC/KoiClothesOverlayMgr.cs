@@ -41,7 +41,7 @@ namespace KoiClothesOverlayX
         {
             _logger = Logger;
             CharacterApi.RegisterExtraBehaviour<KoiClothesOverlayController>(GUID);
-            KoiClothesOverlayController.Hooks.Init(GUID);
+            KoiClothesOverlayController.Hooks.Init();
         }
 
         internal static void Log(LogLevel logLevel, object data)

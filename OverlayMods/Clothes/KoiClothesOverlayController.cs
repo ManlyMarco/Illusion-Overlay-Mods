@@ -66,18 +66,47 @@ namespace KoiClothesOverlayX
             return ChaControl.cusClothesCmp.Concat(ChaControl.cusClothesSubCmp).FirstOrDefault(x => x != null && x.gameObject.name == clothesObjectName);
         }
 
-        public ClothesTexData GetOverlayTex(string clothesId)
+        public ClothesTexData GetOverlayTex(string clothesId, bool createNew)
         {
+            clothesId = MaskIdToClothes(clothesId);
+
             if (CurrentOverlayTextures != null)
             {
                 CurrentOverlayTextures.TryGetValue(clothesId, out var tex);
+                if (tex == null && createNew)
+                {
+                    tex = new ClothesTexData();
+                    CurrentOverlayTextures[clothesId] = tex;
+                }
                 return tex;
             }
             return null;
         }
 
+        public static string MaskIdToClothes(string clothesId)
+        {
+            return IsMaskKind(clothesId) ? KoiClothesOverlayMgr.MainClothesNames[0] : clothesId;
+        }
+
+        public static bool IsMaskKind(string clothesId)
+        {
+            return Enum.GetNames(typeof(MaskKind)).Contains(clothesId);
+        }
+
         public IEnumerable<Renderer> GetApplicableRenderers(string clothesId)
         {
+            if (IsMaskKind(clothesId))
+            {
+                var toCheck = KoiClothesOverlayMgr.SubClothesNames.Concat(new[] {KoiClothesOverlayMgr.MainClothesNames[0]});
+
+                return toCheck
+                    .Select(GetCustomClothesComponent)
+                    .Where(x => x != null)
+                    .Select(GetRendererArrays)
+                    .SelectMany(GetApplicableRenderers)
+                    .Distinct();
+            }
+
             var clothesCtrl = GetCustomClothesComponent(clothesId);
             if (clothesCtrl == null) return Enumerable.Empty<Renderer>();
 
@@ -139,13 +168,15 @@ namespace KoiClothesOverlayX
         }
 
         public void RefreshTexture(string texType)
-        {
+        {//todo refresh body masks too
             if (texType != null
 #if KK
                 && !KKAPI.Studio.StudioAPI.InsideStudio
 #endif
                 )
             {
+                texType = MaskIdToClothes(texType);
+
                 var i = Array.FindIndex(ChaControl.objClothes, x => x != null && x.name == texType);
                 if (i >= 0)
                 {
@@ -163,19 +194,6 @@ namespace KoiClothesOverlayX
 
             // Fall back if the specific tex couldn't be refreshed
             RefreshAllTextures();
-        }
-
-        public void SetOverlayTex(ClothesTexData tex, string texType)
-        {
-            if (CurrentOverlayTextures.TryGetValue(texType, out var existing))
-                existing?.Dispose();
-
-            if (tex == null || tex.IsEmpty())
-                CurrentOverlayTextures.Remove(texType);
-            else
-                CurrentOverlayTextures[texType] = tex;
-
-            RefreshTexture(texType);
         }
 
         protected override void OnCardBeingSaved(GameMode currentGameMode)
@@ -292,7 +310,7 @@ namespace KoiClothesOverlayX
             {
                 var mat = renderer.material;
 
-                var mainTexture = (RenderTexture)mat.mainTexture;
+                var mainTexture = mat.mainTexture as RenderTexture;
                 if (mainTexture == null) return;
 
                 if (overlay.Override)
@@ -386,6 +404,31 @@ namespace KoiClothesOverlayX
                 textures.Value.Dispose();
 
             _allOverlayTextures = null;
+        }
+
+        public Texture2D GetMask(MaskKind kind)
+        {
+            var tex = GetOverlayTex(KoiClothesOverlayMgr.MainClothesNames[0], false);
+            return tex?.GetMask(kind);
+        }
+
+        public static byte[] DumpOriginalMask(MaskKind kind)
+        {
+            var tex = GetOriginalMask(kind);
+            if (tex != null)
+            {
+                var t = tex.TextureToTexture2D();
+                var bytes = t.EncodeToPNG();
+                Destroy(t);
+                return bytes;
+            }
+            return null;
+        }
+
+        public static Texture GetOriginalMask(MaskKind kind)
+        {
+            Hooks.OrigAlphaMasks.TryGetValue(kind, out var tex);
+            return tex;
         }
     }
 }

@@ -56,8 +56,10 @@ namespace KoiSkinOverlayX
             Directory.CreateDirectory(OverlayDirectory);
         }
 
-        public static TextureFormat GetSelectedOverlayTexFormat()
+        public static TextureFormat GetSelectedOverlayTexFormat(bool isMask)
         {
+            if (isMask)
+                return CompressTextures.Value ? TextureFormat.DXT1 : TextureFormat.RG16;
             return CompressTextures.Value ? TextureFormat.DXT5 : TextureFormat.ARGB32;
         }
 

@@ -31,7 +31,7 @@ namespace KoiSkinOverlayX
                 if (_texture == null)
                 {
                     if (_data != null)
-                        _texture = Util.TextureFromBytes(_data, KoiSkinOverlayMgr.GetSelectedOverlayTexFormat());
+                        _texture = Util.TextureFromBytes(_data, KoiSkinOverlayMgr.GetSelectedOverlayTexFormat(false));
                 }
                 return _texture;
             }

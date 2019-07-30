@@ -50,15 +50,17 @@ namespace KoiSkinOverlayX
             OverlayMat = new Material(ab.LoadAsset<Shader>("assets/composite.shader"));
             DontDestroyOnLoad(OverlayMat);
             ab.Unload(false);
-            
+
             Hooks.Init();
             CharacterApi.RegisterExtraBehaviour<KoiSkinOverlayController>(GUID);
 
             Directory.CreateDirectory(OverlayDirectory);
         }
 
-        public static TextureFormat GetSelectedOverlayTexFormat()
+        public static TextureFormat GetSelectedOverlayTexFormat(bool isMask)
         {
+            if (isMask)
+                return CompressTextures.Value ? TextureFormat.DXT1 : TextureFormat.RG16;
             return CompressTextures.Value ? TextureFormat.DXT5 : TextureFormat.ARGB32;
         }
 

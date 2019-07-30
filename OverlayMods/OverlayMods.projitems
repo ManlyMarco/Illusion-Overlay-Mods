@@ -12,6 +12,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Clothes\ClothesTexData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Clothes\KoiClothesOverlayController.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Clothes\KoiClothesOverlayController.Hooks.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Clothes\MaskKind.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Gui\KoiClothesOverlayGui.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Gui\KoiClothesOverlayGui.Hooks.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HarmonyPatcher.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Metadata.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Skin\AdditionalTexture.cs" />

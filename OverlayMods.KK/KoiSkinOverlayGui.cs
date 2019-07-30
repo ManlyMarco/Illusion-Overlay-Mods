@@ -14,6 +14,7 @@ using System.Linq;
 using BepInEx;
 using BepInEx.Logging;
 using ExtensibleSaveFormat;
+using KKAPI;
 using KKAPI.Chara;
 using KKAPI.Maker;
 using KKAPI.Maker.UI;
@@ -222,7 +223,7 @@ namespace KoiSkinOverlayX
         {
             var ctrl = GetOverlayController();
             var overlay = ctrl.SetOverlayTex(tex, texType);
-
+            
             _textureChanged.OnNext(new KeyValuePair<TexType, Texture2D>(texType, overlay?.Texture));
         }
 
