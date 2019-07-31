@@ -67,7 +67,7 @@ namespace KoiClothesOverlayX
                         return;
                 }
 
-                RefreshInterface(-1);
+                RefreshInterface();
             }
         }
     }

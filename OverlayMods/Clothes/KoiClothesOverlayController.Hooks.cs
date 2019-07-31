@@ -78,8 +78,6 @@ namespace KoiClothesOverlayX
                 }
             }
 
-            internal static readonly Dictionary<MaskKind, Texture> OrigAlphaMasks = new Dictionary<MaskKind, Texture>();
-
             private static Texture2D FindBodyMask(Material mat)
             {
                 var registration = CharacterApi.GetRegisteredBehaviour(typeof(KoiClothesOverlayController));
@@ -105,32 +103,35 @@ namespace KoiClothesOverlayX
 
             private static Texture2D GetBodyMask(KoiClothesOverlayController controller, MaskKind kind)
             {
-                string fieldName;
-                switch (kind)
-                {
-                    case MaskKind.BodyMask:
-                        fieldName = "texBodyAlphaMask";
-                        break;
-                    case MaskKind.InnerMask:
-                        fieldName = "texInnerAlphaMask";
-                        break;
-                    case MaskKind.BraMask:
-                        fieldName = "texBraAlphaMask";
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException(nameof(kind), kind, null);
-                }
-
-                var mask = Traverse.Create(controller.ChaControl).Property(fieldName);
-                OrigAlphaMasks[kind] = mask.GetValue<Texture>();
-
-                var newMask = controller.GetMask(kind);
+                var newMask = controller.GetOverlayTex(kind.ToString(), false)?.Texture;
                 if (newMask != null)
                 {
-                    mask.SetValue(newMask);
+                    // the field is needed for dumping, doesn't seem to be necessary to overwrite with the custom tex
+                    //Traverse maskField = GetMaskField(controller, kind);
+                    //maskField.SetValue(newMask);
                     return newMask;
                 }
                 return null;
+            }
+
+            public static Traverse GetMaskField(KoiClothesOverlayController controller, MaskKind kind)
+            {
+                return Traverse.Create(controller.ChaControl).Property(GetMaskFieldName(kind));
+            }
+
+            private static string GetMaskFieldName(MaskKind kind)
+            {
+                switch (kind)
+                {
+                    case MaskKind.BodyMask:
+                        return "texBodyAlphaMask";
+                    case MaskKind.InnerMask:
+                        return "texInnerAlphaMask";
+                    case MaskKind.BraMask:
+                        return "texBraAlphaMask";
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(kind), kind, null);
+                }
             }
 
             #endregion

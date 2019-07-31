@@ -54,11 +54,34 @@ namespace KoiClothesOverlayX
 
         public void DumpBaseTexture(string clothesId, Action<byte[]> callback)
         {
-            _dumpCallback = callback;
-            _dumpClothesId = clothesId;
+            if (IsMaskKind(clothesId))
+            {
+                try
+                {
+                    var tex = GetOriginalMask((MaskKind)Enum.Parse(typeof(MaskKind), clothesId));
 
-            // Force redraw to trigger the dump
-            RefreshTexture(clothesId);
+                    if (tex == null)
+                        throw new Exception("There is no texture to dump");
+
+                    var t = tex.TextureToTexture2D();
+                    var bytes = t.EncodeToPNG();
+                    Destroy(t);
+                    callback(bytes);
+                }
+                catch (Exception e)
+                {
+                    Logger.Log(LogLevel.Error | LogLevel.Message, "[KCOX] Dumping texture failed - " + e.Message);
+                    Logger.Log(LogLevel.Debug, e);
+                }
+            }
+            else
+            {
+                _dumpCallback = callback;
+                _dumpClothesId = clothesId;
+
+                // Force redraw to trigger the dump
+                RefreshTexture(clothesId);
+            }
         }
 
         public ChaClothesComponent GetCustomClothesComponent(string clothesObjectName)
@@ -68,8 +91,6 @@ namespace KoiClothesOverlayX
 
         public ClothesTexData GetOverlayTex(string clothesId, bool createNew)
         {
-            clothesId = MaskIdToClothes(clothesId);
-
             if (CurrentOverlayTextures != null)
             {
                 CurrentOverlayTextures.TryGetValue(clothesId, out var tex);
@@ -83,11 +104,6 @@ namespace KoiClothesOverlayX
             return null;
         }
 
-        public static string MaskIdToClothes(string clothesId)
-        {
-            return IsMaskKind(clothesId) ? KoiClothesOverlayMgr.MainClothesNames[0] : clothesId;
-        }
-
         public static bool IsMaskKind(string clothesId)
         {
             return Enum.GetNames(typeof(MaskKind)).Contains(clothesId);
@@ -97,7 +113,7 @@ namespace KoiClothesOverlayX
         {
             if (IsMaskKind(clothesId))
             {
-                var toCheck = KoiClothesOverlayMgr.SubClothesNames.Concat(new[] {KoiClothesOverlayMgr.MainClothesNames[0]});
+                var toCheck = KoiClothesOverlayMgr.SubClothesNames.Concat(new[] { KoiClothesOverlayMgr.MainClothesNames[0] });
 
                 return toCheck
                     .Select(GetCustomClothesComponent)
@@ -147,6 +163,11 @@ namespace KoiClothesOverlayX
 
         public void RefreshAllTextures()
         {
+            RefreshAllTextures(false);
+        }
+
+        public void RefreshAllTextures(bool onlyMasks)
+        {
 #if KK
             if (KKAPI.Studio.StudioAPI.InsideStudio)
             {
@@ -159,24 +180,52 @@ namespace KoiClothesOverlayX
             else
 #endif
             {
-                for (var i = 0; i < ChaControl.cusClothesCmp.Length; i++)
-                    ChaControl.ChangeCustomClothes(true, i, true, false, false, false, false);
+                // Needed for body masks
+                var forceNeededParts = new[] { ChaFileDefine.ClothesKind.top, ChaFileDefine.ClothesKind.bra };
+                foreach (var clothesKind in forceNeededParts)
+                    ForceClothesReload(clothesKind);
 
-                for (var i = 0; i < ChaControl.cusClothesSubCmp.Length; i++)
-                    ChaControl.ChangeCustomClothes(false, i, true, false, false, false, false);
+                if(onlyMasks) return;
+
+                var allParts = Enum.GetValues(typeof(ChaFileDefine.ClothesKind)).Cast<ChaFileDefine.ClothesKind>();
+                foreach (var clothesKind in allParts.Except(forceNeededParts))
+                    ChaControl.ChangeCustomClothes(true, (int)clothesKind, true, false, false, false, false);
+
+                // Triggered by ForceClothesReload on top so not necessary
+                //for (var i = 0; i < ChaControl.cusClothesSubCmp.Length; i++)
+                //    ChaControl.ChangeCustomClothes(false, i, true, false, false, false, false);
             }
         }
 
+        private void ForceClothesReload(ChaFileDefine.ClothesKind kind)
+        {
+            var num = (int)kind;
+            ChaControl.StartCoroutine(
+                ChaControl.ChangeClothesAsync(
+                    num,
+                    ChaControl.nowCoordinate.clothes.parts[num].id,
+                    ChaControl.nowCoordinate.clothes.subPartsId[0],
+                    ChaControl.nowCoordinate.clothes.subPartsId[1],
+                    ChaControl.nowCoordinate.clothes.subPartsId[2],
+                    true,
+                    false
+                    ));
+        }
+
         public void RefreshTexture(string texType)
-        {//todo refresh body masks too
+        {
+            if(IsMaskKind(texType))
+            {
+                RefreshAllTextures(true);
+                return;
+            }
+
             if (texType != null
 #if KK
                 && !KKAPI.Studio.StudioAPI.InsideStudio
 #endif
                 )
             {
-                texType = MaskIdToClothes(texType);
-
                 var i = Array.FindIndex(ChaControl.objClothes, x => x != null && x.name == texType);
                 if (i >= 0)
                 {
@@ -406,29 +455,9 @@ namespace KoiClothesOverlayX
             _allOverlayTextures = null;
         }
 
-        public Texture2D GetMask(MaskKind kind)
+        internal Texture GetOriginalMask(MaskKind kind)
         {
-            var tex = GetOverlayTex(KoiClothesOverlayMgr.MainClothesNames[0], false);
-            return tex?.GetMask(kind);
-        }
-
-        public static byte[] DumpOriginalMask(MaskKind kind)
-        {
-            var tex = GetOriginalMask(kind);
-            if (tex != null)
-            {
-                var t = tex.TextureToTexture2D();
-                var bytes = t.EncodeToPNG();
-                Destroy(t);
-                return bytes;
-            }
-            return null;
-        }
-
-        public static Texture GetOriginalMask(MaskKind kind)
-        {
-            Hooks.OrigAlphaMasks.TryGetValue(kind, out var tex);
-            return tex;
+            return Hooks.GetMaskField(this, kind).GetValue<Texture>();
         }
     }
 }
