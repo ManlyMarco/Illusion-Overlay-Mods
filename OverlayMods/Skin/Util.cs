@@ -1,7 +1,6 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
 using UnityEngine;
 
 namespace KoiSkinOverlayX
@@ -46,11 +45,6 @@ namespace KoiSkinOverlayX
             RenderTexture.active = prev;
             RenderTexture.ReleaseTemporary(rt);
             return t;
-        }
-
-        public static string PascalCaseToSentenceCase(this string str)
-        {
-            return Regex.Replace(str, "[a-z][A-Z]", m => $"{m.Value[0]} {char.ToLower(m.Value[1])}");
         }
 
         private static class NativeMethods
