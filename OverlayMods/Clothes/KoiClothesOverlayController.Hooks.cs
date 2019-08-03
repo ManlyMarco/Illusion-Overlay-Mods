@@ -80,6 +80,8 @@ namespace KoiClothesOverlayX
 
             private static Texture2D FindBodyMask(Material mat)
             {
+                if (mat == null) return null;
+
                 var registration = CharacterApi.GetRegisteredBehaviour(typeof(KoiClothesOverlayController));
                 if (registration == null) throw new ArgumentNullException(nameof(registration));
                 foreach (var controller in registration.Instances.Cast<KoiClothesOverlayController>())
@@ -91,10 +93,10 @@ namespace KoiClothesOverlayX
                     if (controller.ChaControl.customMatBody == mat)
                         return GetBodyMask(controller, MaskKind.BodyMask);
 
-                    if (controller.ChaControl.rendBra.Any(r => r?.material == mat))
+                    if (controller.ChaControl.rendBra?.Any(r => r?.material == mat) == true)
                         return GetBodyMask(controller, MaskKind.BraMask);
 
-                    if (controller.ChaControl.rendInner.Any(r => r?.material == mat))
+                    if (controller.ChaControl.rendInner?.Any(r => r?.material == mat) == true)
                         return GetBodyMask(controller, MaskKind.InnerMask);
                 }
 
