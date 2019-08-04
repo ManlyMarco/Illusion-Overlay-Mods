@@ -266,7 +266,7 @@ namespace KoiSkinOverlayX
 
         public static string GetDefaultLoadDir()
         {
-            return File.Exists(KoiSkinOverlayMgr.OverlayDirectory) ? KoiSkinOverlayMgr.OverlayDirectory : Paths.GameRootPath;
+            return Directory.Exists(KoiSkinOverlayMgr.OverlayDirectory) ? KoiSkinOverlayMgr.OverlayDirectory : Paths.GameRootPath;
         }
 
         private void Awake()
