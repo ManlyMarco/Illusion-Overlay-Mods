@@ -50,6 +50,7 @@ namespace KoiSkinOverlayX
             OverlayMat = new Material(ab.LoadAsset<Shader>("assets/composite.shader"));
             DontDestroyOnLoad(OverlayMat);
             ab.Unload(false);
+            Resources.ResourceManager.ReleaseAllResources();
 
             Hooks.Init();
             CharacterApi.RegisterExtraBehaviour<KoiSkinOverlayController>(GUID);
