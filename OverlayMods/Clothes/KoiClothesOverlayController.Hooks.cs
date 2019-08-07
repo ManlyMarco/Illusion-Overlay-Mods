@@ -93,10 +93,10 @@ namespace KoiClothesOverlayX
                     if (controller.ChaControl.customMatBody == mat)
                         return GetBodyMask(controller, MaskKind.BodyMask);
 
-                    if (controller.ChaControl.rendBra?.Any(r => r?.material == mat) == true)
+                    if (controller.ChaControl.rendBra != null && controller.ChaControl.rendBra.Any(r => r != null && r.material == mat))
                         return GetBodyMask(controller, MaskKind.BraMask);
 
-                    if (controller.ChaControl.rendInner?.Any(r => r?.material == mat) == true)
+                    if (controller.ChaControl.rendInner != null && controller.ChaControl.rendInner.Any(r => r != null && r.material == mat))
                         return GetBodyMask(controller, MaskKind.InnerMask);
                 }
 
