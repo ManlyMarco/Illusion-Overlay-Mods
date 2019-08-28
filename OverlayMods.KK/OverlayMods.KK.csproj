@@ -53,7 +53,7 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="KKAPI">
-      <HintPath>..\..\..\..\Games\Koikatsu\BepInEx\KKAPI.dll</HintPath>
+      <HintPath>..\..\KKAPI\bin\KKAPI.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System">
