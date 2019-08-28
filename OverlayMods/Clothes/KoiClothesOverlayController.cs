@@ -199,6 +199,8 @@ namespace KoiClothesOverlayX
 
         private void ForceClothesReload(ChaFileDefine.ClothesKind kind)
         {
+            if (ChaControl.rendBody == null) return;
+
             var num = (int)kind;
             ChaControl.StartCoroutine(
                 ChaControl.ChangeClothesAsync(
