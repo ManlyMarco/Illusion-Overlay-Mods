@@ -108,7 +108,6 @@ namespace KoiSkinOverlayX
                     {
                         var fileTexBytes = File.ReadAllBytes(texFilename);
                         var overlayTex = Util.TextureFromBytes(fileTexBytes, TextureFormat.ARGB32);
-                        // todo re-convert the texture, check for size
                         if (overlayTex != null)
                             return overlayTex.EncodeToPNG();
                     }
