@@ -9,7 +9,6 @@ using KKAPI.Maker;
 using KoiSkinOverlayX;
 using MessagePack;
 using UnityEngine;
-using Logger = KoiClothesOverlayX.KoiClothesOverlayMgr;
 using ExtensibleSaveFormat;
 #if KK
 using CoordinateType = ChaFileDefine.CoordinateType;
@@ -69,8 +68,8 @@ namespace KoiClothesOverlayX
                 }
                 catch (Exception e)
                 {
-                    Logger.Log(LogLevel.Error | LogLevel.Message, "[KCOX] Dumping texture failed - " + e.Message);
-                    Logger.Log(LogLevel.Debug, e);
+                    KoiSkinOverlayMgr.Logger.LogMessage("[KCOX] Dumping texture failed - " + e.Message);
+                    KoiSkinOverlayMgr.Logger.LogDebug(e);
                 }
             }
             else
@@ -184,7 +183,7 @@ namespace KoiClothesOverlayX
                 foreach (var clothesKind in forceNeededParts)
                     ForceClothesReload(clothesKind);
 
-                if(onlyMasks) return;
+                if (onlyMasks) return;
 
                 var allParts = Enum.GetValues(typeof(ChaFileDefine.ClothesKind)).Cast<ChaFileDefine.ClothesKind>();
                 foreach (var clothesKind in allParts.Except(forceNeededParts))
@@ -215,7 +214,7 @@ namespace KoiClothesOverlayX
 
         public void RefreshTexture(string texType)
         {
-            if(IsMaskKind(texType))
+            if (IsMaskKind(texType))
             {
                 RefreshAllTextures(true);
                 return;
@@ -278,8 +277,8 @@ namespace KoiClothesOverlayX
                     catch (Exception ex)
                     {
                         var logLevel = currentGameMode == GameMode.Maker ? LogLevel.Message | LogLevel.Warning : LogLevel.Warning;
-                        Logger.Log(logLevel, "[KCOX] WARNING: Failed to load embedded overlay data for " + (ChaFileControl?.charaFileName ?? "?"));
-                        Logger.Log(LogLevel.Debug, ex);
+                        KoiSkinOverlayMgr.Logger.Log(logLevel, "[KCOX] WARNING: Failed to load embedded overlay data for " + (ChaFileControl?.charaFileName ?? "?"));
+                        KoiSkinOverlayMgr.Logger.LogError(ex);
                     }
                 }
             }
@@ -349,7 +348,7 @@ namespace KoiClothesOverlayX
             var applicableRenderers = GetApplicableRenderers(rendererArrs).ToList();
             if (applicableRenderers.Count == 0)
             {
-                Logger.Log(MakerAPI.InsideMaker ? LogLevel.Warning | LogLevel.Message : LogLevel.Debug, $"[KCOX] Removing unused overlay for {clothesName}");
+                KoiSkinOverlayMgr.Logger.Log(MakerAPI.InsideMaker ? LogLevel.Warning | LogLevel.Message : LogLevel.Debug, $"[KCOX] Removing unused overlay for {clothesName}");
 
                 overlay.Dispose();
                 CurrentOverlayTextures.Remove(clothesName);
@@ -428,8 +427,8 @@ namespace KoiClothesOverlayX
             }
             catch (Exception e)
             {
-                Logger.Log(LogLevel.Error | LogLevel.Message, "[KCOX] Dumping texture failed - " + e.Message);
-                Logger.Log(LogLevel.Debug, e);
+                KoiSkinOverlayMgr.Logger.LogMessage("[KCOX] Dumping texture failed - " + e.Message);
+                KoiSkinOverlayMgr.Logger.LogError(e);
                 RenderTexture.active = null;
             }
             finally

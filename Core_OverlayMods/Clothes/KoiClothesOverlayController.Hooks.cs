@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using BepInEx.Harmony;
-using BepInEx.Logging;
 using HarmonyLib;
 using KKAPI.Chara;
 using KKAPI.Maker;
+using KoiSkinOverlayX;
 using UnityEngine;
-using Logger = KoiClothesOverlayX.KoiClothesOverlayMgr;
 
 namespace KoiClothesOverlayX
 {
@@ -43,7 +42,7 @@ namespace KoiClothesOverlayX
 
                     if (toRemoveList != null && toRemoveList.Count > 0)
                     {
-                        Logger.Log(LogLevel.Warning | LogLevel.Message, $"[KCOX] Removing {toRemoveList.Count} no longer used Top overlay(s)");
+                        KoiSkinOverlayMgr.Logger.LogMessage($"[KCOX] Removing {toRemoveList.Count} no longer used Top overlay(s)");
 
                         foreach (var toRemove in toRemoveList)
                             controller.GetOverlayTex(toRemove.Key, false)?.Clear();

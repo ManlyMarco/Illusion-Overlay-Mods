@@ -323,7 +323,7 @@ namespace KoiSkinOverlayX
             if (_lastError != null)
             {
                 Logger.Log(LogLevel.Error | LogLevel.Message, "[KSOX] Failed to load texture from file - " + _lastError.Message);
-                Logger.Log(LogLevel.Debug, _lastError);
+                KoiSkinOverlayMgr.Logger.LogDebug(_lastError);
                 _lastError = null;
             }
         }

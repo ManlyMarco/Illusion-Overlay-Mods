@@ -1,8 +1,9 @@
 ﻿using System;
-using System.ComponentModel;
 using System.IO;
 using BepInEx;
+using BepInEx.Configuration;
 using BepInEx.Logging;
+using ExtensibleSaveFormat;
 using KKAPI;
 using KKAPI.Chara;
 using OverlayMods;
@@ -12,21 +13,16 @@ using Resources = OverlayMods.Properties.Resources;
 namespace KoiSkinOverlayX
 {
     [BepInPlugin(GUID, "KSOX (KoiSkinOverlay)", Version)]
-    [BepInDependency("com.bepis.bepinex.extendedsave")]
-    [BepInDependency(KoikatuAPI.GUID)]
+    [BepInDependency(ExtendedSave.GUID)]
+    [BepInDependency(KoikatuAPI.GUID, KoikatuAPI.VersionConst)]
     public class KoiSkinOverlayMgr : BaseUnityPlugin
     {
         public const string GUID = Metadata.GUID_KSOX;
         internal const string Version = Metadata.Version;
 
-        [DisplayName("Compress overlay textures in RAM")]
-        [Description("Reduces RAM usage to about 1/4th at the cost of lower quality. Use when loading lots of characters with overlays if you're running out of memory.")]
-        private static ConfigWrapper<bool> CompressTextures { get; set; }
+        private static ConfigEntry<bool> CompressTextures { get; set; }
+        private static ConfigEntry<string> ExportDirectory { get; set; }
 
-        [DisplayName("Overlay export/open folder")]
-        [Description("The value needs to be a valid full path to an existing folder. Default folder will be used if the value is invalid.\n\n" +
-                     "Exported overlays will be saved there, and by default open overlay dialog will show this directory.")]
-        private static ConfigWrapper<string> ExportDirectory { get; set; }
         private static readonly string _defaultOverlayDirectory = Path.Combine(Paths.GameRootPath, "UserData\\Overlays");
         public static string OverlayDirectory
         {
@@ -38,13 +34,14 @@ namespace KoiSkinOverlayX
         }
 
         internal static Material OverlayMat { get; private set; }
+        internal static new ManualLogSource Logger;
 
         private void Awake()
         {
-            ExportDirectory = new ConfigWrapper<string>(nameof(ExportDirectory), this, _defaultOverlayDirectory);
-            CompressTextures = new ConfigWrapper<bool>(nameof(CompressTextures), this, false);
+            Logger = base.Logger;
 
-            KoikatuAPI.CheckRequiredPlugin(this, KoikatuAPI.GUID, new Version(KoikatuAPI.VersionConst));
+            ExportDirectory = Config.AddSetting("Maker", "Overlay export/open folder", _defaultOverlayDirectory, "The value needs to be a valid full path to an existing folder. Default folder will be used if the value is invalid. Exported overlays will be saved there, and by default open overlay dialog will show this directory.");
+            CompressTextures = Config.AddSetting("General", "Compress overlay textures in RAM", false, "Reduces RAM usage to about 1/4th at the cost of lower quality. Use when loading lots of characters with overlays if you're running out of memory.");
 
             var ab = AssetBundle.LoadFromMemory(Resources.composite);
             OverlayMat = new Material(ab.LoadAsset<Shader>("assets/composite.shader"));
@@ -102,7 +99,7 @@ namespace KoiSkinOverlayX
 
                 if (File.Exists(texFilename))
                 {
-                    Log(LogLevel.Info, $"[KSOX] Importing texture data for {charFullname} from file {texFilename}");
+                    Logger.LogInfo($"Importing texture data for {charFullname} from file {texFilename}");
 
                     try
                     {
@@ -114,16 +111,11 @@ namespace KoiSkinOverlayX
                     }
                     catch (Exception ex)
                     {
-                        Log(LogLevel.Error, "[KSOX] Failed to load texture from file - " + ex.Message);
+                        Logger.LogError("[KSOX] Failed to load texture from file - " + ex.Message);
                     }
                 }
             }
             return null;
-        }
-
-        internal static void Log(LogLevel logLevel, object data)
-        {
-            BepInEx.Logger.Log(logLevel, data);
         }
     }
 }

@@ -12,7 +12,6 @@ using KKAPI.Utilities;
 using KoiSkinOverlayX;
 using UniRx;
 using UnityEngine;
-using Logger = KoiClothesOverlayX.KoiClothesOverlayMgr;
 
 namespace KoiClothesOverlayX
 {
@@ -329,8 +328,8 @@ namespace KoiClothesOverlayX
                     var tex = Util.TextureFromBytes(_bytesToLoad, textureFormat);
 
                     var controller = GetOverlayController();
-                    var origTex = KoiClothesOverlayController.IsMaskKind(_typeToLoad) ? 
-                        controller.GetOriginalMask((MaskKind) Enum.Parse(typeof(MaskKind), _typeToLoad)) : 
+                    var origTex = KoiClothesOverlayController.IsMaskKind(_typeToLoad) ?
+                        controller.GetOriginalMask((MaskKind)Enum.Parse(typeof(MaskKind), _typeToLoad)) :
                         controller.GetApplicableRenderers(_typeToLoad).First().material.mainTexture;
 
                     if (origTex != null && (tex.width != origTex.width || tex.height != origTex.height))
@@ -350,7 +349,7 @@ namespace KoiClothesOverlayX
             if (_lastError != null)
             {
                 Logger.Log(LogLevel.Error | LogLevel.Message, "[KCOX] Failed to load texture from file - " + _lastError.Message);
-                Logger.Log(LogLevel.Debug, _lastError);
+                KoiSkinOverlayMgr.Logger.LogDebug(_lastError);
                 _lastError = null;
             }
         }

@@ -12,10 +12,8 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 using BepInEx.Harmony;
-using BepInEx.Logging;
 using HarmonyLib;
 using UnityEngine;
-using Logger = KoiSkinOverlayX.KoiSkinOverlayMgr;
 
 namespace KoiSkinOverlayX
 {
@@ -32,7 +30,7 @@ namespace KoiSkinOverlayX
 
             if (source == null)
             {
-                Logger.Log(LogLevel.Error, instance.trfParent.name + " source texture is null, can't apply overlays!");
+                KoiSkinOverlayMgr.Logger.LogError(instance.trfParent.name + " source texture is null, can't apply overlays!");
                 return;
             }
 

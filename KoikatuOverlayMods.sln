@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EC_OverlayMods", "EC_Overla
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Core_OverlayMods", "Core_OverlayMods\Core_OverlayMods.shproj", "{86ECF2B4-E255-4FD4-A65C-98B2F21676C4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AI_OverlayMods", "AI_OverlayMods\AI_OverlayMods.csproj", "{9592D6DC-707B-4898-A172-FE204B98770D}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Core_OverlayMods\Core_OverlayMods.projitems*{77c9fadd-e6b9-41e7-9559-9eeca5c143c3}*SharedItemsImports = 4
@@ -28,6 +30,10 @@ Global
 		{C6977F34-BA61-4C41-B39B-311A0AB9B18B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C6977F34-BA61-4C41-B39B-311A0AB9B18B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C6977F34-BA61-4C41-B39B-311A0AB9B18B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9592D6DC-707B-4898-A172-FE204B98770D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9592D6DC-707B-4898-A172-FE204B98770D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9592D6DC-707B-4898-A172-FE204B98770D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9592D6DC-707B-4898-A172-FE204B98770D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
