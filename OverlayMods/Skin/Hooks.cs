@@ -11,9 +11,9 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
+using BepInEx.Harmony;
 using BepInEx.Logging;
-using Harmony;
-using OverlayMods;
+using HarmonyLib;
 using UnityEngine;
 using Logger = KoiSkinOverlayX.KoiSkinOverlayMgr;
 
@@ -23,7 +23,7 @@ namespace KoiSkinOverlayX
     {
         public static void Init()
         {
-            HarmonyPatcher.PatchAll(typeof(Hooks));
+            HarmonyWrapper.PatchAll(typeof(Hooks));
         }
 
         private static void OverlayBlit(Texture source, RenderTexture dest, Material mat, int pass, CustomTextureCreate instance)

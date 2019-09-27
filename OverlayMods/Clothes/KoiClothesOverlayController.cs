@@ -10,11 +10,10 @@ using KoiSkinOverlayX;
 using MessagePack;
 using UnityEngine;
 using Logger = KoiClothesOverlayX.KoiClothesOverlayMgr;
-#if KK
 using ExtensibleSaveFormat;
+#if KK
 using CoordinateType = ChaFileDefine.CoordinateType;
 #elif EC
-using EC.Core.ExtensibleSaveFormat;
 using CoordinateType = KoikatsuCharaFile.ChaFileDefine.CoordinateType;
 #endif
 

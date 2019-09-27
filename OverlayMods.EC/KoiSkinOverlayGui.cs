@@ -40,7 +40,7 @@ namespace KoiSkinOverlayX
         private TexType _typeToLoad;
         private FileSystemWatcher _texChangeWatcher;
 
-        public static ConfigWrapper<bool> WatchLoadedTexForChanges;
+        public static ConfigEntry<bool> WatchLoadedTexForChanges;
 
         private static KoiSkinOverlayController GetOverlayController()
         {
@@ -245,7 +245,7 @@ namespace KoiSkinOverlayX
 
         private void Awake()
         {
-            WatchLoadedTexForChanges = Config.Wrap("", "Watch loaded images for changes", null, true);
+            WatchLoadedTexForChanges = Config.AddSetting("Maker", "Watch loaded texture for changes", true);
             WatchLoadedTexForChanges.SettingChanged += (sender, args) =>
             {
                 if (!WatchLoadedTexForChanges.Value)

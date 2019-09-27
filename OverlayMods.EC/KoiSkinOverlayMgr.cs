@@ -3,7 +3,7 @@ using System.IO;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
-using EC.Core.ExtensibleSaveFormat;
+using ExtensibleSaveFormat;
 using KKAPI;
 using KKAPI.Chara;
 using OverlayMods;
@@ -14,7 +14,7 @@ namespace KoiSkinOverlayX
 {
     [BepInPlugin(GUID, "ECSOX (EC SkinOverlay)", Version)]
     [BepInDependency(ExtendedSave.GUID)]
-    [BepInDependency(KoikatuAPI.GUID)]
+    [BepInDependency(KoikatuAPI.GUID, KoikatuAPI.VersionConst)]
     public class KoiSkinOverlayMgr : BaseUnityPlugin
     {
         public const string GUID = Metadata.GUID_KSOX;

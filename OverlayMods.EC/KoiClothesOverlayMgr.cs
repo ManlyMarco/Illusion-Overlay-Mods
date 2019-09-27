@@ -1,6 +1,6 @@
 ﻿using BepInEx;
 using BepInEx.Logging;
-using EC.Core.ExtensibleSaveFormat;
+using ExtensibleSaveFormat;
 using KKAPI;
 using KKAPI.Chara;
 using KoiSkinOverlayX;

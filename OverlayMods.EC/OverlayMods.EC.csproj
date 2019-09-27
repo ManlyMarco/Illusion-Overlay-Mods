@@ -47,52 +47,52 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="0Harmony">
-      <HintPath>..\..\..\EC\EC_CorePlugins\lib\0Harmony.dll</HintPath>
+      <HintPath>..\lib\BepInEx5\0Harmony.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Assembly-CSharp">
-      <HintPath>..\..\..\EC\EC_CorePlugins\lib\Assembly-CSharp.dll</HintPath>
+      <HintPath>..\lib\EmotionCreators\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Assembly-CSharp-firstpass">
-      <HintPath>..\..\..\EC\EC_CorePlugins\lib\Assembly-CSharp-firstpass.dll</HintPath>
+      <HintPath>..\lib\EmotionCreators\Assembly-CSharp-firstpass.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="BepInEx">
-      <HintPath>..\..\..\EC\EC_CorePlugins\lib\BepInEx.dll</HintPath>
+      <HintPath>..\lib\BepInEx5\BepInEx.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="BepInEx.Harmony">
-      <HintPath>..\..\..\EC\EC_CorePlugins\lib\BepInEx.Harmony.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="EC.Core.ExtensibleSaveFormat">
-      <HintPath>..\..\..\EC\EC_CorePlugins\bin\BepInEx\plugins\EC_CorePlugins\EC.Core.ExtensibleSaveFormat.dll</HintPath>
+      <HintPath>..\lib\BepInEx5\BepInEx.Harmony.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="ECAPI">
       <HintPath>..\..\KKAPI\bin\ECAPI.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="EC_ExtensibleSaveFormat">
+      <HintPath>..\..\..\KK\BepisPlugins\bin\BepInEx\plugins\EC_BepisPlugins\EC_ExtensibleSaveFormat.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="UniRx">
-      <HintPath>..\..\..\EC\EC_CorePlugins\lib\UniRx.dll</HintPath>
+      <HintPath>..\lib\EmotionCreators\UniRx.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine">
-      <HintPath>..\..\..\EC\EC_CorePlugins\lib\UnityEngine.dll</HintPath>
+      <HintPath>..\lib\EmotionCreators\UnityEngine.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
-      <HintPath>..\..\..\EC\EC_CorePlugins\lib\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>..\lib\EmotionCreators\UnityEngine.CoreModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.ImageConversionModule">
-      <HintPath>..\..\..\EC\EC_CorePlugins\lib\UnityEngine.ImageConversionModule.dll</HintPath>
+      <HintPath>..\lib\EmotionCreators\UnityEngine.ImageConversionModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.UI">
-      <HintPath>..\..\..\EC\EC_CorePlugins\lib\UnityEngine.UI.dll</HintPath>
+      <HintPath>..\lib\EmotionCreators\UnityEngine.UI.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>

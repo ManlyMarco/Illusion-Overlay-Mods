@@ -1,6 +1,6 @@
-﻿using ChaCustom;
-using Harmony;
-using OverlayMods;
+﻿using BepInEx.Harmony;
+using ChaCustom;
+using HarmonyLib;
 
 namespace KoiClothesOverlayX
 {
@@ -10,7 +10,7 @@ namespace KoiClothesOverlayX
         {
             public static void Init()
             {
-                HarmonyPatcher.PatchAll(typeof(Hooks));
+                HarmonyWrapper.PatchAll(typeof(Hooks));
             }
 
             [HarmonyPostfix]

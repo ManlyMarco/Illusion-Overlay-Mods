@@ -33,23 +33,27 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="0Harmony">
-      <HintPath>..\lib\0Harmony.dll</HintPath>
+      <HintPath>..\lib\BepInEx5\0Harmony.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Assembly-CSharp">
-      <HintPath>..\lib\Assembly-CSharp.dll</HintPath>
+      <HintPath>..\lib\Koikatsu\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Assembly-CSharp-firstpass">
-      <HintPath>..\lib\Assembly-CSharp-firstpass.dll</HintPath>
+      <HintPath>..\lib\Koikatsu\Assembly-CSharp-firstpass.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="BepInEx">
-      <HintPath>..\lib\BepInEx.dll</HintPath>
+      <HintPath>..\lib\BepInEx5\BepInEx.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="BepInEx.Harmony">
+      <HintPath>..\lib\BepInEx5\BepInEx.Harmony.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="ExtensibleSaveFormat">
-      <HintPath>..\lib\ExtensibleSaveFormat.dll</HintPath>
+      <HintPath>..\..\..\KK\BepisPlugins\bin\BepInEx\plugins\KK_BepisPlugins\ExtensibleSaveFormat.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="KKAPI">
@@ -63,11 +67,7 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine">
-      <HintPath>..\lib\UnityEngine.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEngine.UI">
-      <HintPath>..\..\..\..\Games\Koikatsu\Koikatu_Data\Managed\UnityEngine.UI.dll</HintPath>
+      <HintPath>..\lib\Koikatsu\UnityEngine.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>

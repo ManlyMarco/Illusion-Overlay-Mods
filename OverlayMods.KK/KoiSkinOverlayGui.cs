@@ -12,9 +12,9 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using BepInEx;
+using BepInEx.Configuration;
 using BepInEx.Logging;
 using ExtensibleSaveFormat;
-using KKAPI;
 using KKAPI.Chara;
 using KKAPI.Maker;
 using KKAPI.Maker.UI;
@@ -44,10 +44,10 @@ namespace KoiSkinOverlayX
         private FileSystemWatcher _texChangeWatcher;
 
         [Browsable(false)]
-        public static ConfigWrapper<bool> RemoveOldFiles;
+        public static ConfigEntry<bool> RemoveOldFiles;
 
         [Browsable(false)]
-        public static ConfigWrapper<bool> WatchLoadedTexForChanges;
+        public static ConfigEntry<bool> WatchLoadedTexForChanges;
 
         private static void ExtendedSaveOnCardBeingSaved(ChaFile chaFile)
         {
@@ -223,7 +223,7 @@ namespace KoiSkinOverlayX
         {
             var ctrl = GetOverlayController();
             var overlay = ctrl.SetOverlayTex(tex, texType);
-            
+
             _textureChanged.OnNext(new KeyValuePair<TexType, Texture2D>(texType, overlay?.Texture));
         }
 
@@ -274,9 +274,8 @@ namespace KoiSkinOverlayX
             if (StudioAPI.InsideStudio)
                 return;
 
-            var owner = GetComponent<KoiSkinOverlayMgr>();
-            RemoveOldFiles = new ConfigWrapper<bool>("removeOldFiles", owner, true);
-            WatchLoadedTexForChanges = new ConfigWrapper<bool>("watchLoadedTexForChanges", owner, true);
+            RemoveOldFiles = Config.AddSetting("Maker", "Remove old files", true);
+            WatchLoadedTexForChanges = Config.AddSetting("Maker", "Watch loaded texture for changes", true);
             WatchLoadedTexForChanges.SettingChanged += (sender, args) =>
             {
                 if (!WatchLoadedTexForChanges.Value)
