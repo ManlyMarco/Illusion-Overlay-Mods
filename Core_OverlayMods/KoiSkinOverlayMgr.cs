@@ -12,14 +12,14 @@ using Resources = OverlayMods.Properties.Resources;
 
 namespace KoiSkinOverlayX
 {
-    [BepInPlugin(GUID, "ECSOX (EC SkinOverlay)", Version)]
+    [BepInPlugin(GUID, "Skin Overlay Mod", Version)]
     [BepInDependency(ExtendedSave.GUID)]
     [BepInDependency(KoikatuAPI.GUID, KoikatuAPI.VersionConst)]
     public class KoiSkinOverlayMgr : BaseUnityPlugin
     {
         public const string GUID = Metadata.GUID_KSOX;
         internal const string Version = Metadata.Version;
-        
+
         private static ConfigEntry<bool> CompressTextures { get; set; }
         private static ConfigEntry<string> ExportDirectory { get; set; }
 
@@ -34,7 +34,7 @@ namespace KoiSkinOverlayX
         }
 
         internal static Material OverlayMat { get; private set; }
-        internal new static ManualLogSource Logger;
+        internal static new ManualLogSource Logger;
 
         private void Awake()
         {
@@ -47,6 +47,7 @@ namespace KoiSkinOverlayX
             OverlayMat = new Material(ab.LoadAsset<Shader>("assets/composite.shader"));
             DontDestroyOnLoad(OverlayMat);
             ab.Unload(false);
+            Resources.ResourceManager.ReleaseAllResources();
 
             Hooks.Init();
             CharacterApi.RegisterExtraBehaviour<KoiSkinOverlayController>(GUID);
@@ -61,11 +62,63 @@ namespace KoiSkinOverlayX
             return CompressTextures.Value ? TextureFormat.DXT5 : TextureFormat.ARGB32;
         }
 
+#if KK
+        internal static string GetTexFilename(string charFullname, TexType texType)
+        {
+            string name;
+
+            switch (texType)
+            {
+                case TexType.BodyOver:
+                    name = "Body";
+                    break;
+                case TexType.FaceOver:
+                    name = "Face";
+                    break;
+                case TexType.Unknown:
+                    return null;
+                default:
+                    name = texType.ToString();
+                    break;
+            }
+
+            var legacyDir = Path.Combine(Paths.PluginPath, "KoiSkinOverlay");
+            var charFolder = $"{legacyDir}/{charFullname}";
+            var texFilename = $"{charFolder}/{name}.png";
+            return texFilename;
+        }
+#endif
+
         /// <summary>
-        /// Old loading logic from folders. Not used in EC
+        /// Old loading logic from folders
         /// </summary>
         internal static byte[] GetOldStyleOverlayTex(TexType texType, ChaControl chaControl)
         {
+#if KK
+            var charFullname = chaControl.fileParam?.fullname;
+            if (!string.IsNullOrEmpty(charFullname))
+            {
+                var texFilename = GetTexFilename(charFullname, texType);
+
+                if (File.Exists(texFilename))
+                {
+                    Logger.LogInfo($"Importing texture data for {charFullname} from file {texFilename}");
+
+                    try
+                    {
+                        var fileTexBytes = File.ReadAllBytes(texFilename);
+                        var overlayTex = Util.TextureFromBytes(fileTexBytes, TextureFormat.ARGB32);
+                        // todo re-convert the texture, check for size
+                        if (overlayTex != null)
+                            return overlayTex.EncodeToPNG();
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogError("[KSOX] Failed to load texture from file - " + ex.Message);
+                    }
+                }
+            }
+#endif
             return null;
         }
     }

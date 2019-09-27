@@ -1,5 +1,4 @@
 ﻿using BepInEx;
-using BepInEx.Logging;
 using ExtensibleSaveFormat;
 using KKAPI;
 using KKAPI.Chara;
@@ -8,10 +7,9 @@ using OverlayMods;
 
 namespace KoiClothesOverlayX
 {
-    [BepInPlugin(GUID, "ECCOX (EC ClothesOverlay)", KoiSkinOverlayMgr.Version)]
+    [BepInPlugin(GUID, "Clothes Overlay Mod", KoiSkinOverlayMgr.Version)]
     [BepInDependency(ExtendedSave.GUID)]
-    [BepInDependency(KoikatuAPI.GUID)]
-    [BepInDependency(KoiSkinOverlayMgr.GUID)]
+    [BepInDependency(KoikatuAPI.GUID, KoikatuAPI.VersionConst)]
     public class KoiClothesOverlayMgr : BaseUnityPlugin
     {
         public const string GUID = Metadata.GUID_KCOX;
@@ -25,7 +23,12 @@ namespace KoiClothesOverlayX
             "ct_gloves",
             "ct_panst",
             "ct_socks",
-            "ct_shoes",
+#if KK
+            "ct_shoes_inner",
+            "ct_shoes_outer"
+#elif EC
+        "ct_shoes",
+#endif
         };
 
         public static readonly string[] SubClothesNames =
@@ -35,18 +38,10 @@ namespace KoiClothesOverlayX
             "ct_top_parts_C"
         };
 
-        private static ManualLogSource _logger;
-
         private void Awake()
         {
-            _logger = Logger;
             CharacterApi.RegisterExtraBehaviour<KoiClothesOverlayController>(GUID);
             KoiClothesOverlayController.Hooks.Init();
-        }
-
-        internal static void Log(LogLevel logLevel, object data)
-        {
-            _logger.Log(logLevel, data);
         }
     }
 }

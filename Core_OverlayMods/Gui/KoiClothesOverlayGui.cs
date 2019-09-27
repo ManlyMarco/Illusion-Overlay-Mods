@@ -15,8 +15,10 @@ using UnityEngine;
 
 namespace KoiClothesOverlayX
 {
-    [BepInPlugin(GUID, GUID, KoiSkinOverlayMgr.Version)]
+    [BepInPlugin(GUID, "Clothes Overlay Mod GUI", KoiSkinOverlayMgr.Version)]
     [BepInDependency(KoiClothesOverlayMgr.GUID)]
+    [BepInProcess("Koikatu")]
+    [BepInProcess("Koikatsu Party")]
     public partial class KoiClothesOverlayGui : BaseUnityPlugin
     {
         private const string GUID = KoiClothesOverlayMgr.GUID + "_GUI";
