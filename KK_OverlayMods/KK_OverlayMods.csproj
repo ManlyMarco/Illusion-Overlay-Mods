@@ -7,7 +7,7 @@
     <ProjectGuid>{77C9FADD-E6B9-41E7-9559-9EECA5C143C3}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>OverlayMods</RootNamespace>
-    <AssemblyName>KK.OverlayMods</AssemblyName>
+    <AssemblyName>KK_OverlayMods</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -103,6 +103,6 @@
     <Content Include="Resources\eye.png" />
     <EmbeddedResource Include="Resources\face.png" />
   </ItemGroup>
-  <Import Project="..\OverlayMods\OverlayMods.projitems" Label="Shared" />
+  <Import Project="..\Core_OverlayMods\Core_OverlayMods.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

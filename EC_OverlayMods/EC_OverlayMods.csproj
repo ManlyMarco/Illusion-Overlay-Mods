@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>OverlayMods</RootNamespace>
-    <AssemblyName>EC.OverlayMods</AssemblyName>
+    <AssemblyName>EC_OverlayMods</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -113,7 +113,7 @@
     <Content Include="Resources\eye.png" />
     <EmbeddedResource Include="Resources\face.png" />
   </ItemGroup>
-  <Import Project="..\OverlayMods\OverlayMods.projitems" Label="Shared" />
+  <Import Project="..\Core_OverlayMods\Core_OverlayMods.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>
