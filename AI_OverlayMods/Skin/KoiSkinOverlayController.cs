@@ -69,11 +69,8 @@ namespace KoiSkinOverlayX
             if (_overlays.TryGetValue(overlayType, out var tex))
                 ApplyOverlay(bodyTexture, tex.Texture);
 
-            foreach (var additionalTexture in AdditionalTextures)
-            {
-                if (additionalTexture.OverlayType == overlayType && additionalTexture.Texture != null)
-                    ApplyOverlay(bodyTexture, additionalTexture.Texture);
-            }
+            foreach (var additionalTexture in AdditionalTextures.Where(x => x.OverlayType == overlayType && x.Texture != null).OrderBy(x => x.ApplyOrder))
+                ApplyOverlay(bodyTexture, additionalTexture.Texture);
         }
 
         public OverlayTexture SetOverlayTex(byte[] overlayTex, TexType overlayType)
