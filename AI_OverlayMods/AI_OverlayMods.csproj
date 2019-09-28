@@ -60,6 +60,10 @@
       <HintPath>..\lib\BepInEx5\BepInEx.Harmony.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="MessagePack">
+      <HintPath>..\lib\AIGirl\MessagePack.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="UniRx">
@@ -68,6 +72,10 @@
     </Reference>
     <Reference Include="UnityEngine">
       <HintPath>..\lib\AIGirl\UnityEngine.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.AnimationModule">
+      <HintPath>..\lib\AIGirl\UnityEngine.AnimationModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.AssetBundleModule">
@@ -88,6 +96,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Clothes\ClothesTexData.cs" />
+    <Compile Include="Clothes\KoiClothesOverlayController.cs" />
+    <Compile Include="Clothes\KoiClothesOverlayController.Hooks.cs" />
+    <Compile Include="Clothes\KoiClothesOverlayGui.cs" />
+    <Compile Include="Clothes\KoiClothesOverlayGui.Hooks.cs" />
+    <Compile Include="Clothes\KoiClothesOverlayMgr.cs" />
     <Compile Include="Metadata.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Skin\AdditionalTexture.cs" />
