@@ -10,28 +10,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Clothes\ClothesTexData.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Clothes\KoiClothesOverlayController.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Clothes\KoiClothesOverlayController.Hooks.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Clothes\MaskKind.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Clothes\KoiClothesOverlayGui.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Clothes\KoiClothesOverlayGui.Hooks.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Clothes\KoiClothesOverlayMgr.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Skin\KoiSkinOverlayMgr.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Metadata.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Skin\AdditionalTexture.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Skin\Hooks.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Skin\KoiSkinOverlayController.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Skin\KoiSkinOverlayGui.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Skin\OverlayTexture.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ResourceUtils.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Skin\TexType.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Skin\AdditionalTexture.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Skin\OverlayTexture.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Skin\Util.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Resources\body.png" />
-    <None Include="$(MSBuildThisFileDirectory)Resources\composite.shader" />
-    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Resources\composite.unity3d" />
-    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Resources\eye.png" />
-    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Resources\face.png" />
   </ItemGroup>
 </Project>

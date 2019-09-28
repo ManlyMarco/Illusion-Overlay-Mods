@@ -8,7 +8,7 @@ namespace OverlayMods
     /// <summary>
     /// Utility methods for working with embedded resources.
     /// </summary>
-    public static class ResourceUtils
+    internal static class ResourceUtils
     {
         /// <summary>
         /// Read all bytes starting at current position and ending at the end of the stream.

@@ -7,15 +7,21 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KK_OverlayMods", "KK_Overla
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EC_OverlayMods", "EC_OverlayMods\EC_OverlayMods.csproj", "{C6977F34-BA61-4C41-B39B-311A0AB9B18B}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Core_OverlayMods", "Core_OverlayMods\Core_OverlayMods.shproj", "{86ECF2B4-E255-4FD4-A65C-98B2F21676C4}"
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Shared_Core", "Core_OverlayMods\Shared_Core.shproj", "{86ECF2B4-E255-4FD4-A65C-98B2F21676C4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AI_OverlayMods", "AI_OverlayMods\AI_OverlayMods.csproj", "{9592D6DC-707B-4898-A172-FE204B98770D}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Shared_KKEC", "Shared_KKEC\Shared_KKEC.shproj", "{82292DDA-E3EF-4CF9-AD0F-3B852342B25C}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Core_OverlayMods\Core_OverlayMods.projitems*{77c9fadd-e6b9-41e7-9559-9eeca5c143c3}*SharedItemsImports = 4
+		Shared_KKEC\Shared_KKEC.projitems*{77c9fadd-e6b9-41e7-9559-9eeca5c143c3}*SharedItemsImports = 4
+		Shared_KKEC\Shared_KKEC.projitems*{82292dda-e3ef-4cf9-ad0f-3b852342b25c}*SharedItemsImports = 13
 		Core_OverlayMods\Core_OverlayMods.projitems*{86ecf2b4-e255-4fd4-a65c-98b2f21676c4}*SharedItemsImports = 13
+		Core_OverlayMods\Core_OverlayMods.projitems*{9592d6dc-707b-4898-a172-fe204b98770d}*SharedItemsImports = 4
 		Core_OverlayMods\Core_OverlayMods.projitems*{c6977f34-ba61-4c41-b39b-311a0ab9b18b}*SharedItemsImports = 4
+		Shared_KKEC\Shared_KKEC.projitems*{c6977f34-ba61-4c41-b39b-311a0ab9b18b}*SharedItemsImports = 4
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

@@ -81,6 +81,7 @@
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <Import Project="..\Shared_KKEC\Shared_KKEC.projitems" Label="Shared" />
   <Import Project="..\Core_OverlayMods\Core_OverlayMods.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

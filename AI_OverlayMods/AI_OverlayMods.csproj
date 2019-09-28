@@ -74,10 +74,6 @@
       <HintPath>..\lib\AIGirl\UnityEngine.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="UnityEngine.AnimationModule">
-      <HintPath>..\lib\AIGirl\UnityEngine.AnimationModule.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="UnityEngine.AssetBundleModule">
       <HintPath>..\lib\AIGirl\UnityEngine.AssetBundleModule.dll</HintPath>
       <Private>False</Private>
@@ -96,23 +92,17 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Clothes\ClothesTexData.cs" />
     <Compile Include="Clothes\KoiClothesOverlayController.cs" />
     <Compile Include="Clothes\KoiClothesOverlayController.Hooks.cs" />
     <Compile Include="Clothes\KoiClothesOverlayGui.cs" />
     <Compile Include="Clothes\KoiClothesOverlayGui.Hooks.cs" />
     <Compile Include="Clothes\KoiClothesOverlayMgr.cs" />
-    <Compile Include="Metadata.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Skin\AdditionalTexture.cs" />
     <Compile Include="Skin\Hooks.cs" />
     <Compile Include="Skin\KoiSkinOverlayController.cs" />
     <Compile Include="Skin\KoiSkinOverlayGui.cs" />
     <Compile Include="Skin\KoiSkinOverlayMgr.cs" />
-    <Compile Include="Skin\OverlayTexture.cs" />
-    <Compile Include="ResourceUtils.cs" />
     <Compile Include="Skin\TexType.cs" />
-    <Compile Include="Skin\Util.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\body.png" />
@@ -124,5 +114,6 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\face.png" />
   </ItemGroup>
+  <Import Project="..\Core_OverlayMods\Core_OverlayMods.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
