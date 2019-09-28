@@ -19,6 +19,7 @@ namespace KoiClothesOverlayX
     [BepInDependency(KoiClothesOverlayMgr.GUID)]
     [BepInProcess("Koikatu")]
     [BepInProcess("Koikatsu Party")]
+    [BepInProcess("EmotionCreators")]
     public partial class KoiClothesOverlayGui : BaseUnityPlugin
     {
         private const string GUID = KoiClothesOverlayMgr.GUID + "_GUI";

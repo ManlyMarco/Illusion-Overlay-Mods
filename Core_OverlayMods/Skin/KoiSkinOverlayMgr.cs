@@ -8,7 +8,6 @@ using KKAPI;
 using KKAPI.Chara;
 using OverlayMods;
 using UnityEngine;
-using Resources = OverlayMods.Properties.Resources;
 
 namespace KoiSkinOverlayX
 {
@@ -43,11 +42,10 @@ namespace KoiSkinOverlayX
             ExportDirectory = Config.AddSetting("Maker", "Overlay export/open folder", _defaultOverlayDirectory, "The value needs to be a valid full path to an existing folder. Default folder will be used if the value is invalid. Exported overlays will be saved there, and by default open overlay dialog will show this directory.");
             CompressTextures = Config.AddSetting("General", "Compress overlay textures in RAM", false, "Reduces RAM usage to about 1/4th at the cost of lower quality. Use when loading lots of characters with overlays if you're running out of memory.");
 
-            var ab = AssetBundle.LoadFromMemory(Resources.composite);
+            var ab = AssetBundle.LoadFromMemory(ResourceUtils.GetEmbeddedResource("composite.unity3d"));
             OverlayMat = new Material(ab.LoadAsset<Shader>("assets/composite.shader"));
             DontDestroyOnLoad(OverlayMat);
             ab.Unload(false);
-            Resources.ResourceManager.ReleaseAllResources();
 
             Hooks.Init();
             CharacterApi.RegisterExtraBehaviour<KoiSkinOverlayController>(GUID);

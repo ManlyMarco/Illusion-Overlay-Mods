@@ -23,7 +23,15 @@
     <Compile Include="$(MSBuildThisFileDirectory)Skin\KoiSkinOverlayController.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Skin\KoiSkinOverlayGui.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Skin\OverlayTexture.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ResourceUtils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Skin\TexType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Skin\Util.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Resources\body.png" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\composite.shader" />
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Resources\composite.unity3d" />
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Resources\eye.png" />
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Resources\face.png" />
   </ItemGroup>
 </Project>

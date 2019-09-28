@@ -21,7 +21,6 @@ using KKAPI.Maker.UI;
 using KKAPI.Utilities;
 using UniRx;
 using UnityEngine;
-using Resources = OverlayMods.Properties.Resources;
 
 namespace KoiSkinOverlayX
 {
@@ -29,6 +28,7 @@ namespace KoiSkinOverlayX
     [BepInDependency(KoiSkinOverlayMgr.GUID)]
     [BepInProcess("Koikatu")]
     [BepInProcess("Koikatsu Party")]
+    [BepInProcess("EmotionCreators")]
     public class KoiSkinOverlayGui : BaseUnityPlugin
     {
         public const string GUID = KoiSkinOverlayMgr.GUID + "_GUI";
@@ -162,9 +162,9 @@ namespace KoiSkinOverlayX
             e.AddSubCategory(makerCategory);
 
             e.AddControl(new MakerButton("Get face overlay template", makerCategory, owner))
-                .OnClick.AddListener(() => WriteAndOpenPng(Resources.face));
+                .OnClick.AddListener(() => WriteAndOpenPng(ResourceUtils.GetEmbeddedResource("face.png")));
             e.AddControl(new MakerButton("Get body overlay template", makerCategory, owner))
-                .OnClick.AddListener(() => WriteAndOpenPng(Resources.body));
+                .OnClick.AddListener(() => WriteAndOpenPng(ResourceUtils.GetEmbeddedResource("body.png")));
 
             AddConfigSettings(e, owner, makerCategory);
 
@@ -192,7 +192,7 @@ namespace KoiSkinOverlayX
             e.AddSubCategory(eyeCategory);
 
             e.AddControl(new MakerButton("Get iris overlay template", eyeCategory, owner))
-                .OnClick.AddListener(() => WriteAndOpenPng(Resources.eye));
+                .OnClick.AddListener(() => WriteAndOpenPng(ResourceUtils.GetEmbeddedResource("eye.png")));
 
             AddConfigSettings(e, owner, eyeCategory);
 
