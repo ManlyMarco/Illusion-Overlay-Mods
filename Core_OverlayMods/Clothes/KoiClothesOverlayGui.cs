@@ -223,7 +223,7 @@ namespace KoiClothesOverlayX
                         var tex = GetOverlayController().GetOverlayTex(clothesId, false)?.TextureBytes;
                         if (tex == null)
                         {
-                            Logger.Log(LogLevel.Message, "[KCOX] Nothing to export");
+                            Logger.Log(LogLevel.Message, "Nothing to export");
                             return;
                         }
 
@@ -231,7 +231,7 @@ namespace KoiClothesOverlayX
                     }
                     catch (Exception ex)
                     {
-                        Logger.Log(LogLevel.Error | LogLevel.Message, "[KCOX] Failed to export texture - " + ex.Message);
+                        Logger.Log(LogLevel.Error | LogLevel.Message, "Failed to export texture - " + ex.Message);
                     }
                 });
 
@@ -336,9 +336,9 @@ namespace KoiClothesOverlayX
                         controller.GetApplicableRenderers(_typeToLoad).First().material.mainTexture;
 
                     if (origTex != null && (tex.width != origTex.width || tex.height != origTex.height))
-                        Logger.Log(LogLevel.Message | LogLevel.Warning, $"[KCOX] WARNING - Wrong texture resolution! It's recommended to use {origTex.width}x{origTex.height} instead.");
+                        Logger.Log(LogLevel.Message | LogLevel.Warning, $"WARNING - Wrong texture resolution! It's recommended to use {origTex.width}x{origTex.height} instead.");
                     else
-                        Logger.Log(LogLevel.Message, "[KCOX] Texture imported successfully");
+                        Logger.Log(LogLevel.Message, "Texture imported successfully");
 
                     SetTexAndUpdate(tex, _typeToLoad);
                 }
@@ -351,7 +351,7 @@ namespace KoiClothesOverlayX
 
             if (_lastError != null)
             {
-                Logger.Log(LogLevel.Error | LogLevel.Message, "[KCOX] Failed to load texture from file - " + _lastError.Message);
+                Logger.Log(LogLevel.Error | LogLevel.Message, "Failed to load texture from file - " + _lastError.Message);
                 KoiSkinOverlayMgr.Logger.LogDebug(_lastError);
                 _lastError = null;
             }
