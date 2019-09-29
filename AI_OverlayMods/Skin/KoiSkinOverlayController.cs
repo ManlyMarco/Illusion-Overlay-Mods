@@ -13,7 +13,8 @@ namespace KoiSkinOverlayX
     {
         /// <summary>
         /// Additional overlays to be applied over the KSOX overlay (if any).
-        /// Drawn bottom to top based on index. Use <code>UpdateTexture</code> to refresh.
+        /// Drawn bottom to top based on the <exception cref="AdditionalTexture.ApplyOrder"></exception> property.
+        /// Use <code>UpdateTexture</code> to apply any changes done here.
         /// </summary>
         public List<AdditionalTexture> AdditionalTextures { get; } = new List<AdditionalTexture>();
 
