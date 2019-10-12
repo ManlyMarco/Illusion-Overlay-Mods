@@ -162,9 +162,9 @@ namespace KoiSkinOverlayX
             GL.Clear(false, true, Color.clear);
             RenderTexture.active = rta;
 
+            Graphics.Blit(mainTex, rtTemp);
             KoiSkinOverlayMgr.OverlayMat.SetTexture("_Overlay", blitTex);
-            Graphics.Blit(mainTex, rtTemp, KoiSkinOverlayMgr.OverlayMat);
-            Graphics.Blit(rtTemp, mainTex);
+            Graphics.Blit(rtTemp, mainTex, KoiSkinOverlayMgr.OverlayMat);
 
             RenderTexture.ReleaseTemporary(rtTemp);
         }
