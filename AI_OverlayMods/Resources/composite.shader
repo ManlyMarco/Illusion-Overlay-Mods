@@ -8,8 +8,15 @@ Shader "Unlit/composite"
     
     SubShader
     {
+        Tags {
+            "Queue"="Transparent"
+            "RenderType"="Transparent"
+        }
         Pass
         {
+            Blend SrcAlpha OneMinusSrcAlpha, SrcAlpha OneMinusSrcAlpha
+            ZClip Off
+            ZWrite Off
             Name "Unlit"
             CGPROGRAM
             #pragma vertex vert
@@ -22,10 +29,12 @@ Shader "Unlit/composite"
                 float4 vertex : POSITION;
                 float2 texcoord0 : TEXCOORD0;
             };
+            
             struct VertexOutput {
                 float4 pos : SV_POSITION;
                 float2 uv0 : TEXCOORD0;
             };
+
             VertexOutput vert (VertexInput v) {
                 VertexOutput o;
                 o.uv0 = v.texcoord0;
@@ -35,13 +44,14 @@ Shader "Unlit/composite"
             
             fixed4 frag (VertexOutput i) : COLOR
             {
-                float4 mt = tex2D(_MainTex, i.uv0);
-                float4 o = tex2D(_Overlay, i.uv0);
-                mt.rgb *= mt.a;
-                o.rgb *= o.a;
-                float3 rgb = o.rgb + (mt.rgb * (1 - o.a));
-                float a = o.a + mt.rgb * (1.0 - o.a);
-                return float4(rgb, a);
+                float4 A = tex2D(_Overlay, i.uv0);
+                float4 B = tex2D(_MainTex, i.uv0);
+
+                float4 Out;
+                Out.w = A.w + B.w*(1-A.w);
+                Out.xyz = (A.xyz*A.w + B.xyz*B.w*(1-A.w))/Out.w;
+
+                return Out;
             }
             ENDCG
         }
