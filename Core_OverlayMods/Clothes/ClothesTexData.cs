@@ -27,8 +27,8 @@ namespace KoiClothesOverlayX
             }
             set
             {
-                if (_texture != null)
-                    Object.Destroy(_texture);
+                if (value != null && value == _texture) return;
+                Object.Destroy(_texture);
                 _texture = value;
                 _textureBytes = value?.EncodeToPNG();
             }
@@ -50,12 +50,12 @@ namespace KoiClothesOverlayX
 
         public void Dispose()
         {
-            Texture = null;
+            Object.Destroy(_texture);
+            _texture = null;
         }
 
         public void Clear()
         {
-            Dispose();
             TextureBytes = null;
         }
 

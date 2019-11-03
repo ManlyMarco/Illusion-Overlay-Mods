@@ -382,6 +382,8 @@ namespace KoiClothesOverlayX
 
         private void CleanupTextureList()
         {
+            if (_allOverlayTextures == null) return;
+
             foreach (var group in _allOverlayTextures.Values)
             {
                 foreach (var texture in group.Where(x => x.Value.IsEmpty()).ToList())
@@ -447,7 +449,8 @@ namespace KoiClothesOverlayX
         {
             base.OnDestroy();
 
-            RemoveAllOverlays();
+            foreach (var textures in _allOverlayTextures.SelectMany(x => x.Value))
+                textures.Value.Dispose();
         }
 
         private void RemoveAllOverlays()
