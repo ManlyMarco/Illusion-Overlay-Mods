@@ -1,6 +1,6 @@
 ![preview 1](https://user-images.githubusercontent.com/39247311/52307982-6bb26080-299c-11e9-9a64-99ede143fb6d.png)
 # Illusion Overlay Mods
-Plugin that allows adding overlay textures (tattoos) to character's face, body and clothes in games made by Illusion. These additional textures are saved inside the card and used by the main game and studio. Previously named Koikatsu Overlay Mods and KSOX (KoiSkinOverlayX) + KCOX (KoiClothesOverlayX). Supported games:
+Plugin that allows adding overlay textures (tattoos) to character's face, body and clothes in games made by Illusion. This lets you create unique characters and clothes easily without needing to make mods for the game. These additional textures are saved inside the card and used by the main game and studio. Previously named Koikatsu Overlay Mods and KSOX (KoiSkinOverlayX) + KCOX (KoiClothesOverlayX). Supported games:
 - Koikatu / Koikatsu Party (KK_OverlayMods)
 - Emotion Creators (EC_OverlayMods)
 - AI-Shoujo / AI-Syoujyo (AI_OverlayMods)
