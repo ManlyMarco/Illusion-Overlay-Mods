@@ -117,21 +117,9 @@ namespace KoiClothesOverlayX
 
         public void RefreshAllTextures()
         {
-#if KK
-            if (KKAPI.Studio.StudioAPI.InsideStudio)
-            {
-                // Studio needs a more aggresive refresh to update the textures
-                // Refresh needs to happen through OCIChar or dynamic bones get messed up
-                Studio.Studio.Instance.dicInfo.Values.OfType<Studio.OCIChar>()
-                    .FirstOrDefault(x => x.charInfo == ChaControl)
-                    ?.SetCoordinateInfo(CurrentCoordinate.Value, true);
-            }
-            else
-#endif
-            {
-                ChaControl.ChangeClothes(true);
-            }
+            ChaControl.ChangeClothes(true);
         }
+
         public void RefreshTexture(string texType)
         {
             if (texType != null && KoikatuAPI.GetCurrentGameMode() != GameMode.Studio)
