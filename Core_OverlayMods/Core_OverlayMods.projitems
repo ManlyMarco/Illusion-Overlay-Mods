@@ -11,7 +11,6 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Clothes\ClothesTexData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Metadata.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ResourceUtils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Skin\AdditionalTexture.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Skin\OverlayTexture.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Skin\Util.cs" />

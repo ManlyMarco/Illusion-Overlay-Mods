@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using AIChara;
 using BepInEx;
 using BepInEx.Configuration;
@@ -7,6 +6,7 @@ using BepInEx.Logging;
 using ExtensibleSaveFormat;
 using KKAPI;
 using KKAPI.Chara;
+using KKAPI.Utilities;
 using OverlayMods;
 using UnityEngine;
 
@@ -14,7 +14,7 @@ namespace KoiSkinOverlayX
 {
     [BepInPlugin(GUID, "Skin Overlay Mod", Version)]
     [BepInDependency(ExtendedSave.GUID)]
-    [BepInDependency(KoikatuAPI.GUID, KoikatuAPI.VersionConst)]
+    [BepInDependency(KoikatuAPI.GUID, "1.9.5")]
     public class KoiSkinOverlayMgr : BaseUnityPlugin
     {
         public const string GUID = Metadata.GUID_KSOX;
