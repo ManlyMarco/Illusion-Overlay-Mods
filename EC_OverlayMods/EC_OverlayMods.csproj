@@ -7,7 +7,7 @@
     <ProjectGuid>{C6977F34-BA61-4C41-B39B-311A0AB9B18B}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>OverlayMods</RootNamespace>
+    <RootNamespace>KoiSkinOverlayX</RootNamespace>
     <AssemblyName>EC_OverlayMods</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
