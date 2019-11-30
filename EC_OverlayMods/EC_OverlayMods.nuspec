@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package>
+  <metadata>
+    <id>OverlayMods.EmotionCreators</id>
+    <version>$version$</version>
+    <authors>ManlyMarco</authors>
+    <projectUrl>https://github.com/ManlyMarco/Illusion-Overlay-Mods</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Adds overlay texture (tattoo) support to Emotion Creators</description>
+    <developmentDependency>true</developmentDependency>
+  </metadata>
+  <files>
+    <file src="..\install.ps1" target="tools"/>
+  </files>
+</package>
