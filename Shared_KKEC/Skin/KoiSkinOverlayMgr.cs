@@ -14,7 +14,7 @@ namespace KoiSkinOverlayX
 {
     [BepInPlugin(GUID, "Skin Overlay Mod", Version)]
     [BepInDependency(ExtendedSave.GUID)]
-    [BepInDependency(KoikatuAPI.GUID, "1.9.5")]
+    [BepInDependency(KoikatuAPI.GUID, KoikatuAPI.VersionConst)]
     public class KoiSkinOverlayMgr : BaseUnityPlugin
     {
         public const string GUID = Metadata.GUID_KSOX;
