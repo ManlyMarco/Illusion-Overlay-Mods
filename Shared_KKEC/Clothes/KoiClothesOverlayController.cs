@@ -10,6 +10,7 @@ using KoiSkinOverlayX;
 using MessagePack;
 using UnityEngine;
 using ExtensibleSaveFormat;
+using KKAPI.Utilities;
 #if KK
 using CoordinateType = ChaFileDefine.CoordinateType;
 #elif EC
@@ -176,7 +177,6 @@ namespace KoiClothesOverlayX
                     ?.SetCoordinateInfo(CurrentCoordinate.Value, true);
             }
             else
-#endif
             {
                 // Needed for body masks
                 var forceNeededParts = new[] { ChaFileDefine.ClothesKind.top, ChaFileDefine.ClothesKind.bra };
@@ -193,6 +193,53 @@ namespace KoiClothesOverlayX
                 //for (var i = 0; i < ChaControl.cusClothesSubCmp.Length; i++)
                 //    ChaControl.ChangeCustomClothes(false, i, true, false, false, false, false);
             }
+#elif EC
+            if (MakerAPI.InsideMaker && onlyMasks)
+            {
+                // Need to do the more aggresive version in maker to allow for clearing the mask without a character reload
+                var forceNeededParts = new[] { ChaFileDefine.ClothesKind.top, ChaFileDefine.ClothesKind.bra };
+                foreach (var clothesKind in forceNeededParts)
+                    ForceClothesReload(clothesKind);
+            }
+            else
+            {
+                // Need to manually set the textures because calling ChangeClothesAsync (through ForceClothesReload)
+                // to make the game do it results in a crash when editing nodes in a scene
+                if (ChaControl.customMatBody)
+                {
+                    Texture overlayTex = GetOverlayTex(MaskKind.BodyMask.ToString(), false)?.Texture;
+                    if (overlayTex != null)
+                        ChaControl.customMatBody.SetTexture(ChaShader._AlphaMask, overlayTex);
+                }
+                if (ChaControl.rendBra != null)
+                {
+                    Texture overlayTex = GetOverlayTex(MaskKind.BraMask.ToString(), false)?.Texture;
+                    if (overlayTex != null)
+                    {
+                        if (ChaControl.rendBra[0]) ChaControl.rendBra[0].material.SetTexture(ChaShader._AlphaMask, overlayTex);
+                        if (ChaControl.rendBra[1]) ChaControl.rendBra[1].material.SetTexture(ChaShader._AlphaMask, overlayTex);
+                    }
+                }
+                if (ChaControl.rendInner != null)
+                {
+                    Texture overlayTex = GetOverlayTex(MaskKind.InnerMask.ToString(), false)?.Texture;
+                    if (overlayTex != null)
+                    {
+                        if (ChaControl.rendInner[0]) ChaControl.rendInner[0].material.SetTexture(ChaShader._AlphaMask, overlayTex);
+                        if (ChaControl.rendInner[1]) ChaControl.rendInner[1].material.SetTexture(ChaShader._AlphaMask, overlayTex);
+                    }
+                }
+            }
+
+            if (onlyMasks) return;
+
+            var allParts = Enum.GetValues(typeof(ChaFileDefine.ClothesKind)).Cast<ChaFileDefine.ClothesKind>();
+            foreach (var clothesKind in allParts)
+                ChaControl.ChangeCustomClothes(true, (int)clothesKind, true, false, false, false, false);
+
+            for (var i = 0; i < ChaControl.cusClothesSubCmp.Length; i++)
+                ChaControl.ChangeCustomClothes(false, i, true, false, false, false, false);
+#endif
         }
 
         private void ForceClothesReload(ChaFileDefine.ClothesKind kind)
@@ -209,7 +256,7 @@ namespace KoiClothesOverlayX
                     ChaControl.nowCoordinate.clothes.subPartsId[2],
                     true,
                     false
-                    ));
+                ));
         }
 
         public void RefreshTexture(string texType)
