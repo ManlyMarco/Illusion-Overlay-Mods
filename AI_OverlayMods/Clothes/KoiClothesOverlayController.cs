@@ -329,8 +329,10 @@ namespace KoiClothesOverlayX
         {
             base.OnDestroy();
 
+            if (_allOverlayTextures == null) return;
+
             foreach (var textures in _allOverlayTextures.SelectMany(x => x.Value))
-                textures.Value.Dispose();
+                textures.Value?.Dispose();
         }
 
         private void RemoveAllOverlays()
@@ -338,7 +340,7 @@ namespace KoiClothesOverlayX
             if (_allOverlayTextures == null) return;
 
             foreach (var textures in _allOverlayTextures.SelectMany(x => x.Value))
-                textures.Value.Dispose();
+                textures.Value?.Dispose();
 
             _allOverlayTextures = null;
         }
