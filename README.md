@@ -10,7 +10,7 @@ Plugin that allows adding overlay textures (tattoos) to character's face, body a
 2. Download the latest release from [here](https://github.com/ManlyMarco/Koikatu-Overlay-Mods/releases). You only need the version specific for your game.
 3. Extract the release to your game. The dll file should end up inside `Koikatu\BepInEx\plugins`. 
 4. Start character maker. You should see new tab "Overlays" show up under the Body tab, and overlay controls under clothes tabs.
-5. [A full guide on creating skin overlays available here](Guide/%5BSylvers%5D%20KK%20Overlay%20Tutorial.md).
+5. [Guides on creating skin overlays are available here](Guide).
 
 ### Importing old overlays (only Koikatsu version)
 - Overlays from folders in BepInEx/KoiSkinOverlay with the char's name will be imported on character load. In these folders, "body.png" and/or "face.png" will be loaded. When you save the character, these files will be saved inside the character card and removed from the folder.
