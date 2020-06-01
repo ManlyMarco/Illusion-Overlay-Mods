@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26228.4
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30104.148
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KK_OverlayMods", "KK_OverlayMods\KK_OverlayMods.csproj", "{77C9FADD-E6B9-41E7-9559-9EECA5C143C3}"
 EndProject
@@ -13,15 +13,23 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AI_OverlayMods", "AI_Overla
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Shared_KKEC", "Shared_KKEC\Shared_KKEC.shproj", "{82292DDA-E3EF-4CF9-AD0F-3B852342B25C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HS2_OverlayMods", "HS2_OverlayMods\HS2_OverlayMods.csproj", "{0D7059B0-0F57-49C1-989F-7933496444CE}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Shared_AIHS2", "Shared_AIHS2\Shared_AIHS2.shproj", "{E8EB0F3A-1A91-4E78-8254-906E028AE553}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		Core_OverlayMods\Core_OverlayMods.projitems*{0d7059b0-0f57-49c1-989f-7933496444ce}*SharedItemsImports = 4
+		Shared_AIHS2\Shared_AIHS2.projitems*{0d7059b0-0f57-49c1-989f-7933496444ce}*SharedItemsImports = 4
 		Core_OverlayMods\Core_OverlayMods.projitems*{77c9fadd-e6b9-41e7-9559-9eeca5c143c3}*SharedItemsImports = 4
 		Shared_KKEC\Shared_KKEC.projitems*{77c9fadd-e6b9-41e7-9559-9eeca5c143c3}*SharedItemsImports = 4
 		Shared_KKEC\Shared_KKEC.projitems*{82292dda-e3ef-4cf9-ad0f-3b852342b25c}*SharedItemsImports = 13
 		Core_OverlayMods\Core_OverlayMods.projitems*{86ecf2b4-e255-4fd4-a65c-98b2f21676c4}*SharedItemsImports = 13
 		Core_OverlayMods\Core_OverlayMods.projitems*{9592d6dc-707b-4898-a172-fe204b98770d}*SharedItemsImports = 4
+		Shared_AIHS2\Shared_AIHS2.projitems*{9592d6dc-707b-4898-a172-fe204b98770d}*SharedItemsImports = 4
 		Core_OverlayMods\Core_OverlayMods.projitems*{c6977f34-ba61-4c41-b39b-311a0ab9b18b}*SharedItemsImports = 4
 		Shared_KKEC\Shared_KKEC.projitems*{c6977f34-ba61-4c41-b39b-311a0ab9b18b}*SharedItemsImports = 4
+		Shared_AIHS2\Shared_AIHS2.projitems*{e8eb0f3a-1a91-4e78-8254-906e028ae553}*SharedItemsImports = 13
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -40,6 +48,10 @@ Global
 		{9592D6DC-707B-4898-A172-FE204B98770D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9592D6DC-707B-4898-A172-FE204B98770D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9592D6DC-707B-4898-A172-FE204B98770D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0D7059B0-0F57-49C1-989F-7933496444CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D7059B0-0F57-49C1-989F-7933496444CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D7059B0-0F57-49C1-989F-7933496444CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D7059B0-0F57-49C1-989F-7933496444CE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

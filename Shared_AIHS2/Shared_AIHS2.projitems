@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>e8eb0f3a-1a91-4e78-8254-906e028ae553</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Shared_AIHS2</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Clothes\KoiClothesOverlayController.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Clothes\KoiClothesOverlayController.Hooks.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Clothes\KoiClothesOverlayGui.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Clothes\KoiClothesOverlayGui.Hooks.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Clothes\KoiClothesOverlayMgr.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Skin\Hooks.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Skin\KoiSkinOverlayController.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Skin\KoiSkinOverlayGui.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Skin\KoiSkinOverlayMgr.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Skin\TexType.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Resources\body.png" />
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Resources\composite.unity3d" />
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Resources\face.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)Resources\composite.shader" />
+  </ItemGroup>
+</Project>
