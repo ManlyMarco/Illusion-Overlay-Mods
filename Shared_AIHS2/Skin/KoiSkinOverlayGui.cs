@@ -57,11 +57,11 @@ namespace KoiSkinOverlayX
             return CharacterApi.GetRegisteredBehaviour(KoiSkinOverlayMgr.GUID);
         }
 
-        public static string GetUniqueTexDumpFilename()
+        public static string GetUniqueTexDumpFilename(string dumpType)
         {
             var path = KoiSkinOverlayMgr.OverlayDirectory;
             Directory.CreateDirectory(path);
-            var file = Path.Combine(path, $"_Export_ {DateTime.Now:yyyy-MM-dd--HH-mm-ss}{FileExt}");
+            var file = Path.Combine(path, $"_Export_{DateTime.Now:yyyy-MM-dd-HH-mm-ss}_{dumpType}{FileExt}");
             // Normalize just in case for open in explorer call later
             file = Path.GetFullPath(file);
             return file;
@@ -137,9 +137,9 @@ namespace KoiSkinOverlayX
             e.AddSubCategory(makerCategory);
 
             e.AddControl(new MakerButton("Get face overlay template", makerCategory, owner))
-                .OnClick.AddListener(() => WriteAndOpenPng(ResourceUtils.GetEmbeddedResource("face.png")));
+                .OnClick.AddListener(() => WriteAndOpenPng(ResourceUtils.GetEmbeddedResource("face.png"), "Face template"));
             e.AddControl(new MakerButton("Get body overlay template", makerCategory, owner))
-                .OnClick.AddListener(() => WriteAndOpenPng(ResourceUtils.GetEmbeddedResource("body.png")));
+                .OnClick.AddListener(() => WriteAndOpenPng(ResourceUtils.GetEmbeddedResource("body.png"), "Body template"));
 
             AddConfigSettings(e, owner, makerCategory);
 
@@ -167,10 +167,10 @@ namespace KoiSkinOverlayX
             tWatch.ValueChanged.Subscribe(b => WatchLoadedTexForChanges.Value = b);
         }
 
-        public static void WriteAndOpenPng(byte[] pngData)
+        public static void WriteAndOpenPng(byte[] pngData, string dumpType)
         {
             if (pngData == null) throw new ArgumentNullException(nameof(pngData));
-            var filename = GetUniqueTexDumpFilename();
+            var filename = GetUniqueTexDumpFilename(dumpType);
             File.WriteAllBytes(filename, pngData);
             Util.OpenFileInExplorer(filename);
         }
@@ -211,7 +211,7 @@ namespace KoiSkinOverlayX
                             var ctrl = GetOverlayController();
                             var tex = ctrl.Overlays.FirstOrDefault(x => x.Key == texType).Value;
                             if (tex == null) return;
-                            WriteAndOpenPng(tex.Data);
+                            WriteAndOpenPng(tex.Data, texType.ToString());
                         }
                         catch (Exception ex)
                         {

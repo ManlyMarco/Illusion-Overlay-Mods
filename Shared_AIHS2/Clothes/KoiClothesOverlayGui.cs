@@ -156,7 +156,7 @@ namespace KoiClothesOverlayX
             var controlTitle = e.AddControl(new MakerText(title, makerCategory, owner));
 
             var controlGen = e.AddControl(new MakerButton("Dump original texture", makerCategory, owner));
-            controlGen.OnClick.AddListener(() => GetOverlayController().DumpBaseTexture(clothesId, KoiSkinOverlayGui.WriteAndOpenPng));
+            controlGen.OnClick.AddListener(() => GetOverlayController().DumpBaseTexture(clothesId, b => KoiSkinOverlayGui.WriteAndOpenPng(b, clothesId + "_Original")));
 
             var controlImage = e.AddControl(new MakerImage(null, makerCategory, owner) { Height = 150, Width = 150 });
 
@@ -201,7 +201,7 @@ namespace KoiClothesOverlayX
                             return;
                         }
 
-                        KoiSkinOverlayGui.WriteAndOpenPng(tex);
+                        KoiSkinOverlayGui.WriteAndOpenPng(tex, clothesId);
                     }
                     catch (Exception ex)
                     {
