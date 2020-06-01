@@ -7,6 +7,7 @@ using BepInEx;
 using KKAPI.Chara;
 using KKAPI.Maker;
 using KKAPI.Maker.UI;
+using KKAPI.Studio;
 using KKAPI.Utilities;
 using KoiSkinOverlayX;
 using UniRx;
@@ -270,13 +271,17 @@ namespace KoiClothesOverlayX
         {
             _instance = this;
 
-#if KK
-            if (KKAPI.Studio.StudioAPI.InsideStudio)
+            if (StudioAPI.InsideStudio)
             {
+                // todo ability to turn off skin and clothes overlays at some later point, should get saved to scene not character, maybe completely separate class for this
+                //StudioAPI.GetOrCreateCurrentStateCategory(null).AddControl(new CurrentStateCategorySwitch("Skin Overlays", c =>
+                //{
+                //    var c = StudioAPI.GetSelectedControllers<KoiSkinOverlayController>().FirstOrDefault();
+                //    return c.
+                //}))
                 enabled = false;
                 return;
             }
-#endif
 
             Hooks.Init();
 
