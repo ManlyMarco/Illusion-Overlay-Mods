@@ -4,6 +4,9 @@ using Object = UnityEngine.Object;
 
 namespace KoiSkinOverlayX
 {
+    /// <summary>
+    /// A skin overlay texture holder.
+    /// </summary>
     public sealed class OverlayTexture : IDisposable
     {
         private byte[] _data;

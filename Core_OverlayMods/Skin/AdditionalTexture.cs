@@ -2,6 +2,11 @@
 
 namespace KoiSkinOverlayX
 {
+    /// <summary>
+    /// An overlay texture that can be added to the overlay stack. 
+    /// Add to <see cref="KoiSkinOverlayController.AdditionalTextures"/> after each character reload.
+    /// Make sure to check if your texture doesn't already exist before adding!
+    /// </summary>
     public class AdditionalTexture
     {
         /// <summary>

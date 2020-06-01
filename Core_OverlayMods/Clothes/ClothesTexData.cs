@@ -5,6 +5,9 @@ using Object = UnityEngine.Object;
 
 namespace KoiClothesOverlayX
 {
+    /// <summary>
+    /// A clothes overlay texture holder.
+    /// </summary>
     [MessagePackObject]
     public class ClothesTexData
     {
