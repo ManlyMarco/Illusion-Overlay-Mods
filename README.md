@@ -4,6 +4,7 @@ Plugin that allows adding overlay textures (tattoos) to character's face, body a
 - Koikatu / Koikatsu Party (KK_OverlayMods)
 - Emotion Creators (EC_OverlayMods)
 - AI-Shoujo / AI-Syoujyo (AI_OverlayMods)
+- HoneySelect2 (HS2_OverlayMods)
 
 ## How to use 
 1. Make sure that the [latest Modding API](https://github.com/ManlyMarco/KKAPI) is installed, and your game is updated.
