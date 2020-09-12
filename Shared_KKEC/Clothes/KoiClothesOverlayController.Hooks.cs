@@ -42,7 +42,9 @@ namespace KoiClothesOverlayX
 
                     if (toRemoveList != null && toRemoveList.Count > 0)
                     {
-                        KoiSkinOverlayMgr.Logger.LogMessage($"Removing {toRemoveList.Count} no longer used Top overlay(s)");
+                        var removedTextures = toRemoveList.Count(x => x.Value.TextureBytes != null);
+                        if (removedTextures > 0)
+                            KoiSkinOverlayMgr.Logger.LogMessage($"Removing {removedTextures} no longer used overlay texture(s)");
 
                         foreach (var toRemove in toRemoveList)
                             controller.GetOverlayTex(toRemove.Key, false)?.Clear();
