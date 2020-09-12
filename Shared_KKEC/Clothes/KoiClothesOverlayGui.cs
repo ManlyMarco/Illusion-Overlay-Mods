@@ -326,16 +326,18 @@ namespace KoiClothesOverlayX
             {
                 try
                 {
+                    var isMask = KoiClothesOverlayController.IsMaskKind(_typeToLoad);
+
                     // Always save to the card in lossless format
-                    var textureFormat = KoiClothesOverlayController.IsMaskKind(_typeToLoad) ? TextureFormat.RG16 : TextureFormat.ARGB32;
+                    var textureFormat = isMask ? TextureFormat.RG16 : TextureFormat.ARGB32;
                     var tex = Util.TextureFromBytes(_bytesToLoad, textureFormat);
 
                     var controller = GetOverlayController();
-                    var origTex = KoiClothesOverlayController.IsMaskKind(_typeToLoad) ?
+                    var origTex = isMask ?
                         controller.GetOriginalMask((MaskKind)Enum.Parse(typeof(MaskKind), _typeToLoad)) :
                         controller.GetApplicableRenderers(_typeToLoad).First().material.mainTexture;
 
-                    if (origTex != null && (tex.width != origTex.width || tex.height != origTex.height))
+                    if (origTex != null && isMask ? tex.width > origTex.width || tex.height > origTex.height : tex.width != origTex.width || tex.height != origTex.height)
                         Logger.Log(LogLevel.Message | LogLevel.Warning, $"WARNING - Wrong texture resolution! It's recommended to use {origTex.width}x{origTex.height} instead.");
                     else
                         Logger.Log(LogLevel.Message, "Texture imported successfully");
