@@ -36,9 +36,6 @@
     <DocumentationFile>..\bin\EC_OverlayMods.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <Reference Include="0Harmony, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\IllusionLibs.BepInEx.Harmony.2.0.0-beta2\lib\net35\0Harmony.dll</HintPath>
       <Private>False</Private>
@@ -91,6 +88,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
   </ItemGroup>
   <Import Project="..\Core_OverlayMods\Core_OverlayMods.projitems" Label="Shared" />
   <Import Project="..\Shared_KKEC\Shared_KKEC.projitems" Label="Shared" />
