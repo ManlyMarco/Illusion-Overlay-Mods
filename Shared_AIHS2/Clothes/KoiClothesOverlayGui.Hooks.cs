@@ -10,7 +10,7 @@ namespace KoiClothesOverlayX
         {
             public static void Init()
             {
-                HarmonyWrapper.PatchAll(typeof(Hooks));
+                Harmony.CreateAndPatchAll(typeof(Hooks));
             }
 
             [HarmonyPostfix]

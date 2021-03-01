@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using BepInEx.Harmony;
+﻿using BepInEx.Harmony;
 using HarmonyLib;
 using KKAPI.Chara;
 using KKAPI.Maker;
 using KoiSkinOverlayX;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace KoiClothesOverlayX
@@ -16,7 +16,7 @@ namespace KoiClothesOverlayX
         {
             public static void Init()
             {
-                HarmonyWrapper.PatchAll(typeof(Hooks));
+                Harmony.CreateAndPatchAll(typeof(Hooks));
             }
 
             #region Main tex overlays

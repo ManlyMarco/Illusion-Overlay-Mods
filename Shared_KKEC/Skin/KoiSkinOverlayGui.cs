@@ -6,11 +6,6 @@
  
  */
 
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.IO;
-using System.Linq;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
@@ -19,6 +14,11 @@ using KKAPI.Chara;
 using KKAPI.Maker;
 using KKAPI.Maker.UI;
 using KKAPI.Utilities;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.IO;
+using System.Linq;
 using UniRx;
 using UnityEngine;
 
@@ -278,9 +278,9 @@ namespace KoiSkinOverlayX
         private void Awake()
         {
 #if KK
-            RemoveOldFiles = Config.AddSetting("Maker", "Remove old files", true, "Remove overlays imported from BepInEx\\KoiSkinOverlay when saving cards (they are saved inside the card now and no longer necessary)");
+            RemoveOldFiles = Config.Bind("Maker", "Remove old files", true, "Remove overlays imported from BepInEx\\KoiSkinOverlay when saving cards (they are saved inside the card now and no longer necessary)");
 #endif
-            WatchLoadedTexForChanges = Config.AddSetting("Maker", "Watch loaded texture for changes", true);
+            WatchLoadedTexForChanges = Config.Bind("Maker", "Watch loaded texture for changes", true);
             WatchLoadedTexForChanges.SettingChanged += (sender, args) =>
             {
                 if (!WatchLoadedTexForChanges.Value)
