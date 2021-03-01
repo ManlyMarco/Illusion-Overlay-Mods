@@ -8,11 +8,11 @@
   
 */
 
-using BepInEx.Harmony;
-using HarmonyLib;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
+using BepInEx.Harmony;
+using HarmonyLib;
 using UnityEngine;
 
 namespace KoiSkinOverlayX
@@ -21,7 +21,7 @@ namespace KoiSkinOverlayX
     {
         public static void Init()
         {
-            Harmony.CreateAndPatchAll(typeof(Hooks));
+            HarmonyWrapper.PatchAll(typeof(Hooks));
         }
 
         private static void OverlayBlit(Texture source, RenderTexture dest, Material mat, int pass, CustomTextureCreate instance)

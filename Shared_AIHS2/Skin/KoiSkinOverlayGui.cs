@@ -6,6 +6,11 @@
  
  */
 
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.IO;
+using System.Linq;
 using AIChara;
 using BepInEx;
 using BepInEx.Configuration;
@@ -14,11 +19,6 @@ using KKAPI.Chara;
 using KKAPI.Maker;
 using KKAPI.Maker.UI;
 using KKAPI.Utilities;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.IO;
-using System.Linq;
 using UniRx;
 using UnityEngine;
 
@@ -227,7 +227,7 @@ namespace KoiSkinOverlayX
 
         private void Awake()
         {
-            WatchLoadedTexForChanges = Config.Bind("Maker", "Watch loaded texture for changes", true);
+            WatchLoadedTexForChanges = Config.AddSetting("Maker", "Watch loaded texture for changes", true);
             WatchLoadedTexForChanges.SettingChanged += (sender, args) =>
             {
                 if (!WatchLoadedTexForChanges.Value)
