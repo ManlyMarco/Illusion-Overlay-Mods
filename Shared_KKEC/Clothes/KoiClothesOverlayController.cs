@@ -10,7 +10,6 @@ using KoiSkinOverlayX;
 using MessagePack;
 using UnityEngine;
 using ExtensibleSaveFormat;
-using KKAPI.Utilities;
 #if KK
 using CoordinateType = ChaFileDefine.CoordinateType;
 #elif EC
@@ -515,46 +514,6 @@ namespace KoiClothesOverlayX
         internal Texture GetOriginalMask(MaskKind kind)
         {
             return Hooks.GetMaskField(this, kind).GetValue<Texture>();
-        }
-        public void ManualReload()//Manual trigger to reload outfit textures.
-        {
-            KoiSkinOverlayMgr.Logger.LogError($"ManualReload {ChaControl.fileParam.fullname}");
-
-            var anyPrevious = _allOverlayTextures != null && _allOverlayTextures.Any();
-            if (anyPrevious)
-                RemoveAllOverlays();
-
-            var pd = GetExtendedData();
-            KoiSkinOverlayMgr.Logger.LogError($"ExtendedData null? {pd == null}");
-
-            if (pd != null && pd.data.TryGetValue(OverlayDataKey, out var overlayData))
-            {
-                if (overlayData is byte[] overlayBytes)
-                {
-                    try
-                    {
-                        KoiSkinOverlayMgr.Logger.LogError($"_allOverlayTextures  Deserialize");
-
-                        _allOverlayTextures = MessagePackSerializer.Deserialize<
-                            Dictionary<CoordinateType, Dictionary<string, ClothesTexData>>>(
-                            overlayBytes);
-                    }
-                    catch (Exception ex)
-                    {
-                        KoiSkinOverlayMgr.Logger.LogWarning("WARNING: Manually Failed to load embedded overlay data for " + (ChaFileControl?.charaFileName ?? "?"));
-                        KoiSkinOverlayMgr.Logger.LogError(ex);
-                    }
-                }
-            }
-
-            if (_allOverlayTextures == null)
-            {
-                KoiSkinOverlayMgr.Logger.LogError($"_allOverlayTextures  null");
-
-                _allOverlayTextures = new Dictionary<CoordinateType, Dictionary<string, ClothesTexData>>();
-            }
-            if (anyPrevious || _allOverlayTextures.Any())
-                StartCoroutine(RefreshAllTexturesCo());
         }
         public void RePack(PluginData[] pluginDatas)//Take in an Array of Coordinate PluginData, and set it in Chafile for reload (used in Cosplay Academy to Load clothing textures)
         {
