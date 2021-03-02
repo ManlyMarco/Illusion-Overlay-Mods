@@ -515,15 +515,19 @@ namespace KoiClothesOverlayX
         {
             return Hooks.GetMaskField(this, kind).GetValue<Texture>();
         }
-        public void RePack(PluginData[] pluginDatas)//Take in an Array of Coordinate PluginData, and set it in Chafile for reload (used in Cosplay Academy to Load clothing textures)
+#if KK
+        public void RePack()//Take in an Array of Coordinate PluginData, and set it in Chafile for reload (used in Cosplay Academy to Load clothing textures)
         {
-            var data = new PluginData { version = 1 };
+            PluginData SavedData;
+            var DataToSet = new PluginData { version = 1 };
             Dictionary<string, ClothesTexData> storage;
             Dictionary<CoordinateType, Dictionary<string, ClothesTexData>> Final = new Dictionary<CoordinateType, Dictionary<string, ClothesTexData>>();
-            for (int i = 0; i < 7; i++)
+
+            for (int i = 0; i < ChaControl.chaFile.coordinate.Length; i++)
             {
+                SavedData = GetCoordinateExtendedData(ChaControl.chaFile.coordinate[i]);
                 storage = new Dictionary<string, ClothesTexData>();
-                if (pluginDatas[i] != null && pluginDatas[i].data.TryGetValue(OverlayDataKey, out var bytes) && bytes is byte[] byteArr)
+                if (SavedData != null && SavedData.data.TryGetValue(OverlayDataKey, out var bytes) && bytes is byte[] byteArr)
                 {
                     var dict = MessagePackSerializer.Deserialize<Dictionary<string, ClothesTexData>>(byteArr);
                     if (dict != null)
@@ -534,8 +538,10 @@ namespace KoiClothesOverlayX
                 }
                 Final.Add((CoordinateType)i, storage);
             }
-            data.data.Add(OverlayDataKey, MessagePackSerializer.Serialize(Final));
-            SetExtendedData(data);
+
+            DataToSet.data.Add(OverlayDataKey, MessagePackSerializer.Serialize(Final));
+            SetExtendedData(DataToSet);
         }
+#endif
     }
 }
