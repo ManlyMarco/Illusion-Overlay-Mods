@@ -516,7 +516,7 @@ namespace KoiClothesOverlayX
         {
             return Hooks.GetMaskField(this, kind).GetValue<Texture>();
         }
-        public void ManualReload()
+        public void ManualReload()//Manual trigger to reload outfit textures.
         {
             KoiSkinOverlayMgr.Logger.LogError($"ManualReload {ChaControl.fileParam.fullname}");
 
@@ -556,7 +556,7 @@ namespace KoiClothesOverlayX
             if (anyPrevious || _allOverlayTextures.Any())
                 StartCoroutine(RefreshAllTexturesCo());
         }
-        public void RePack(PluginData[] pluginDatas)
+        public void RePack(PluginData[] pluginDatas)//Take in an Array of Coordinate PluginData, and set it in Chafile for reload (used in Cosplay Academy to Load clothing textures)
         {
             var data = new PluginData { version = 1 };
             Dictionary<string, ClothesTexData> storage;
