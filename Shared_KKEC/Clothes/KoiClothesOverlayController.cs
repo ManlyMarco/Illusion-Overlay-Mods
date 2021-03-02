@@ -516,5 +516,67 @@ namespace KoiClothesOverlayX
         {
             return Hooks.GetMaskField(this, kind).GetValue<Texture>();
         }
+        public void ManualReload()
+        {
+            KoiSkinOverlayMgr.Logger.LogError($"ManualReload {ChaControl.fileParam.fullname}");
+
+            var anyPrevious = _allOverlayTextures != null && _allOverlayTextures.Any();
+            if (anyPrevious)
+                RemoveAllOverlays();
+
+            var pd = GetExtendedData();
+            KoiSkinOverlayMgr.Logger.LogError($"ExtendedData null? {pd == null}");
+
+            if (pd != null && pd.data.TryGetValue(OverlayDataKey, out var overlayData))
+            {
+                if (overlayData is byte[] overlayBytes)
+                {
+                    try
+                    {
+                        KoiSkinOverlayMgr.Logger.LogError($"_allOverlayTextures  Deserialize");
+
+                        _allOverlayTextures = MessagePackSerializer.Deserialize<
+                            Dictionary<CoordinateType, Dictionary<string, ClothesTexData>>>(
+                            overlayBytes);
+                    }
+                    catch (Exception ex)
+                    {
+                        KoiSkinOverlayMgr.Logger.LogWarning("WARNING: Manually Failed to load embedded overlay data for " + (ChaFileControl?.charaFileName ?? "?"));
+                        KoiSkinOverlayMgr.Logger.LogError(ex);
+                    }
+                }
+            }
+
+            if (_allOverlayTextures == null)
+            {
+                KoiSkinOverlayMgr.Logger.LogError($"_allOverlayTextures  null");
+
+                _allOverlayTextures = new Dictionary<CoordinateType, Dictionary<string, ClothesTexData>>();
+            }
+            if (anyPrevious || _allOverlayTextures.Any())
+                StartCoroutine(RefreshAllTexturesCo());
+        }
+        public void RePack(PluginData[] pluginDatas)
+        {
+            var data = new PluginData { version = 1 };
+            Dictionary<string, ClothesTexData> storage;
+            Dictionary<CoordinateType, Dictionary<string, ClothesTexData>> Final = new Dictionary<CoordinateType, Dictionary<string, ClothesTexData>>();
+            for (int i = 0; i < 7; i++)
+            {
+                storage = new Dictionary<string, ClothesTexData>();
+                if (pluginDatas[i] != null && pluginDatas[i].data.TryGetValue(OverlayDataKey, out var bytes) && bytes is byte[] byteArr)
+                {
+                    var dict = MessagePackSerializer.Deserialize<Dictionary<string, ClothesTexData>>(byteArr);
+                    if (dict != null)
+                    {
+                        foreach (var texData in dict)
+                            storage.Add(texData.Key, texData.Value);
+                    }
+                }
+                Final.Add((CoordinateType)i, storage);
+            }
+            data.data.Add(OverlayDataKey, MessagePackSerializer.Serialize(Final));
+            SetExtendedData(data);
+        }
     }
 }
