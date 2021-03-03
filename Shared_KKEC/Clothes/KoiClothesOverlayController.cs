@@ -516,7 +516,7 @@ namespace KoiClothesOverlayX
             return Hooks.GetMaskField(this, kind).GetValue<Texture>();
         }
 #if KK
-        public void RePack()//Take in an Array of Coordinate PluginData, and set it in Chafile for reload (used in Cosplay Academy to Load clothing textures)
+        public void RePack()//Takes all Coordinates and unpacks them and set them in Chafile for reload (used in Cosplay Academy to Load clothing textures)
         {
             PluginData SavedData;
             var DataToSet = new PluginData { version = 1 };
