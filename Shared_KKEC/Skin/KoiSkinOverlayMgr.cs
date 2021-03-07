@@ -44,7 +44,11 @@ namespace KoiSkinOverlayX
             CompressTextures = Config.AddSetting("General", "Compress overlay textures in RAM", false, "Reduces RAM usage to about 1/4th at the cost of lower quality. Use when loading lots of characters with overlays if you're running out of memory.");
 
             var ab = AssetBundle.LoadFromMemory(ResourceUtils.GetEmbeddedResource("composite.unity3d"));
+            #if KK || EC //todo the same?
             OverlayMat = new Material(ab.LoadAsset<Shader>("assets/composite.shader"));
+            #elif AI || HS2
+            OverlayMat = new Material(ab.LoadAsset<Shader>("composite"));
+            #endif
             DontDestroyOnLoad(OverlayMat);
             ab.Unload(false);
 

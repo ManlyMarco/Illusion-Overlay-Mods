@@ -12,7 +12,8 @@ namespace KoiSkinOverlayX
     {
         /// <summary>
         /// Additional overlays to be applied over the KSOX overlay (if any).
-        /// Drawn bottom to top based on index. Use <code>UpdateTexture</code> to refresh.
+        /// Drawn bottom to top based on the <exception cref="AdditionalTexture.ApplyOrder"></exception> property.
+        /// Use <code>UpdateTexture</code> to apply any changes done here.
         /// </summary>
         public List<AdditionalTexture> AdditionalTextures { get; } = new List<AdditionalTexture>();
 
@@ -128,6 +129,7 @@ namespace KoiSkinOverlayX
         {
             if (cc == null) return;
             if (cc.customTexCtrlBody == null || cc.customTexCtrlFace == null) return;
+#if KK || EC
 
             switch (type)
             {
@@ -153,6 +155,27 @@ namespace KoiSkinOverlayX
                     cc.ChangeSettingEye(true, true, true);
                     break;
             }
+            #elif AI || HS2
+            switch (type)
+            {
+                case TexType.BodyOver:
+                case TexType.BodyUnder:
+                    cc.AddUpdateCMBodyTexFlags(true, true, true, true);
+                    cc.CreateBodyTexture();
+                    break;
+                case TexType.FaceOver:
+                case TexType.FaceUnder:
+                    cc.AddUpdateCMFaceTexFlags(true, true, true, true, true, true, true);
+                    cc.CreateFaceTexture();
+                    break;
+                default:
+                    cc.AddUpdateCMBodyTexFlags(true, true, true, true);
+                    cc.CreateBodyTexture();
+                    cc.AddUpdateCMFaceTexFlags(true, true, true, true, true, true, true);
+                    cc.CreateFaceTexture();
+                    break;
+            }
+            #endif
         }
 
         public static void ApplyOverlay(RenderTexture mainTex, Texture2D blitTex)
@@ -166,8 +189,13 @@ namespace KoiSkinOverlayX
             RenderTexture.active = rta;
 
             KoiSkinOverlayMgr.OverlayMat.SetTexture("_Overlay", blitTex);
+            #if KK || EC //todo the same?
             Graphics.Blit(mainTex, rtTemp, KoiSkinOverlayMgr.OverlayMat);
             Graphics.Blit(rtTemp, mainTex);
+            #else
+            Graphics.Blit(mainTex, rtTemp);
+            Graphics.Blit(rtTemp, mainTex, KoiSkinOverlayMgr.OverlayMat);
+            #endif
 
             RenderTexture.ReleaseTemporary(rtTemp);
         }

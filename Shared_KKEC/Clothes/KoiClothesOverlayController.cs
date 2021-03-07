@@ -19,6 +19,13 @@ using CoordinateType = KoikatsuCharaFile.ChaFileDefine.CoordinateType;
 
 namespace KoiClothesOverlayX
 {
+#if AI || HS2
+    public enum CoordinateType
+    {
+        Unknown = 0
+    }
+#endif
+
     public partial class KoiClothesOverlayController : CharaCustomFunctionController
     {
         private const string OverlayDataKey = "Overlays";
@@ -38,6 +45,8 @@ namespace KoiClothesOverlayX
                 var coordinateType = (CoordinateType)ChaControl.fileStatus.coordinateType;
 #elif EC
                 var coordinateType = CoordinateType.School01;
+#else
+                var coordinateType = CoordinateType.Unknown;                
 #endif
                 _allOverlayTextures.TryGetValue(coordinateType, out var dict);
 
@@ -53,6 +62,7 @@ namespace KoiClothesOverlayX
 
         public void DumpBaseTexture(string clothesId, Action<byte[]> callback)
         {
+            #if KK || EC
             if (IsMaskKind(clothesId))
             {
                 try
@@ -74,6 +84,7 @@ namespace KoiClothesOverlayX
                 }
             }
             else
+            #endif
             {
                 _dumpCallback = callback;
                 _dumpClothesId = clothesId;
@@ -83,10 +94,27 @@ namespace KoiClothesOverlayX
             }
         }
 
+            #if KK || EC
         public ChaClothesComponent GetCustomClothesComponent(string clothesObjectName)
         {
             return ChaControl.cusClothesCmp.Concat(ChaControl.cusClothesSubCmp).FirstOrDefault(x => x != null && x.gameObject.name == clothesObjectName);
         }
+
+        public static bool IsMaskKind(string clothesId)
+        {
+            return Enum.GetNames(typeof(MaskKind)).Contains(clothesId);
+        }
+        
+        internal Texture GetOriginalMask(MaskKind kind)
+        {
+            return Hooks.GetMaskField(this, kind).GetValue<Texture>();
+        }
+        #else
+                public CmpClothes GetCustomClothesComponent(string clothesObjectName)
+        {
+            return ChaControl.cmpClothes.FirstOrDefault(x => x != null && x.gameObject.name == clothesObjectName);
+        }
+        #endif
 
         public ClothesTexData GetOverlayTex(string clothesId, bool createNew)
         {
@@ -103,13 +131,9 @@ namespace KoiClothesOverlayX
             return null;
         }
 
-        public static bool IsMaskKind(string clothesId)
-        {
-            return Enum.GetNames(typeof(MaskKind)).Contains(clothesId);
-        }
-
         public IEnumerable<Renderer> GetApplicableRenderers(string clothesId)
         {
+            #if KK || EC
             if (IsMaskKind(clothesId))
             {
                 var toCheck = KoiClothesOverlayMgr.SubClothesNames.Concat(new[] { KoiClothesOverlayMgr.MainClothesNames[0] });
@@ -121,6 +145,7 @@ namespace KoiClothesOverlayX
                     .SelectMany(GetApplicableRenderers)
                     .Distinct();
             }
+            #endif
 
             var clothesCtrl = GetCustomClothesComponent(clothesId);
             if (clothesCtrl == null) return Enumerable.Empty<Renderer>();
@@ -148,6 +173,7 @@ namespace KoiClothesOverlayX
             }
         }
 
+            #if KK || EC
         public static Renderer[][] GetRendererArrays(ChaClothesComponent clothesCtrl)
         {
             return new[] {
@@ -159,7 +185,18 @@ namespace KoiClothesOverlayX
 #endif
             };
         }
+        #else
+                public static Renderer[][] GetRendererArrays(CmpClothes clothesCtrl)
+        {
+            return new[] {
+                clothesCtrl.rendNormal01,
+                clothesCtrl.rendNormal02,
+                clothesCtrl.rendNormal03,
+            };
+        }
+        #endif
 
+            #if KK || EC
         public void RefreshAllTextures()
         {
             RefreshAllTextures(false);
@@ -267,11 +304,7 @@ namespace KoiClothesOverlayX
                 return;
             }
 
-            if (texType != null
-#if KK
-                && !KKAPI.Studio.StudioAPI.InsideStudio
-#endif
-                )
+            if (texType != null && !KKAPI.Studio.StudioAPI.InsideStudio)
             {
                 var i = Array.FindIndex(ChaControl.objClothes, x => x != null && x.name == texType);
                 if (i >= 0)
@@ -291,6 +324,28 @@ namespace KoiClothesOverlayX
             // Fall back if the specific tex couldn't be refreshed
             RefreshAllTextures();
         }
+        #else
+        public void RefreshAllTextures()
+        {
+            ChaControl.ChangeClothes(true);
+        }
+
+        public void RefreshTexture(string texType)
+        {
+            if (texType != null && KoikatuAPI.GetCurrentGameMode() != GameMode.Studio)
+            {
+                var i = Array.FindIndex(ChaControl.objClothes, x => x != null && x.name == texType);
+                if (i >= 0)
+                {
+                    ChaControl.ChangeCustomClothes(i, true, false, false, false);
+                    return;
+                }
+            }
+
+            // Fall back if the specific tex couldn't be refreshed
+            RefreshAllTextures();
+        }
+        #endif
 
         protected override void OnCardBeingSaved(GameMode currentGameMode)
         {
@@ -323,8 +378,10 @@ namespace KoiClothesOverlayX
                     }
                     catch (Exception ex)
                     {
-                        var logLevel = currentGameMode == GameMode.Maker ? LogLevel.Message | LogLevel.Warning : LogLevel.Warning;
-                        KoiSkinOverlayMgr.Logger.Log(logLevel, "WARNING: Failed to load embedded overlay data for " + (ChaFileControl?.charaFileName ?? "?"));
+                        if (MakerAPI.InsideMaker)
+                            KoiSkinOverlayMgr.Logger.LogMessage("WARNING: Failed to load embedded overlay data for " + (ChaFileControl?.charaFileName ?? "?"));
+                        else
+                            KoiSkinOverlayMgr.Logger.LogDebug("WARNING: Failed to load embedded overlay data for " + (ChaFileControl?.charaFileName ?? "?"));
                         KoiSkinOverlayMgr.Logger.LogError(ex);
                     }
                 }
@@ -380,7 +437,11 @@ namespace KoiClothesOverlayX
             RefreshAllTextures();
         }
 
+#if KK || EC
         private void ApplyOverlays(ChaClothesComponent clothesCtrl)
+        #else 
+                private void ApplyOverlays(CmpClothes clothesCtrl)
+                #endif
         {
             if (CurrentOverlayTextures == null) return;
 
@@ -400,7 +461,10 @@ namespace KoiClothesOverlayX
             var applicableRenderers = GetApplicableRenderers(rendererArrs).ToList();
             if (applicableRenderers.Count == 0)
             {
-                KoiSkinOverlayMgr.Logger.Log(MakerAPI.InsideMaker ? LogLevel.Warning | LogLevel.Message : LogLevel.Debug, $"Removing unused overlay for {clothesName}");
+                if (MakerAPI.InsideMaker)
+                    KoiSkinOverlayMgr.Logger.LogMessage($"Removing unused overlay for {clothesName}");
+                else
+                    KoiSkinOverlayMgr.Logger.LogDebug($"Removing unused overlay for {clothesName}");
 
                 overlay.Dispose();
                 CurrentOverlayTextures.Remove(clothesName);
@@ -510,11 +574,6 @@ namespace KoiClothesOverlayX
                 textures.Value?.Dispose();
 
             _allOverlayTextures = null;
-        }
-
-        internal Texture GetOriginalMask(MaskKind kind)
-        {
-            return Hooks.GetMaskField(this, kind).GetValue<Texture>();
         }
     }
 }

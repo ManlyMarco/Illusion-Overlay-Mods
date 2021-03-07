@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using BepInEx;
-using BepInEx.Logging;
 using KKAPI.Chara;
 using KKAPI.Maker;
 using KKAPI.Maker.UI;
+using KKAPI.Studio;
 using KKAPI.Utilities;
 using KoiSkinOverlayX;
 using UniRx;
@@ -17,9 +17,14 @@ namespace KoiClothesOverlayX
 {
     [BepInPlugin(GUID, "Clothes Overlay Mod GUI", KoiSkinOverlayMgr.Version)]
     [BepInDependency(KoiClothesOverlayMgr.GUID)]
+    #if KK
     [BepInProcess("Koikatu")]
     [BepInProcess("Koikatsu Party")]
+    #elif EC
     [BepInProcess("EmotionCreators")]
+    #else
+    //todo
+    #endif
     public partial class KoiClothesOverlayGui : BaseUnityPlugin
     {
         private const string GUID = KoiClothesOverlayMgr.GUID + "_GUI";
@@ -116,9 +121,10 @@ namespace KoiClothesOverlayX
             _refreshInterfaceRunning = false;
         }
 
-        private void RegisterCustomControls(object sender, RegisterCustomControlsEvent e)
+        private void RegisterCustomControls(object sender, RegisterSubCategoriesEvent e)
         {
             var owner = this;
+            
             _textureChanged = new Subject<KeyValuePair<string, Texture2D>>();
             _refreshInterface = new Subject<string>();
 
@@ -128,6 +134,7 @@ namespace KoiClothesOverlayX
             var coordLoadToggle = e.AddCoordinateLoadToggle(new MakerCoordinateLoadToggle("Clothes overlays"));
             coordLoadToggle.ValueChanged.Subscribe(newValue => GetControllerRegistration().MaintainCoordinateState = !newValue);
 
+            #if KK || EC
             var makerCategory = MakerConstants.GetBuiltInCategory("03_ClothesTop", "tglTop");
 
             // Either the 3 subs will be visible or the one main. 1st separator is made by the API
@@ -160,8 +167,30 @@ namespace KoiClothesOverlayX
             for (var index = 0; index < cats.Length; index++)
             {
                 var pair = cats[index];
-                SetupTexControls(e, MakerConstants.GetBuiltInCategory("03_ClothesTop", pair.Key), owner, pair.Value);
+                var cat = MakerConstants.GetBuiltInCategory("03_ClothesTop", pair.Key);
+                SetupTexControls(e, cat, owner, pair.Value);
             }
+            #else
+            var cat = new MakerCategory(MakerConstants.Clothes.CategoryName, "Clothes Overlays");
+            e.AddSubCategory(cat);
+            var cats = new[]
+            {
+                new KeyValuePair<string, string>("Top", "ct_clothesTop"),
+                new KeyValuePair<string, string>("Bottom", "ct_clothesBot"),
+                new KeyValuePair<string, string>("Inner Top", "ct_inner_t"),
+                new KeyValuePair<string, string>("Inner Bottom", "ct_inner_b"),
+                new KeyValuePair<string, string>("Gloves", "ct_gloves"),
+                new KeyValuePair<string, string>("Pantyhose", "ct_panst"),
+                new KeyValuePair<string, string>("Socks", "ct_socks"),
+                new KeyValuePair<string, string>("Shoes", "ct_shoes"),
+            };
+
+            for (var index = 0; index < cats.Length; index++)
+            {
+                var pair = cats[index];
+                SetupTexControls(e, cat, owner, pair.Value, pair.Key, index != 0);
+            }
+            #endif
 
 #if KK
             GetOverlayController().CurrentCoordinate.Subscribe(type => RefreshInterface());
@@ -170,7 +199,7 @@ namespace KoiClothesOverlayX
 
         private void SetupTexControls(RegisterCustomControlsEvent e, MakerCategory makerCategory, BaseUnityPlugin owner, string clothesId, string title = "Overlay textures", bool addSeparator = false)
         {
-            var isMask = KoiClothesOverlayController.IsMaskKind(clothesId);
+            var isMask = KoiClothesOverlayController.IsMaskKind(clothesId); // todo false in ai hs
             var texType = isMask ? "override texture" : "overlay texture";
 
             var controlSeparator = addSeparator ? e.AddControl(new MakerSeparator(makerCategory, owner)) : null;
@@ -223,7 +252,7 @@ namespace KoiClothesOverlayX
                         var tex = GetOverlayController().GetOverlayTex(clothesId, false)?.TextureBytes;
                         if (tex == null)
                         {
-                            Logger.Log(LogLevel.Message, "Nothing to export");
+                            Logger.LogMessage("Nothing to export");
                             return;
                         }
 
@@ -231,7 +260,7 @@ namespace KoiClothesOverlayX
                     }
                     catch (Exception ex)
                     {
-                        Logger.Log(LogLevel.Error | LogLevel.Message, "Failed to export texture - " + ex.Message);
+                        Logger.LogMessage("Failed to export texture - " + ex.Message);
                     }
                 });
 
@@ -297,8 +326,14 @@ namespace KoiClothesOverlayX
             _instance = this;
 
 #if KK
-            if (KKAPI.Studio.StudioAPI.InsideStudio)
+            if (StudioAPI.InsideStudio)
             {
+                // todo ability to turn off skin and clothes overlays at some later point, should get saved to scene not character, maybe completely separate class for this
+                //StudioAPI.GetOrCreateCurrentStateCategory(null).AddControl(new CurrentStateCategorySwitch("Skin Overlays", c =>
+                //{
+                //    var c = StudioAPI.GetSelectedControllers<KoiSkinOverlayController>().FirstOrDefault();
+                //    return c.
+                //}))
                 enabled = false;
                 return;
             }
@@ -306,7 +341,7 @@ namespace KoiClothesOverlayX
 
             Hooks.Init();
 
-            MakerAPI.MakerBaseLoaded += RegisterCustomControls;
+            MakerAPI.RegisterCustomSubCategories += RegisterCustomControls;
             MakerAPI.MakerFinishedLoading += (sender, args) => RefreshInterface();
             MakerAPI.MakerExiting += MakerExiting;
             CharacterApi.CharacterReloaded += (sender, e) => RefreshInterface();
@@ -326,7 +361,7 @@ namespace KoiClothesOverlayX
             {
                 try
                 {
-                    var isMask = KoiClothesOverlayController.IsMaskKind(_typeToLoad);
+                    var isMask = KoiClothesOverlayController.IsMaskKind(_typeToLoad); //todo false outside kk ec
 
                     // Always save to the card in lossless format
                     var textureFormat = isMask ? TextureFormat.RG16 : TextureFormat.ARGB32;
@@ -338,9 +373,9 @@ namespace KoiClothesOverlayX
                         controller.GetApplicableRenderers(_typeToLoad).First().material.mainTexture;
 
                     if (origTex != null && isMask ? tex.width > origTex.width || tex.height > origTex.height : tex.width != origTex.width || tex.height != origTex.height)
-                        Logger.Log(LogLevel.Message | LogLevel.Warning, $"WARNING - Wrong texture resolution! It's recommended to use {origTex.width}x{origTex.height} instead.");
+                        Logger.LogMessage($"WARNING - Wrong texture resolution! It's recommended to use {origTex.width}x{origTex.height} instead.");
                     else
-                        Logger.Log(LogLevel.Message, "Texture imported successfully");
+                        Logger.LogMessage("Texture imported successfully");
 
                     SetTexAndUpdate(tex, _typeToLoad);
                 }
@@ -353,8 +388,8 @@ namespace KoiClothesOverlayX
 
             if (_lastError != null)
             {
-                Logger.Log(LogLevel.Error | LogLevel.Message, "Failed to load texture from file - " + _lastError.Message);
-                KoiSkinOverlayMgr.Logger.LogDebug(_lastError);
+                Logger.LogMessage("Failed to load texture from file - " + _lastError.Message);
+                Logger.LogError(_lastError);
                 _lastError = null;
             }
         }

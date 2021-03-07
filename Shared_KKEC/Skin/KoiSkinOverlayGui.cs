@@ -13,7 +13,6 @@ using System.IO;
 using System.Linq;
 using BepInEx;
 using BepInEx.Configuration;
-using BepInEx.Logging;
 using ExtensibleSaveFormat;
 using KKAPI.Chara;
 using KKAPI.Maker;
@@ -26,9 +25,14 @@ namespace KoiSkinOverlayX
 {
     [BepInPlugin(GUID, "Skin Overlay Mod GUI", KoiSkinOverlayMgr.Version)]
     [BepInDependency(KoiSkinOverlayMgr.GUID)]
+#if KK
     [BepInProcess("Koikatu")]
     [BepInProcess("Koikatsu Party")]
+#elif EC
     [BepInProcess("EmotionCreators")]
+#else
+    //todo
+#endif
     public class KoiSkinOverlayGui : BaseUnityPlugin
     {
         public const string GUID = KoiSkinOverlayMgr.GUID + "_GUI";
@@ -185,6 +189,7 @@ namespace KoiSkinOverlayX
             SetupTexControls(e, makerCategory, owner, TexType.BodyUnder, "Body underlay texture (Under tattoos, blushes, etc.)");
         }
 
+//todo kk ec only
         private void SetupEyeInterface(RegisterSubCategoriesEvent e, KoiSkinOverlayMgr owner)
         {
             var irisCategory = MakerConstants.Face.Iris;
@@ -265,7 +270,7 @@ namespace KoiSkinOverlayX
                         }
                         catch (Exception ex)
                         {
-                            Logger.Log(LogLevel.Error | LogLevel.Message, "[KSOX] Failed to export texture - " + ex.Message);
+                            Logger.LogMessage("Failed to export texture - " + ex.Message);
                         }
                     });
         }
@@ -306,9 +311,9 @@ namespace KoiSkinOverlayX
 
                     var recommendedSize = GetRecommendedTexSize(_typeToLoad);
                     if (tex.width != tex.height || tex.height != recommendedSize)
-                        Logger.Log(LogLevel.Message | LogLevel.Warning, $"[KSOX] WARNING - Unusual texture resolution! It's recommended to use {recommendedSize}x{recommendedSize} for {_typeToLoad}.");
+                        Logger.LogMessage($"WARNING - Unusual texture resolution! It's recommended to use {recommendedSize}x{recommendedSize} for {_typeToLoad}.");
                     else
-                        Logger.Log(LogLevel.Message, "[KSOX] Texture imported successfully");
+                        Logger.LogMessage("Texture imported successfully");
 
                     SetTexAndUpdate(tex.EncodeToPNG(), _typeToLoad);
                 }
@@ -321,7 +326,7 @@ namespace KoiSkinOverlayX
 
             if (_lastError != null)
             {
-                Logger.Log(LogLevel.Error | LogLevel.Message, "[KSOX] Failed to load texture from file - " + _lastError.Message);
+                Logger.LogMessage("Failed to load texture from file - " + _lastError.Message);
                 KoiSkinOverlayMgr.Logger.LogDebug(_lastError);
                 _lastError = null;
             }
@@ -331,6 +336,7 @@ namespace KoiSkinOverlayX
         {
             switch (texType)
             {
+                #if KK || EC
                 case TexType.BodyOver:
                 case TexType.BodyUnder:
                     return 2048;
@@ -340,6 +346,13 @@ namespace KoiSkinOverlayX
                 case TexType.EyeUnder:
                 case TexType.EyeOver:
                     return 512;
+                    #elif AI || HS2                
+                    case TexType.BodyOver:
+                case TexType.BodyUnder:
+                case TexType.FaceOver:
+                case TexType.FaceUnder:
+                    return 4096;
+                    #endif
                 default:
                     throw new ArgumentOutOfRangeException(nameof(texType), texType, null);
             }
