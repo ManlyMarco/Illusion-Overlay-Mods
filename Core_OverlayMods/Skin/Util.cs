@@ -7,6 +7,15 @@ namespace KoiSkinOverlayX
 {
     public static class Util
     {
+        public static bool InsideStudio()
+        {
+#if EC
+            return false;
+#else
+            return KKAPI.Studio.StudioAPI.InsideStudio;
+#endif
+        }
+
         public static Texture2D TextureFromBytes(byte[] texBytes, TextureFormat format)
         {
             if (texBytes == null || texBytes.Length == 0) return null;
@@ -67,6 +76,32 @@ namespace KoiSkinOverlayX
 
             [DllImport("shell32.dll")]
             private static extern void ILFree(IntPtr pidl);
+        }
+
+        public static int GetRecommendedTexSize(TexType texType)
+        {
+            switch (texType)
+            {
+#if KK || EC
+                case TexType.BodyOver:
+                case TexType.BodyUnder:
+                    return 2048;
+                case TexType.FaceOver:
+                case TexType.FaceUnder:
+                    return 1024;
+                case TexType.EyeUnder:
+                case TexType.EyeOver:
+                    return 512;
+#elif AI || HS2
+                case TexType.BodyOver:
+                case TexType.BodyUnder:
+                case TexType.FaceOver:
+                case TexType.FaceUnder:
+                    return 4096;
+#endif
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(texType), texType, null);
+            }
         }
     }
 }

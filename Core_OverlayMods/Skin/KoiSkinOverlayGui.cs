@@ -11,7 +11,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using AIChara;
 using BepInEx;
 using BepInEx.Configuration;
 using ExtensibleSaveFormat;
@@ -21,11 +20,22 @@ using KKAPI.Maker.UI;
 using KKAPI.Utilities;
 using UniRx;
 using UnityEngine;
+#if AI || HS2
+using AIChara;
+#endif
 
 namespace KoiSkinOverlayX
 {
     [BepInPlugin(GUID, "Skin Overlay Mod GUI", KoiSkinOverlayMgr.Version)]
     [BepInDependency(KoiSkinOverlayMgr.GUID)]
+#if KK
+    [BepInProcess("Koikatu")]
+    [BepInProcess("Koikatsu Party")]
+#elif EC
+    [BepInProcess("EmotionCreators")]
+#else
+    //todo
+#endif
     public class KoiSkinOverlayGui : BaseUnityPlugin
     {
         public const string GUID = KoiSkinOverlayMgr.GUID + "_GUI";
@@ -40,11 +50,30 @@ namespace KoiSkinOverlayX
         private TexType _typeToLoad;
         private FileSystemWatcher _texChangeWatcher;
 
+#if KK
+        [Browsable(false)]
+        public static ConfigEntry<bool> RemoveOldFiles;
+#endif
+
         [Browsable(false)]
         public static ConfigEntry<bool> WatchLoadedTexForChanges;
 
         private static void ExtendedSaveOnCardBeingSaved(ChaFile chaFile)
         {
+#if KK
+            if (!MakerAPI.InsideMaker) return;
+
+            if (RemoveOldFiles.Value)
+            {
+                var ctrl = GetOverlayController();
+                foreach (var overlay in ctrl.Overlays)
+                {
+                    var path = KoiSkinOverlayMgr.GetTexFilename(chaFile.parameter.fullname, overlay.Key);
+                    if (File.Exists(path))
+                        File.Delete(path);
+                }
+            }
+#endif
         }
 
         private static KoiSkinOverlayController GetOverlayController()
@@ -129,11 +158,18 @@ namespace KoiSkinOverlayX
             loadToggle.ValueChanged.Subscribe(newValue => GetControllerRegistration().MaintainState = !newValue);
 
             SetupBodyInterface(e, owner);
+
+            SetupEyeInterface(e, owner);
         }
 
         private void SetupBodyInterface(RegisterSubCategoriesEvent e, KoiSkinOverlayMgr owner)
         {
+#if KK || EC
+            var paintCategory = MakerConstants.Body.Paint;
+            var makerCategory = new MakerCategory(paintCategory.CategoryName, "tglOverlayKSOX", paintCategory.Position + 5, "Skin Overlays");
+#else
             var makerCategory = new MakerCategory(MakerConstants.Body.CategoryName, "overlayMod", 11111, "Skin Overlays");
+#endif
             e.AddSubCategory(makerCategory);
 
             e.AddControl(new MakerButton("Get face overlay template", makerCategory, owner))
@@ -160,8 +196,35 @@ namespace KoiSkinOverlayX
             SetupTexControls(e, makerCategory, owner, TexType.BodyUnder, "Body underlay texture (Under tattoos, blushes, etc.)");
         }
 
+        private void SetupEyeInterface(RegisterSubCategoriesEvent e, KoiSkinOverlayMgr owner)
+        {
+#if KK || EC
+            var irisCategory = MakerConstants.Face.Iris;
+            var eyeCategory = new MakerCategory(irisCategory.CategoryName, "tglEyeOverlayKSOX", irisCategory.Position + 5, "Iris Overlays");
+            e.AddSubCategory(eyeCategory);
+
+            e.AddControl(new MakerButton("Get iris overlay template", eyeCategory, owner))
+                .OnClick.AddListener(() => WriteAndOpenPng(ResourceUtils.GetEmbeddedResource("eye.png"), "Iris template"));
+
+            AddConfigSettings(e, owner, eyeCategory);
+
+            e.AddControl(new MakerSeparator(eyeCategory, owner));
+
+            SetupTexControls(e, eyeCategory, owner, TexType.EyeOver, "Iris overlay texture (On top of original iris)");
+
+            e.AddControl(new MakerSeparator(eyeCategory, owner));
+
+            SetupTexControls(e, eyeCategory, owner, TexType.EyeUnder, "Iris underlay texture (Before coloring and effects)");
+#endif
+        }
+
         private static void AddConfigSettings(RegisterSubCategoriesEvent e, KoiSkinOverlayMgr owner, MakerCategory makerCategory)
         {
+#if KK
+            var tRemove = e.AddControl(new MakerToggle(makerCategory, "Remove overlays imported from BepInEx\\KoiSkinOverlay when saving cards (they are saved inside the card now and no longer necessary)", owner));
+            tRemove.Value = RemoveOldFiles.Value;
+            tRemove.ValueChanged.Subscribe(b => RemoveOldFiles.Value = b);
+#endif
             var tWatch = e.AddControl(new MakerToggle(makerCategory, "Watch last loaded texture file for changes", owner));
             tWatch.Value = WatchLoadedTexForChanges.Value;
             tWatch.ValueChanged.Subscribe(b => WatchLoadedTexForChanges.Value = b);
@@ -227,6 +290,9 @@ namespace KoiSkinOverlayX
 
         private void Awake()
         {
+#if KK
+            RemoveOldFiles = Config.AddSetting("Maker", "Remove old files", true, "Remove overlays imported from BepInEx\\KoiSkinOverlay when saving cards (they are saved inside the card now and no longer necessary)");
+#endif
             WatchLoadedTexForChanges = Config.AddSetting("Maker", "Watch loaded texture for changes", true);
             WatchLoadedTexForChanges.SettingChanged += (sender, args) =>
             {
@@ -251,7 +317,7 @@ namespace KoiSkinOverlayX
                 {
                     var tex = Util.TextureFromBytes(_bytesToLoad, TextureFormat.ARGB32);
 
-                    var recommendedSize = GetRecommendedTexSize(_typeToLoad);
+                    var recommendedSize = Util.GetRecommendedTexSize(_typeToLoad);
                     if (tex.width != tex.height || tex.height != recommendedSize)
                         Logger.LogMessage($"WARNING - Unusual texture resolution! It's recommended to use {recommendedSize}x{recommendedSize} for {_typeToLoad}.");
                     else
@@ -271,20 +337,6 @@ namespace KoiSkinOverlayX
                 Logger.LogMessage("Failed to load texture from file - " + _lastError.Message);
                 KoiSkinOverlayMgr.Logger.LogDebug(_lastError);
                 _lastError = null;
-            }
-        }
-
-        private int GetRecommendedTexSize(TexType texType)
-        {
-            switch (texType)
-            {
-                case TexType.BodyOver:
-                case TexType.BodyUnder:
-                case TexType.FaceOver:
-                case TexType.FaceUnder:
-                    return 4096;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(texType), texType, null);
             }
         }
 

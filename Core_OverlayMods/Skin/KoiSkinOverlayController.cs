@@ -5,7 +5,9 @@ using ExtensibleSaveFormat;
 using KKAPI;
 using KKAPI.Chara;
 using UnityEngine;
-
+#if AI || HS2
+using AIChara;
+#endif
 namespace KoiSkinOverlayX
 {
     public class KoiSkinOverlayController : CharaCustomFunctionController

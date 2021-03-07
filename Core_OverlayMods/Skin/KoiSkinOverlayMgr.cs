@@ -9,6 +9,9 @@ using KKAPI.Chara;
 using KKAPI.Utilities;
 using OverlayMods;
 using UnityEngine;
+#if AI || HS2
+using AIChara;
+#endif
 
 namespace KoiSkinOverlayX
 {
