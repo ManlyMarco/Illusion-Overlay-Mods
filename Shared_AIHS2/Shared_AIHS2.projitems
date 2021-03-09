@@ -20,5 +20,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)Resources\composite.shader" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\Eye.shader" />
   </ItemGroup>
 </Project>
