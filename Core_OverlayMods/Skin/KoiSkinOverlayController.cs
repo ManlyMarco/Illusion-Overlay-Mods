@@ -53,13 +53,7 @@ namespace KoiSkinOverlayX
                     && texData is byte[] bytes && bytes.Length > 0)
                 {
                     _overlays.Add(texType, new OverlayTexture(bytes));
-                    continue;
                 }
-
-                // Fall back to old-style overlays in a folder
-                var oldTex = KoiSkinOverlayMgr.GetOldStyleOverlayTex(texType, ChaControl);
-                if (oldTex != null)
-                    _overlays.Add(texType, new OverlayTexture(oldTex));
             }
 
             if (needsUpdate || _overlays.Any())
