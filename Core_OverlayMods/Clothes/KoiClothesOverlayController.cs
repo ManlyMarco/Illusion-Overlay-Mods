@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using AIChara;
+using BepInEx.Logging;
 using KKAPI;
 using KKAPI.Chara;
 using KKAPI.Maker;
@@ -10,13 +10,23 @@ using KoiSkinOverlayX;
 using MessagePack;
 using UnityEngine;
 using ExtensibleSaveFormat;
+using KKAPI.Utilities;
+#if KK
+using CoordinateType = ChaFileDefine.CoordinateType;
+#elif EC
+using CoordinateType = KoikatsuCharaFile.ChaFileDefine.CoordinateType;
+#elif AI || HS2
+using AIChara;
+#endif
 
 namespace KoiClothesOverlayX
 {
+#if AI || HS2
     public enum CoordinateType
     {
         Unknown = 0
     }
+#endif
 
     public partial class KoiClothesOverlayController : CharaCustomFunctionController
     {
@@ -32,11 +42,14 @@ namespace KoiClothesOverlayX
             {
                 if (_allOverlayTextures == null) return null;
 
-                // todo 
+#if KK
                 // Need to do this instead of polling the CurrentCoordinate prop because it's updated too late
-                // var coordinateType = (CoordinateType)ChaControl.fileStatus.coordinateType;
+                var coordinateType = (CoordinateType)ChaControl.fileStatus.coordinateType;
+#elif EC
+                var coordinateType = CoordinateType.School01;
+#else
                 var coordinateType = CoordinateType.Unknown;
-
+#endif
                 _allOverlayTextures.TryGetValue(coordinateType, out var dict);
 
                 if (dict == null)
@@ -51,17 +64,63 @@ namespace KoiClothesOverlayX
 
         public void DumpBaseTexture(string clothesId, Action<byte[]> callback)
         {
-            _dumpCallback = callback;
-            _dumpClothesId = clothesId;
+#if KK || EC
+            if (IsMaskKind(clothesId))
+            {
+                try
+                {
+                    var tex = GetOriginalMask((MaskKind)Enum.Parse(typeof(MaskKind), clothesId));
 
-            // Force redraw to trigger the dump
-            RefreshTexture(clothesId);
+                    if (tex == null)
+                        throw new Exception("There is no texture to dump");
+
+                    var t = tex.TextureToTexture2D();
+                    var bytes = t.EncodeToPNG();
+                    Destroy(t);
+                    callback(bytes);
+                }
+                catch (Exception e)
+                {
+                    KoiSkinOverlayMgr.Logger.LogMessage("Dumping texture failed - " + e.Message);
+                    KoiSkinOverlayMgr.Logger.LogDebug(e);
+                }
+            }
+            else
+#endif
+            {
+                _dumpCallback = callback;
+                _dumpClothesId = clothesId;
+
+                // Force redraw to trigger the dump
+                RefreshTexture(clothesId);
+            }
         }
 
+
+        public static bool IsMaskKind(string clothesId)
+        {
+#if KK || EC
+            return Enum.GetNames(typeof(MaskKind)).Contains(clothesId);
+#else
+            return false;
+#endif
+        }
+#if KK || EC
+        public ChaClothesComponent GetCustomClothesComponent(string clothesObjectName)
+        {
+            return ChaControl.cusClothesCmp.Concat(ChaControl.cusClothesSubCmp).FirstOrDefault(x => x != null && x.gameObject.name == clothesObjectName);
+        }
+        
+        internal Texture GetOriginalMask(MaskKind kind)
+        {
+            return Hooks.GetMaskField(this, kind).GetValue<Texture>();
+        }
+#else
         public CmpClothes GetCustomClothesComponent(string clothesObjectName)
         {
             return ChaControl.cmpClothes.FirstOrDefault(x => x != null && x.gameObject.name == clothesObjectName);
         }
+#endif
 
         public ClothesTexData GetOverlayTex(string clothesId, bool createNew)
         {
@@ -80,6 +139,20 @@ namespace KoiClothesOverlayX
 
         public IEnumerable<Renderer> GetApplicableRenderers(string clothesId)
         {
+#if KK || EC
+            if (IsMaskKind(clothesId))
+            {
+                var toCheck = KoiClothesOverlayMgr.SubClothesNames.Concat(new[] { KoiClothesOverlayMgr.MainClothesNames[0] });
+
+                return toCheck
+                    .Select(GetCustomClothesComponent)
+                    .Where(x => x != null)
+                    .Select(GetRendererArrays)
+                    .SelectMany(GetApplicableRenderers)
+                    .Distinct();
+            }
+#endif
+
             var clothesCtrl = GetCustomClothesComponent(clothesId);
             if (clothesCtrl == null) return Enumerable.Empty<Renderer>();
 
@@ -106,6 +179,19 @@ namespace KoiClothesOverlayX
             }
         }
 
+#if KK || EC
+        public static Renderer[][] GetRendererArrays(ChaClothesComponent clothesCtrl)
+        {
+            return new[] {
+                clothesCtrl.rendNormal01,
+                clothesCtrl.rendNormal02,
+                clothesCtrl.rendAlpha01,
+#if KK
+                clothesCtrl.rendAlpha02
+#endif
+            };
+        }
+#else
         public static Renderer[][] GetRendererArrays(CmpClothes clothesCtrl)
         {
             return new[] {
@@ -114,7 +200,137 @@ namespace KoiClothesOverlayX
                 clothesCtrl.rendNormal03,
             };
         }
+#endif
 
+#if KK || EC
+        public void RefreshAllTextures()
+        {
+            RefreshAllTextures(false);
+        }
+
+        public void RefreshAllTextures(bool onlyMasks)
+        {
+#if KK
+            if (KKAPI.Studio.StudioAPI.InsideStudio)
+            {
+                // Studio needs a more aggresive refresh to update the textures
+                // Refresh needs to happen through OCIChar or dynamic bones get messed up
+                Studio.Studio.Instance.dicInfo.Values.OfType<Studio.OCIChar>()
+                    .FirstOrDefault(x => x.charInfo == ChaControl)
+                    ?.SetCoordinateInfo(CurrentCoordinate.Value, true);
+            }
+            else
+            {
+                // Needed for body masks
+                var forceNeededParts = new[] { ChaFileDefine.ClothesKind.top, ChaFileDefine.ClothesKind.bra };
+                foreach (var clothesKind in forceNeededParts)
+                    ForceClothesReload(clothesKind);
+
+                if (onlyMasks) return;
+
+                var allParts = Enum.GetValues(typeof(ChaFileDefine.ClothesKind)).Cast<ChaFileDefine.ClothesKind>();
+                foreach (var clothesKind in allParts.Except(forceNeededParts))
+                    ChaControl.ChangeCustomClothes(true, (int)clothesKind, true, false, false, false, false);
+
+                // Triggered by ForceClothesReload on top so not necessary
+                //for (var i = 0; i < ChaControl.cusClothesSubCmp.Length; i++)
+                //    ChaControl.ChangeCustomClothes(false, i, true, false, false, false, false);
+            }
+#elif EC
+            if (MakerAPI.InsideMaker && onlyMasks)
+            {
+                // Need to do the more aggresive version in maker to allow for clearing the mask without a character reload
+                var forceNeededParts = new[] { ChaFileDefine.ClothesKind.top, ChaFileDefine.ClothesKind.bra };
+                foreach (var clothesKind in forceNeededParts)
+                    ForceClothesReload(clothesKind);
+            }
+            else
+            {
+                // Need to manually set the textures because calling ChangeClothesAsync (through ForceClothesReload)
+                // to make the game do it results in a crash when editing nodes in a scene
+                if (ChaControl.customMatBody)
+                {
+                    Texture overlayTex = GetOverlayTex(MaskKind.BodyMask.ToString(), false)?.Texture;
+                    if (overlayTex != null)
+                        ChaControl.customMatBody.SetTexture(ChaShader._AlphaMask, overlayTex);
+                }
+                if (ChaControl.rendBra != null)
+                {
+                    Texture overlayTex = GetOverlayTex(MaskKind.BraMask.ToString(), false)?.Texture;
+                    if (overlayTex != null)
+                    {
+                        if (ChaControl.rendBra[0]) ChaControl.rendBra[0].material.SetTexture(ChaShader._AlphaMask, overlayTex);
+                        if (ChaControl.rendBra[1]) ChaControl.rendBra[1].material.SetTexture(ChaShader._AlphaMask, overlayTex);
+                    }
+                }
+                if (ChaControl.rendInner != null)
+                {
+                    Texture overlayTex = GetOverlayTex(MaskKind.InnerMask.ToString(), false)?.Texture;
+                    if (overlayTex != null)
+                    {
+                        if (ChaControl.rendInner[0]) ChaControl.rendInner[0].material.SetTexture(ChaShader._AlphaMask, overlayTex);
+                        if (ChaControl.rendInner[1]) ChaControl.rendInner[1].material.SetTexture(ChaShader._AlphaMask, overlayTex);
+                    }
+                }
+            }
+
+            if (onlyMasks) return;
+
+            var allParts = Enum.GetValues(typeof(ChaFileDefine.ClothesKind)).Cast<ChaFileDefine.ClothesKind>();
+            foreach (var clothesKind in allParts)
+                ChaControl.ChangeCustomClothes(true, (int)clothesKind, true, false, false, false, false);
+
+            for (var i = 0; i < ChaControl.cusClothesSubCmp.Length; i++)
+                ChaControl.ChangeCustomClothes(false, i, true, false, false, false, false);
+#endif
+        }
+
+        private void ForceClothesReload(ChaFileDefine.ClothesKind kind)
+        {
+            if (ChaControl.rendBody == null) return;
+
+            var num = (int)kind;
+            ChaControl.StartCoroutine(
+                ChaControl.ChangeClothesAsync(
+                    num,
+                    ChaControl.nowCoordinate.clothes.parts[num].id,
+                    ChaControl.nowCoordinate.clothes.subPartsId[0],
+                    ChaControl.nowCoordinate.clothes.subPartsId[1],
+                    ChaControl.nowCoordinate.clothes.subPartsId[2],
+                    true,
+                    false
+                ));
+        }
+
+        public void RefreshTexture(string texType)
+        {
+            if (IsMaskKind(texType))
+            {
+                RefreshAllTextures(true);
+                return;
+            }
+
+            if (texType != null && !Util.InsideStudio())
+            {
+                var i = Array.FindIndex(ChaControl.objClothes, x => x != null && x.name == texType);
+                if (i >= 0)
+                {
+                    ChaControl.ChangeCustomClothes(true, i, true, false, false, false, false);
+                    return;
+                }
+
+                i = Array.FindIndex(ChaControl.objParts, x => x != null && x.name == texType);
+                if (i >= 0)
+                {
+                    ChaControl.ChangeCustomClothes(false, i, true, false, false, false, false);
+                    return;
+                }
+            }
+
+            // Fall back if the specific tex couldn't be refreshed
+            RefreshAllTextures();
+        }
+#else
         public void RefreshAllTextures()
         {
             ChaControl.ChangeClothes(true);
@@ -135,6 +351,7 @@ namespace KoiClothesOverlayX
             // Fall back if the specific tex couldn't be refreshed
             RefreshAllTextures();
         }
+#endif
 
         protected override void OnCardBeingSaved(GameMode currentGameMode)
         {
@@ -226,7 +443,11 @@ namespace KoiClothesOverlayX
             RefreshAllTextures();
         }
 
+#if KK || EC
+        private void ApplyOverlays(ChaClothesComponent clothesCtrl)
+#else
         private void ApplyOverlays(CmpClothes clothesCtrl)
+#endif
         {
             if (CurrentOverlayTextures == null) return;
 
@@ -284,10 +505,26 @@ namespace KoiClothesOverlayX
             {
                 foreach (var texture in group.Where(x => x.Value.IsEmpty()).ToList())
                     group.Remove(texture.Key);
+
+#if EC
+                // Convert shoe overlays to EC format (1 pair instead of 2)
+                if (group.TryGetValue("ct_shoes_outer", out var data))
+                {
+                    group["ct_shoes"] = data;
+                    group.Remove("ct_shoes_outer");
+                }
+                group.Remove("ct_shoes_inner");
+#endif
             }
 
             foreach (var group in _allOverlayTextures.Where(x => !x.Value.Any()).ToList())
                 _allOverlayTextures.Remove(group.Key);
+
+#if EC
+            // Remove all overlays for clothes other than the main outfit since they can't be used in EC
+            foreach (var group in _allOverlayTextures.Where(x => x.Key != CoordinateType.School01).ToList())
+                _allOverlayTextures.Remove(group.Key);
+#endif
         }
 
         private void DumpBaseTextureImpl(Renderer[][] rendererArrs)

@@ -18,16 +18,9 @@
     <None Include="$(MSBuildThisFileDirectory)Resources\composite.shader" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)Clothes\KoiClothesOverlayController.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Clothes\KoiClothesOverlayController.Hooks.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Clothes\KoiClothesOverlayGui.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Clothes\KoiClothesOverlayGui.Hooks.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Clothes\KoiClothesOverlayMgr.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Clothes\MaskKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Skin\Hooks.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Skin\KoiSkinOverlayController.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Skin\KoiSkinOverlayGui.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Skin\KoiSkinOverlayMgr.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Skin\TexType.cs" />
   </ItemGroup>
 </Project>

@@ -5,14 +5,17 @@ using ExtensibleSaveFormat;
 using KKAPI;
 using KKAPI.Chara;
 using UnityEngine;
-
+#if AI || HS2
+using AIChara;
+#endif
 namespace KoiSkinOverlayX
 {
     public class KoiSkinOverlayController : CharaCustomFunctionController
     {
         /// <summary>
         /// Additional overlays to be applied over the KSOX overlay (if any).
-        /// Drawn bottom to top based on index. Use <code>UpdateTexture</code> to refresh.
+        /// Drawn bottom to top based on the <exception cref="AdditionalTexture.ApplyOrder"></exception> property.
+        /// Use <code>UpdateTexture</code> to apply any changes done here.
         /// </summary>
         public List<AdditionalTexture> AdditionalTextures { get; } = new List<AdditionalTexture>();
 
@@ -65,11 +68,23 @@ namespace KoiSkinOverlayX
 
         public void ApplyOverlayToRT(RenderTexture bodyTexture, TexType overlayType)
         {
+            foreach (var overlayTexture in GetOverlayTextures(overlayType))
+                ApplyOverlay(bodyTexture, overlayTexture);
+        }
+
+        internal IEnumerable<Texture2D> GetOverlayTextures(TexType overlayType)
+        {
             if (_overlays.TryGetValue(overlayType, out var tex))
-                ApplyOverlay(bodyTexture, tex.Texture);
+                yield return tex.Texture;
 
             foreach (var additionalTexture in AdditionalTextures.Where(x => x.OverlayType == overlayType && x.Texture != null).OrderBy(x => x.ApplyOrder))
-                ApplyOverlay(bodyTexture, additionalTexture.Texture);
+                yield return additionalTexture.Texture;
+        }
+
+        internal static void ApplyOverlays(RenderTexture targetTexture, IEnumerable<Texture2D> overlays)
+        {
+            foreach (var overlay in overlays)
+                ApplyOverlay(targetTexture, overlay);
         }
 
         public OverlayTexture SetOverlayTex(byte[] overlayTex, TexType overlayType)
@@ -128,7 +143,7 @@ namespace KoiSkinOverlayX
         {
             if (cc == null) return;
             if (cc.customTexCtrlBody == null || cc.customTexCtrlFace == null) return;
-
+#if KK || EC
             switch (type)
             {
                 case TexType.BodyOver:
@@ -153,6 +168,32 @@ namespace KoiSkinOverlayX
                     cc.ChangeSettingEye(true, true, true);
                     break;
             }
+#elif AI || HS2
+            switch (type)
+            {
+                case TexType.BodyOver:
+                case TexType.BodyUnder:
+                    cc.AddUpdateCMBodyTexFlags(true, true, true, true);
+                    cc.CreateBodyTexture();
+                    break;
+                case TexType.FaceOver:
+                case TexType.FaceUnder:
+                    cc.AddUpdateCMFaceTexFlags(true, true, true, true, true, true, true);
+                    cc.CreateFaceTexture();
+                    break;
+                case TexType.EyeUnder:
+                case TexType.EyeOver:
+                    cc.ChangeEyesKind(2);
+                    break;
+                default:
+                    cc.AddUpdateCMBodyTexFlags(true, true, true, true);
+                    cc.CreateBodyTexture();
+                    cc.AddUpdateCMFaceTexFlags(true, true, true, true, true, true, true);
+                    cc.CreateFaceTexture();
+                    cc.ChangeEyesKind(2);
+                    break;
+            }
+#endif
         }
 
         public static void ApplyOverlay(RenderTexture mainTex, Texture2D blitTex)
@@ -166,8 +207,14 @@ namespace KoiSkinOverlayX
             RenderTexture.active = rta;
 
             KoiSkinOverlayMgr.OverlayMat.SetTexture("_Overlay", blitTex);
+#if KK || EC //todo the same?
             Graphics.Blit(mainTex, rtTemp, KoiSkinOverlayMgr.OverlayMat);
             Graphics.Blit(rtTemp, mainTex);
+#else
+            Graphics.Blit(mainTex, rtTemp);
+            // Need to use the material on the second blit or body tex gets messed up in AI/HS2
+            Graphics.Blit(rtTemp, mainTex, KoiSkinOverlayMgr.OverlayMat);
+#endif
 
             RenderTexture.ReleaseTemporary(rtTemp);
         }

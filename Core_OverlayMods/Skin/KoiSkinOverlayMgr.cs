@@ -9,6 +9,9 @@ using KKAPI.Chara;
 using KKAPI.Utilities;
 using OverlayMods;
 using UnityEngine;
+#if AI || HS2
+using AIChara;
+#endif
 
 namespace KoiSkinOverlayX
 {
@@ -32,8 +35,36 @@ namespace KoiSkinOverlayX
                 return Directory.Exists(path) ? path : _defaultOverlayDirectory;
             }
         }
+        
+        private static Shader LoadShader(string assetName)
+        {
+            var ab = AssetBundle.LoadFromMemory(ResourceUtils.GetEmbeddedResource("composite.unity3d"));
+            var s = ab.LoadAsset<Shader>(assetName) ?? throw new MissingMemberException(assetName + " shader is missing");
+            ab.Unload(false);
+            return s;
+        }
 
-        internal static Material OverlayMat { get; private set; }
+        private static Material _overlayMat;
+        internal static Material OverlayMat
+        {
+            get
+            {
+                //todo test to see if it works in kk
+                if (_overlayMat == null) _overlayMat = new Material(LoadShader("composite"));
+                return _overlayMat;
+            }
+        }
+#if AI || HS2
+        private static Shader _eyeOverShader;
+        internal static Shader EyeOverShader
+        {
+            get
+            {
+                if (_eyeOverShader == null) _eyeOverShader = LoadShader("Eye");
+                return _eyeOverShader;
+            }
+        }
+#endif
         internal static new ManualLogSource Logger;
 
         private void Awake()
@@ -42,12 +73,7 @@ namespace KoiSkinOverlayX
 
             ExportDirectory = Config.AddSetting("Maker", "Overlay export/open folder", _defaultOverlayDirectory, "The value needs to be a valid full path to an existing folder. Default folder will be used if the value is invalid. Exported overlays will be saved there, and by default open overlay dialog will show this directory.");
             CompressTextures = Config.AddSetting("General", "Compress overlay textures in RAM", false, "Reduces RAM usage to about 1/4th at the cost of lower quality. Use when loading lots of characters with overlays if you're running out of memory.");
-
-            var ab = AssetBundle.LoadFromMemory(ResourceUtils.GetEmbeddedResource("composite.unity3d"));
-            OverlayMat = new Material(ab.LoadAsset<Shader>("assets/composite.shader"));
-            DontDestroyOnLoad(OverlayMat);
-            ab.Unload(false);
-
+            
             Hooks.Init();
             CharacterApi.RegisterExtraBehaviour<KoiSkinOverlayController>(GUID);
 

@@ -16,6 +16,7 @@ using AIChara;
 using BepInEx.Harmony;
 using HarmonyLib;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace KoiSkinOverlayX
 {
@@ -112,6 +113,72 @@ namespace KoiSkinOverlayX
                     yield return instruction;
                 }
             }
+        }
+
+        //private void ChangeTexture(Renderer rend, ChaListDefine.CategoryNo type, int id, ChaListDefine.KeyType manifestKey, ChaListDefine.KeyType assetBundleKey, ChaListDefine.KeyType assetKey, int propertyID, string addStr = "")
+        [HarmonyPostfix, HarmonyPatch(typeof(ChaControl), "ChangeTexture", typeof(Renderer), typeof(ChaListDefine.CategoryNo), typeof(int), typeof(ChaListDefine.KeyType), typeof(ChaListDefine.KeyType), typeof(ChaListDefine.KeyType), typeof(int), typeof(string))]
+        public static void ChangeTextureHook(ChaControl __instance, Renderer rend, ChaListDefine.CategoryNo type)
+        {
+            if (type == ChaListDefine.CategoryNo.st_eye)
+            {
+                var controller = __instance.GetComponent<KoiSkinOverlayController>();
+                if (controller == null)
+                {
+                    KoiSkinOverlayMgr.Logger.LogWarning("No KoiSkinOverlayController found on character " + __instance.fileParam.fullname);
+                    return;
+                }
+
+                for (int i = 0; i < 2; i++)
+                {
+                    if (__instance.cmpFace.targetCustom.rendEyes[i] == rend)
+                    {
+                        var underlays = controller.GetOverlayTextures(TexType.EyeUnder).ToList();
+                        if (underlays.Count > 0)
+                        {
+                            var orig = rend.material.GetTexture(ChaShader.PupilTex);
+                            var rt = Util.CreateRT(orig.width, orig.height);
+                            KoiSkinOverlayController.ApplyOverlays(rt, underlays);
+                            // Never destroy the original texture because game caches it, only overwrite
+                            // bug memory leak, rt will be replaced next time iris is updated, will be cleaned up on next unloadunusedassets
+                            rend.material.SetTexture(ChaShader.PupilTex, rt);
+                        }
+
+                        var overlays = controller.GetOverlayTextures(TexType.EyeOver).ToList();
+                        var mat = rend.materials.FirstOrDefault(x => x.shader == KoiSkinOverlayMgr.EyeOverShader);
+                        if (overlays.Count == 0)
+                        {
+                            if (mat != null)
+                            {
+                                rend.materials = rend.materials.Where(x => x != mat).ToArray();
+                                Object.Destroy(mat.mainTexture);
+                                Object.Destroy(mat);
+                            }
+                        }
+                        else
+                        {
+                            if (mat == null)
+                            {
+                                KoiSkinOverlayMgr.Logger.LogDebug($"Adding eye overlay material to {rend.name} on {__instance.fileParam.fullname}");
+                                mat = new Material(KoiSkinOverlayMgr.EyeOverShader);
+                                rend.materials = rend.materials.AddItem(mat).ToArray();
+                            }
+                            else
+                            {
+                                // Clean up previous texture since it's no longer needed
+                                Object.Destroy(mat.mainTexture);
+                            }
+
+                            var size = Util.GetRecommendedTexSize(TexType.EyeOver);
+                            var rt = Util.CreateRT(size, size);
+                            KoiSkinOverlayController.ApplyOverlays(rt, overlays);
+                            mat.mainTexture = rt;
+                        }
+
+                        break;
+                    }
+                }
+            }
+            //else if (type == ChaListDefine.CategoryNo.st_eyebrow)
         }
     }
 }

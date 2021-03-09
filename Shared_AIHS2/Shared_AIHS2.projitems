@@ -9,16 +9,9 @@
     <Import_RootNamespace>Shared_AIHS2</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)Clothes\KoiClothesOverlayController.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Clothes\KoiClothesOverlayController.Hooks.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Clothes\KoiClothesOverlayGui.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Clothes\KoiClothesOverlayGui.Hooks.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Clothes\KoiClothesOverlayMgr.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Skin\Hooks.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Skin\KoiSkinOverlayController.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Skin\KoiSkinOverlayGui.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Skin\KoiSkinOverlayMgr.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Skin\TexType.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)Resources\body.png" />
@@ -27,5 +20,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)Resources\composite.shader" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\Eye.shader" />
   </ItemGroup>
 </Project>
