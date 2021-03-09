@@ -22,4 +22,7 @@
     <None Include="$(MSBuildThisFileDirectory)Resources\composite.shader" />
     <None Include="$(MSBuildThisFileDirectory)Resources\Eye.shader" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Resources\eye.png" />
+  </ItemGroup>
 </Project>

@@ -201,12 +201,14 @@ namespace KoiSkinOverlayX
 #if KK || EC
             var irisCategory = MakerConstants.Face.Iris;
             var eyeCategory = new MakerCategory(irisCategory.CategoryName, "tglEyeOverlayKSOX", irisCategory.Position + 5, "Iris Overlays");
+            var irisTemplateName = "Get iris overlay template";
 #else
             var eyeCategory = new MakerCategory(MakerConstants.Face.CategoryName, "overlayModIris", 11111, "Iris Overlays");
+            var irisTemplateName = "Get iris underlay template";
 #endif
             e.AddSubCategory(eyeCategory);
 
-            e.AddControl(new MakerButton("Get iris overlay template", eyeCategory, owner))
+            e.AddControl(new MakerButton(irisTemplateName, eyeCategory, owner))
                 .OnClick.AddListener(() => WriteAndOpenPng(ResourceUtils.GetEmbeddedResource("eye.png"), "Iris template"));
 
             AddConfigSettings(e, owner, eyeCategory);
