@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace KoiSkinOverlayX
 {
-    public static class Util
+    internal static class Util
     {
         public static bool InsideStudio()
         {
@@ -98,10 +98,23 @@ namespace KoiSkinOverlayX
                 case TexType.FaceOver:
                 case TexType.FaceUnder:
                     return 4096;
+                case TexType.EyeUnder:
+                case TexType.EyeOver:
+                    return 512;
 #endif
                 default:
                     throw new ArgumentOutOfRangeException(nameof(texType), texType, null);
             }
+        }
+
+        public static RenderTexture CreateRT(int origWidth, int origHeight)
+        {
+            var rt = new RenderTexture(origWidth, origHeight, 0);
+            var rta = RenderTexture.active;
+            RenderTexture.active = rt;
+            GL.Clear(false, true, Color.clear);
+            RenderTexture.active = rta;
+            return rt;
         }
     }
 }

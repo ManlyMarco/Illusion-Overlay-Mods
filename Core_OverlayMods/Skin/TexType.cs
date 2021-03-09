@@ -10,9 +10,7 @@
         FaceOver,
         BodyUnder,
         FaceUnder,
-        #if KK || EC
-        EyeUnder, //todo eyes in ai/hs2
+        EyeUnder, 
         EyeOver
-        #endif
     }
 }
