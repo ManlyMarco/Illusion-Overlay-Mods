@@ -52,10 +52,16 @@ namespace KoiSkinOverlayX
                     overlay.ApplyOverlayToRT(dest, TexType.BodyOver);
                     return;
                 }
-                if (overlay.ChaControl.ctCreateEyeL == instance || overlay.ChaControl.ctCreateEyeR == instance)
+                if (overlay.ChaControl.ctCreateEyeL == instance)
                 {
-                    OverlayBlitImpl(source, dest, mat, pass, overlay, TexType.EyeUnder);
-                    overlay.ApplyOverlayToRT(dest, TexType.EyeOver);
+                    OverlayBlitImpl(source, dest, mat, pass, overlay, TexType.EyeUnderL);
+                    overlay.ApplyOverlayToRT(dest, TexType.EyeOverL);
+                    return;
+                }
+                if (overlay.ChaControl.ctCreateEyeR == instance)
+                {
+                    OverlayBlitImpl(source, dest, mat, pass, overlay, TexType.EyeUnderR);
+                    overlay.ApplyOverlayToRT(dest, TexType.EyeOverR);
                     return;
                 }
             }

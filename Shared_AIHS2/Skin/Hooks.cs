@@ -132,7 +132,7 @@ namespace KoiSkinOverlayX
                 {
                     if (__instance.cmpFace.targetCustom.rendEyes[i] == rend)
                     {
-                        var underlays = controller.GetOverlayTextures(TexType.EyeUnder).ToList();
+                        var underlays = controller.GetOverlayTextures(i == 0 ? TexType.EyeUnderL : TexType.EyeUnderR).ToList();
                         if (underlays.Count > 0)
                         {
                             var orig = rend.material.GetTexture(ChaShader.PupilTex);
@@ -143,7 +143,7 @@ namespace KoiSkinOverlayX
                             rend.material.SetTexture(ChaShader.PupilTex, rt);
                         }
 
-                        var overlays = controller.GetOverlayTextures(TexType.EyeOver).ToList();
+                        var overlays = controller.GetOverlayTextures(i == 0 ? TexType.EyeOverL : TexType.EyeOverR).ToList();
                         var mat = rend.materials.FirstOrDefault(x => x.shader == KoiSkinOverlayMgr.EyeOverShader);
                         if (overlays.Count == 0)
                         {
