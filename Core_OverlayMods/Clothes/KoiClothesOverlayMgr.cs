@@ -15,7 +15,7 @@ namespace KoiClothesOverlayX
         public const string GUID = Metadata.GUID_KCOX;
 
 #if KK || EC
-                public static readonly string[] MainClothesNames =
+        public static readonly string[] MainClothesNames =
         {
             "ct_clothesTop",
             "ct_clothesBot",
@@ -28,7 +28,7 @@ namespace KoiClothesOverlayX
             "ct_shoes_inner",
             "ct_shoes_outer"
 #elif EC
-        "ct_shoes",
+            "ct_shoes",
 #endif
         };
 
@@ -38,7 +38,7 @@ namespace KoiClothesOverlayX
             "ct_top_parts_B",
             "ct_top_parts_C"
         };
-        #elif AI || HS2
+#elif AI || HS2
         public static readonly string[] MainClothesNames =
         {
             "ct_clothesTop",
@@ -50,7 +50,7 @@ namespace KoiClothesOverlayX
             "ct_socks",
             "ct_shoes",
         };
-        #endif
+#endif
 
         private void Awake()
         {

@@ -40,8 +40,6 @@ namespace KoiClothesOverlayX
         {
             get
             {
-                if (_allOverlayTextures == null) return null;
-
 #if KK
                 // Need to do this instead of polling the CurrentCoordinate prop because it's updated too late
                 var coordinateType = (CoordinateType)ChaControl.fileStatus.coordinateType;
@@ -50,16 +48,23 @@ namespace KoiClothesOverlayX
 #else
                 var coordinateType = CoordinateType.Unknown;
 #endif
-                _allOverlayTextures.TryGetValue(coordinateType, out var dict);
-
-                if (dict == null)
-                {
-                    dict = new Dictionary<string, ClothesTexData>();
-                    _allOverlayTextures.Add(coordinateType, dict);
-                }
-
-                return dict;
+                return GetOverlayTextures(coordinateType);
             }
+        }
+
+        private Dictionary<string, ClothesTexData> GetOverlayTextures(CoordinateType coordinateType)
+        {
+            if (_allOverlayTextures == null) return null;
+
+            _allOverlayTextures.TryGetValue(coordinateType, out var dict);
+
+            if (dict == null)
+            {
+                dict = new Dictionary<string, ClothesTexData>();
+                _allOverlayTextures.Add(coordinateType, dict);
+            }
+
+            return dict;
         }
 
         public void DumpBaseTexture(string clothesId, Action<byte[]> callback)

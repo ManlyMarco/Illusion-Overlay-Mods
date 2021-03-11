@@ -2,11 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using BepInEx.Harmony;
+using ChaCustom;
 using HarmonyLib;
 using KKAPI.Chara;
 using KKAPI.Maker;
 using KoiSkinOverlayX;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace KoiClothesOverlayX
 {
@@ -138,6 +141,46 @@ namespace KoiClothesOverlayX
             }
 
             #endregion
+
+#if KK
+            /// <summary>
+            /// Handle copying clothes between coordinates
+            /// </summary>
+            [HarmonyPostfix, HarmonyPatch(typeof(CvsClothesCopy), "CopyClothes")]
+            private static void CopyClothesPostfix(TMP_Dropdown[] ___ddCoordeType, Toggle[] ___tglKind, Toggle[] ___tglSubKind)
+            {
+                var controller = MakerAPI.GetCharacterControl().GetComponent<KoiClothesOverlayController>();
+                if (controller == null) return;
+
+                // MainClothesNames is the same as ChaFileDefine.ClothesKind so index lines up
+                var copySlots = KoiClothesOverlayMgr.MainClothesNames.Where((x, i) => ___tglKind[i].isOn).ToList();
+
+                // SubClothesNames is the same as ChaFileDefine.ClothesSubKind so index lines up
+                if (___tglKind[0].isOn)
+                {
+                    // If Top is on, check which parts of it should be copied
+                    // bug? These toggles don't seem to be doing anything in the game, if top is selected then everything is always copied regardless of these toggles
+                    // copySlots.AddRange(KoiClothesOverlayMgr.SubClothesNames.Where((x, i) => ___tglSubKind[i].isOn));
+                    copySlots.AddRange(KoiClothesOverlayMgr.SubClothesNames);
+                }
+
+                var copySource = (ChaFileDefine.CoordinateType)___ddCoordeType[1].value;
+                var copyDestination = (ChaFileDefine.CoordinateType)___ddCoordeType[0].value;
+
+                var sourceDic = controller.GetOverlayTextures(copySource);
+                var destinationDic = controller.GetOverlayTextures(copyDestination);
+
+                foreach (var copySlot in copySlots)
+                {
+                    destinationDic.Remove(copySlot);
+                    if (sourceDic.TryGetValue(copySlot, out var val))
+                        destinationDic[copySlot] = val;
+                }
+
+                if (copyDestination == controller.CurrentCoordinate.Value)
+                    controller.RefreshAllTextures();
+            }
+#endif
         }
     }
 }
