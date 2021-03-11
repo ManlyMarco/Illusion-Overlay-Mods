@@ -44,6 +44,7 @@ namespace KoiSkinOverlayX
 
         private Subject<KeyValuePair<TexType, Texture2D>> _textureChanged;
 
+        private static MakerToggle[] _tPerCoord = new MakerToggle[2];
         private byte[] _bytesToLoad;
         private Exception _lastError;
         private TexType _typeToLoad;
@@ -136,6 +137,11 @@ namespace KoiSkinOverlayX
             SetupBodyInterface(e, owner);
 
             SetupEyeInterface(e, owner);
+
+#if KK 
+            var ctrl = MakerAPI.GetCharacterControl().GetComponent<KoiSkinOverlayController>();
+            ctrl.CurrentCoordinate.Subscribe(_ => UpdateInterface(ctrl));
+#endif
         }
 
         private void SetupBodyInterface(RegisterSubCategoriesEvent e, KoiSkinOverlayMgr owner)
@@ -203,6 +209,21 @@ namespace KoiSkinOverlayX
             var tWatch = e.AddControl(new MakerToggle(makerCategory, "Watch last loaded texture file for changes", owner));
             tWatch.Value = WatchLoadedTexForChanges.Value;
             tWatch.ValueChanged.Subscribe(b => WatchLoadedTexForChanges.Value = b);
+
+#if KK
+            var id = _tPerCoord[0] == null ? 0 : 1;
+            var otherId = _tPerCoord[0] == null ? 1 : 0;
+            _tPerCoord[id] = e.AddControl(new MakerToggle(makerCategory, "Use different overlays per outfit", owner));
+            _tPerCoord[id].BindToFunctionController<KoiSkinOverlayController, bool>(c => c.OverlayStorage.IsPerCoord(),
+                (c, value) =>
+                {
+                    if (!value) c.OverlayStorage.CopyToOtherCoords();
+                    _tPerCoord[otherId].SetValue(value, false);
+                });
+
+            e.AddControl(new MakerText("When off, there is a single set of overlays for all outfits. When on, each outfit has its own set of skin overlays.", makerCategory, owner)
+            { TextColor = MakerText.ExplanationGray });
+#endif
         }
 
         public static void WriteAndOpenPng(byte[] pngData, string dumpType)
@@ -218,7 +239,11 @@ namespace KoiSkinOverlayX
             var ctrl = GetOverlayController();
             var overlay = ctrl.SetOverlayTex(tex, texType);
 
-            _textureChanged.OnNext(new KeyValuePair<TexType, Texture2D>(texType, overlay?.Texture));
+#if KK
+            if (!_tPerCoord[0].Value) ctrl.OverlayStorage.CopyToOtherCoords();
+#endif
+
+            _textureChanged.OnNext(new KeyValuePair<TexType, Texture2D>(texType, overlay));
         }
 
         private void SetupTexControls(RegisterCustomControlsEvent e, MakerCategory makerCategory, BaseUnityPlugin owner, TexType texType, string title)
@@ -256,7 +281,7 @@ namespace KoiSkinOverlayX
                         if (radButtons != null && (currentType == TexType.EyeOver && incomingType == TexType.EyeOverR || currentType == TexType.EyeUnder && incomingType == TexType.EyeUnderR))
                         {
                             var leftTex = GetTex(GetTexType(true));
-                            if (d.Value != leftTex?.Texture)
+                            if (d.Value != leftTex)
                                 radButtons.Value = 1;
                             else
                                 radButtons.Value = 0;
@@ -282,7 +307,7 @@ namespace KoiSkinOverlayX
                         {
                             var tex = GetTex(GetTexType(true));
                             if (tex == null) return;
-                            WriteAndOpenPng(tex.Data, GetTexType(false).ToString());
+                            WriteAndOpenPng(tex.EncodeToPNG(), GetTexType(false).ToString());
                         }
                         catch (Exception ex)
                         {
@@ -294,18 +319,18 @@ namespace KoiSkinOverlayX
             {
                 forceAllowBoth = true;
                 var safeType = GetTexType(true);
-                _textureChanged.OnNext(new KeyValuePair<TexType, Texture2D>(safeType, GetTex(safeType)?.Texture));
+                _textureChanged.OnNext(new KeyValuePair<TexType, Texture2D>(safeType, GetTex(safeType)));
                 forceAllowBoth = false;
             });
 
-            OverlayTexture GetTex(TexType type)
+            Texture2D GetTex(TexType type)
             {
                 var ctrl = GetOverlayController();
-                var overlayTexture = ctrl.Overlays.FirstOrDefault(x => x.Key == type).Value;
+                var overlayTexture = ctrl.OverlayStorage.GetTexture(type);
                 return overlayTexture;
             }
         }
-        
+
         public static string GetDefaultLoadDir()
         {
             return Directory.Exists(KoiSkinOverlayMgr.OverlayDirectory) ? KoiSkinOverlayMgr.OverlayDirectory : Paths.GameRootPath;
@@ -373,8 +398,8 @@ namespace KoiSkinOverlayX
         {
             foreach (TexType texType in Enum.GetValues(typeof(TexType)))
             {
-                var tex = ctrl.Overlays.FirstOrDefault(x => x.Key == texType).Value;
-                _textureChanged.OnNext(new KeyValuePair<TexType, Texture2D>(texType, tex?.Texture));
+                var tex = ctrl.OverlayStorage.GetTexture(texType);
+                _textureChanged.OnNext(new KeyValuePair<TexType, Texture2D>(texType, tex));
             }
         }
     }

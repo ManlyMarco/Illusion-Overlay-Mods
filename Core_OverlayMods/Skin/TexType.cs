@@ -2,9 +2,7 @@
 
 namespace KoiSkinOverlayX
 {
-    /// <summary>
-    /// Names are important, don't change! - used for filenames and extended data keys
-    /// </summary>
+    // Names and values are important, don't change!
     public enum TexType
     {
         Unknown = 0,
@@ -12,9 +10,13 @@ namespace KoiSkinOverlayX
         FaceOver = 2,
         BodyUnder = 3,
         FaceUnder = 4,
-        [Obsolete]
+        /// <summary>
+        /// Same as using both EyeUnderL and EyeUnderR
+        /// </summary>
         EyeUnder = 5,
-        [Obsolete]
+        /// <summary>
+        /// Same as using both EyeOverL and EyeOverR
+        /// </summary>
         EyeOver = 6,
         EyeUnderL = 7,
         EyeOverL = 8,

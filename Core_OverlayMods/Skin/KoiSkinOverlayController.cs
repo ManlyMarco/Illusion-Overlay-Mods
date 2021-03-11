@@ -4,6 +4,7 @@ using System.Linq;
 using ExtensibleSaveFormat;
 using KKAPI;
 using KKAPI.Chara;
+using UniRx;
 using UnityEngine;
 #if AI || HS2
 using AIChara;
@@ -19,28 +20,31 @@ namespace KoiSkinOverlayX
         /// </summary>
         public List<AdditionalTexture> AdditionalTextures { get; } = new List<AdditionalTexture>();
 
-        private readonly Dictionary<TexType, OverlayTexture> _overlays = new Dictionary<TexType, OverlayTexture>();
+        public OverlayStorage OverlayStorage { get; private set; }
 
-        public IEnumerable<KeyValuePair<TexType, OverlayTexture>> Overlays => _overlays.AsEnumerable();
+        protected override void Awake()
+        {
+            base.Awake();
+            OverlayStorage = new OverlayStorage(this);
+#if KK
+            CurrentCoordinate.Subscribe(v => UpdateTexture(0));
+#endif
+        }
 
         protected override void OnCardBeingSaved(GameMode currentGameMode)
         {
-            var pd = new PluginData { version = 1 };
+            var pd = new PluginData { version = 2 };
 
-            foreach (var overlay in Overlays)
-            {
-                if (overlay.Value != null)
-                    pd.data.Add(overlay.Key.ToString(), overlay.Value.Data);
-            }
+            OverlayStorage.Save(pd);
 
-            SetExtendedData(pd);
+            SetExtendedData(pd.data.Count > 0 ? pd : null);
         }
 
         protected override void OnReload(GameMode currentGameMode, bool maintainState)
         {
             if (maintainState) return;
 
-            var needsUpdate = _overlays.Any();
+            var needsUpdate = OverlayStorage.GetCount() > 0;
             RemoveAllOverlays(false);
 
             var data = GetExtendedData();
@@ -49,16 +53,11 @@ namespace KoiSkinOverlayX
                 if (data.version <= 1)
                     ReadLegacyData(data);
                 else
-                    ReadData(data);
+                    OverlayStorage.Load(data);
             }
 
-            if (needsUpdate || _overlays.Any())
+            if (needsUpdate || OverlayStorage.GetCount() > 0)
                 UpdateTexture(TexType.Unknown);
-        }
-
-        private void ReadData(PluginData data)
-        {
-            throw new NotImplementedException();
         }
 
         private void ReadLegacyData(PluginData data)
@@ -73,17 +72,17 @@ namespace KoiSkinOverlayX
                 {
                     if (texType == TexType.EyeOver)
                     {
-                        _overlays.Add(TexType.EyeOverL, new OverlayTexture(bytes));
-                        _overlays.Add(TexType.EyeOverR, new OverlayTexture(bytes));
+                        OverlayStorage.SetTexture(TexType.EyeOverL, bytes);
+                        OverlayStorage.SetTexture(TexType.EyeOverR, bytes);
                     }
                     else if (texType == TexType.EyeUnder)
                     {
-                        _overlays.Add(TexType.EyeUnderL, new OverlayTexture(bytes));
-                        _overlays.Add(TexType.EyeUnderR, new OverlayTexture(bytes));
+                        OverlayStorage.SetTexture(TexType.EyeUnderL, bytes);
+                        OverlayStorage.SetTexture(TexType.EyeUnderR, bytes);
                     }
                     else
                     {
-                        _overlays.Add(texType, new OverlayTexture(bytes));
+                        OverlayStorage.SetTexture(texType, bytes);
                     }
                 }
             }
@@ -97,8 +96,8 @@ namespace KoiSkinOverlayX
 
         internal IEnumerable<Texture2D> GetOverlayTextures(TexType overlayType)
         {
-            if (_overlays.TryGetValue(overlayType, out var tex))
-                yield return tex.Texture;
+            var tex = OverlayStorage.GetTexture(overlayType);
+            if (tex) yield return tex;
 
             foreach (var additionalTexture in AdditionalTextures.Where(x => x.OverlayType == overlayType && x.Texture != null).OrderBy(x => x.ApplyOrder))
                 yield return additionalTexture.Texture;
@@ -110,40 +109,19 @@ namespace KoiSkinOverlayX
                 ApplyOverlay(targetTexture, overlay);
         }
 
-        public OverlayTexture SetOverlayTex(byte[] overlayTex, TexType overlayType)
+        public Texture2D SetOverlayTex(byte[] overlayTex, TexType overlayType)
         {
             if (overlayType == TexType.EyeOver || overlayType == TexType.EyeUnder)
             {
                 SetOverlayTex(overlayTex, overlayType + 2);
-                return SetOverlayTex(overlayTex, overlayType + 4); //todo return the correct thing
+                return SetOverlayTex(overlayTex, overlayType + 4);
             }
 
-            _overlays.TryGetValue(overlayType, out var existing);
-
-            if (overlayTex == null)
-            {
-                // Remove the overlay
-                existing?.Dispose();
-                _overlays.Remove(overlayType);
-                existing = null;
-            }
-            else
-            {
-                // Update or add
-                if (existing == null)
-                {
-                    existing = new OverlayTexture(overlayTex);
-                    _overlays.Add(overlayType, existing);
-                }
-                else
-                {
-                    existing.Data = overlayTex;
-                }
-            }
+            OverlayStorage.SetTexture(overlayType, overlayTex);
 
             UpdateTexture(overlayType);
 
-            return existing;
+            return OverlayStorage.GetTexture(overlayType);
         }
 
         public void UpdateTexture(TexType type)
@@ -160,9 +138,7 @@ namespace KoiSkinOverlayX
 
         private void RemoveAllOverlays(bool removeAdditional)
         {
-            foreach (var kvp in _overlays)
-                kvp.Value.Dispose();
-            _overlays.Clear();
+            OverlayStorage.Clear();
 
             if (removeAdditional)
                 AdditionalTextures.Clear();
