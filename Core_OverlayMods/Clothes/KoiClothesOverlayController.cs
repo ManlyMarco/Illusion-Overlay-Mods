@@ -10,13 +10,18 @@ using KoiSkinOverlayX;
 using MessagePack;
 using UnityEngine;
 using ExtensibleSaveFormat;
+using HarmonyLib;
 using KKAPI.Utilities;
 #if KK
 using CoordinateType = ChaFileDefine.CoordinateType;
+using KKAPI.Studio;
+using Studio;
 #elif EC
 using CoordinateType = KoikatsuCharaFile.ChaFileDefine.CoordinateType;
 #elif AI || HS2
 using AIChara;
+using KKAPI.Studio;
+using Studio;
 #endif
 
 namespace KoiClothesOverlayX
@@ -343,6 +348,8 @@ namespace KoiClothesOverlayX
         public void RefreshAllTextures()
         {
             ChaControl.ChangeClothes(true);
+
+            if (StudioAPI.InsideStudio) FixSkirtFk();
         }
 
         public void RefreshTexture(string texType)
@@ -359,6 +366,17 @@ namespace KoiClothesOverlayX
 
             // Fall back if the specific tex couldn't be refreshed
             RefreshAllTextures();
+        }
+
+        private void FixSkirtFk()
+        {
+            var ocic = ChaControl.GetOCIChar();
+            //ocic.female.UpdateBustSoftnessAndGravity();
+            var active = ocic.oiCharInfo.activeFK[6];
+            ocic.ActiveFK(OIBoneInfo.BoneGroup.Skirt, false, ocic.oiCharInfo.enableFK);
+            Traverse.Create(ocic.fkCtrl).Method("ResetUsedBone", new[] {typeof(OCIChar)}).GetValue(ocic);
+            ocic.skirtDynamic = AddObjectFemale.GetSkirtDynamic(ocic.charInfo.objClothes);
+            ocic.ActiveFK(OIBoneInfo.BoneGroup.Skirt, active, ocic.oiCharInfo.enableFK);
         }
 #endif
 
