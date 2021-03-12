@@ -18,6 +18,10 @@ namespace KoiSkinOverlayX
     [BepInPlugin(GUID, "Skin Overlay Mod", Version)]
     [BepInDependency(ExtendedSave.GUID)]
     [BepInDependency(KoikatuAPI.GUID, KoikatuAPI.VersionConst)]
+#if KK
+    [BepInIncompatibility("com.jim60105.kk.irisoverlaybycoordinate")]
+    [BepInIncompatibility("com.jim60105.kk.charaoverlaysbasedoncoordinate")]
+#endif
     public class KoiSkinOverlayMgr : BaseUnityPlugin
     {
         public const string GUID = Metadata.GUID_KSOX;
