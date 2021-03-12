@@ -13,6 +13,7 @@ using System.IO;
 using System.Linq;
 using BepInEx;
 using BepInEx.Configuration;
+using HarmonyLib;
 using KKAPI.Chara;
 using KKAPI.Maker;
 using KKAPI.Maker.UI;
@@ -22,19 +23,15 @@ using UnityEngine;
 #if AI || HS2
 using AIChara;
 #endif
+#if !EC
+using KKAPI.Studio;
+using KKAPI.Studio.UI;
+#endif
 
 namespace KoiSkinOverlayX
 {
     [BepInPlugin(GUID, "Skin Overlay Mod GUI", KoiSkinOverlayMgr.Version)]
     [BepInDependency(KoiSkinOverlayMgr.GUID)]
-#if KK
-    [BepInProcess("Koikatu")]
-    [BepInProcess("Koikatsu Party")]
-#elif EC
-    [BepInProcess("EmotionCreators")]
-#else
-    //todo
-#endif
     public class KoiSkinOverlayGui : BaseUnityPlugin
     {
         public const string GUID = KoiSkinOverlayMgr.GUID + "_GUI";
@@ -348,6 +345,35 @@ namespace KoiSkinOverlayX
 
         private void Start()
         {
+#if !EC
+            if (StudioAPI.InsideStudio)
+            {
+                enabled = false;
+                var cat = StudioAPI.GetOrCreateCurrentStateCategory("Overlays");
+                cat.AddControl(new CurrentStateCategorySwitch("Enable skin overlays",
+                    c => c.charInfo.GetComponent<KoiSkinOverlayController>().EnableInStudioSkin)).Value.Subscribe(
+                    v => StudioAPI.GetSelectedControllers<KoiSkinOverlayController>().Do(c =>
+                    {
+                        if (c.EnableInStudioSkin != v)
+                        {
+                            c.EnableInStudioSkin = v;
+                            c.UpdateTexture(TexType.Unknown);
+                        }
+                    }));
+                cat.AddControl(new CurrentStateCategorySwitch("Enable eye overlays",
+                    c => c.charInfo.GetComponent<KoiSkinOverlayController>().EnableInStudioIris)).Value.Subscribe(
+                    v => StudioAPI.GetSelectedControllers<KoiSkinOverlayController>().Do(c =>
+                    {
+                        if (c.EnableInStudioSkin != v)
+                        {
+                            c.EnableInStudioIris = v;
+                            c.UpdateTexture(TexType.EyeUnder);
+                        }
+                    }));
+                return;
+            }
+#endif
+
             MakerAPI.RegisterCustomSubCategories += RegisterCustomSubCategories;
             MakerAPI.MakerExiting += MakerExiting;
             CharacterApi.CharacterReloaded += (sender, args) => OnChaFileLoaded();

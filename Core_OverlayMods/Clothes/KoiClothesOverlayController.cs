@@ -35,6 +35,10 @@ namespace KoiClothesOverlayX
         private Action<byte[]> _dumpCallback;
         private string _dumpClothesId;
 
+#if !EC
+        public bool EnableInStudio { get; set; } = true;
+#endif
+
         private Dictionary<CoordinateType, Dictionary<string, ClothesTexData>> _allOverlayTextures;
         private Dictionary<string, ClothesTexData> CurrentOverlayTextures
         {
@@ -115,7 +119,7 @@ namespace KoiClothesOverlayX
         {
             return ChaControl.cusClothesCmp.Concat(ChaControl.cusClothesSubCmp).FirstOrDefault(x => x != null && x.gameObject.name == clothesObjectName);
         }
-        
+
         internal Texture GetOriginalMask(MaskKind kind)
         {
             return Hooks.GetMaskField(this, kind).GetValue<Texture>();
@@ -363,9 +367,15 @@ namespace KoiClothesOverlayX
             var data = new PluginData { version = 1 };
 
             CleanupTextureList();
-            data.data.Add(OverlayDataKey, MessagePackSerializer.Serialize(_allOverlayTextures));
 
-            SetExtendedData(data);
+            if (_allOverlayTextures.Count > 0)
+                data.data.Add(OverlayDataKey, MessagePackSerializer.Serialize(_allOverlayTextures));
+
+#if !EC
+            if (!EnableInStudio) data.data[nameof(EnableInStudio)] = EnableInStudio;
+#endif
+
+            SetExtendedData(data.data.Count > 0 ? data : null);
         }
 
         protected override void OnReload(GameMode currentGameMode, bool maintainState)
@@ -375,6 +385,10 @@ namespace KoiClothesOverlayX
             var anyPrevious = _allOverlayTextures != null && _allOverlayTextures.Any();
             if (anyPrevious)
                 RemoveAllOverlays();
+
+#if !EC
+            EnableInStudio = true;
+#endif
 
             var pd = GetExtendedData();
             if (pd != null && pd.data.TryGetValue(OverlayDataKey, out var overlayData))
@@ -396,6 +410,9 @@ namespace KoiClothesOverlayX
                         KoiSkinOverlayMgr.Logger.LogError(ex);
                     }
                 }
+#if !EC
+                EnableInStudio = !pd.data.TryGetValue(nameof(EnableInStudio), out var val1) || !(val1 is bool) || (bool)val1;
+#endif
             }
 
             if (_allOverlayTextures == null)
@@ -465,6 +482,10 @@ namespace KoiClothesOverlayX
             }
 
             if (CurrentOverlayTextures.Count == 0) return;
+
+#if !EC
+            if (KKAPI.Studio.StudioAPI.InsideStudio && !EnableInStudio) return;
+#endif
 
             if (!CurrentOverlayTextures.TryGetValue(clothesName, out var overlay)) return;
             if (overlay == null || overlay.IsEmpty()) return;

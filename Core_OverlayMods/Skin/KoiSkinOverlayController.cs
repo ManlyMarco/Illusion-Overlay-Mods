@@ -22,6 +22,11 @@ namespace KoiSkinOverlayX
 
         public OverlayStorage OverlayStorage { get; private set; }
 
+#if !EC
+        public bool EnableInStudioSkin { get; set; } = true;
+        public bool EnableInStudioIris { get; set; } = true;
+#endif
+
         protected override void Awake()
         {
             base.Awake();
@@ -37,6 +42,11 @@ namespace KoiSkinOverlayX
 
             OverlayStorage.Save(pd);
 
+#if !EC
+            if (!EnableInStudioSkin) pd.data[nameof(EnableInStudioSkin)] = EnableInStudioSkin;
+            if (!EnableInStudioIris) pd.data[nameof(EnableInStudioIris)] = EnableInStudioIris;
+#endif
+
             SetExtendedData(pd.data.Count > 0 ? pd : null);
         }
 
@@ -47,13 +57,26 @@ namespace KoiSkinOverlayX
             var needsUpdate = OverlayStorage.GetCount() > 0;
             RemoveAllOverlays(false);
 
+#if !EC
+            EnableInStudioSkin = true;
+            EnableInStudioIris = true;
+#endif
+
             var data = GetExtendedData();
             if (data != null)
             {
                 if (data.version <= 1)
+                {
                     ReadLegacyData(data);
+                }
                 else
+                {
                     OverlayStorage.Load(data);
+#if !EC
+                    EnableInStudioSkin = !data.data.TryGetValue(nameof(EnableInStudioSkin), out var val1) || !(val1 is bool) || (bool)val1;
+                    EnableInStudioIris = !data.data.TryGetValue(nameof(EnableInStudioIris), out var val2) || !(val2 is bool) || (bool)val2;
+#endif
+                }
             }
 
             if (needsUpdate || OverlayStorage.GetCount() > 0)
@@ -96,11 +119,25 @@ namespace KoiSkinOverlayX
 
         internal IEnumerable<Texture2D> GetOverlayTextures(TexType overlayType)
         {
-            var tex = OverlayStorage.GetTexture(overlayType);
-            if (tex) yield return tex;
+            if (IsShown(overlayType))
+            {
+                var tex = OverlayStorage.GetTexture(overlayType);
+                if (tex) yield return tex;
+            }
 
             foreach (var additionalTexture in AdditionalTextures.Where(x => x.OverlayType == overlayType && x.Texture != null).OrderBy(x => x.ApplyOrder))
                 yield return additionalTexture.Texture;
+        }
+
+        private bool IsShown(TexType overlayType)
+        {
+#if !EC
+            if (!KKAPI.Studio.StudioAPI.InsideStudio) return true;
+            return EnableInStudioSkin && overlayType <= TexType.FaceUnder ||
+                   EnableInStudioIris && overlayType > TexType.FaceUnder;
+#else
+            return true;
+#endif
         }
 
         internal static void ApplyOverlays(RenderTexture targetTexture, IEnumerable<Texture2D> overlays)

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using BepInEx;
+using HarmonyLib;
 using KKAPI.Chara;
 using KKAPI.Maker;
 using KKAPI.Maker.UI;
@@ -11,6 +12,10 @@ using KKAPI.Utilities;
 using KoiSkinOverlayX;
 using UniRx;
 using UnityEngine;
+#if !EC
+using KKAPI.Studio;
+using KKAPI.Studio.UI;
+#endif
 
 namespace KoiClothesOverlayX
 {
@@ -317,15 +322,20 @@ namespace KoiClothesOverlayX
             _instance = this;
 
 #if !EC
-            if (KKAPI.Studio.StudioAPI.InsideStudio)
+            if (StudioAPI.InsideStudio)
             {
-                // todo ability to turn off skin and clothes overlays at some later point, should get saved to scene not character, maybe completely separate class for this
-                //StudioAPI.GetOrCreateCurrentStateCategory(null).AddControl(new CurrentStateCategorySwitch("Skin Overlays", c =>
-                //{
-                //    var c = StudioAPI.GetSelectedControllers<KoiSkinOverlayController>().FirstOrDefault();
-                //    return c.
-                //}))
                 enabled = false;
+                var cat = StudioAPI.GetOrCreateCurrentStateCategory("Overlays");
+                cat.AddControl(new CurrentStateCategorySwitch("Enable clothes overlays",
+                    c => c.charInfo.GetComponent<KoiClothesOverlayController>().EnableInStudio)).Value.Subscribe(
+                    v => StudioAPI.GetSelectedControllers<KoiClothesOverlayController>().Do(c =>
+                    {
+                        if (c.EnableInStudio != v)
+                        {
+                            c.EnableInStudio = v;
+                            c.RefreshAllTextures();
+                        }
+                    }));
                 return;
             }
 #endif
