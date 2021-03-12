@@ -364,7 +364,7 @@ namespace KoiSkinOverlayX
                     c => c.charInfo.GetComponent<KoiSkinOverlayController>().EnableInStudioIris)).Value.Subscribe(
                     v => StudioAPI.GetSelectedControllers<KoiSkinOverlayController>().Do(c =>
                     {
-                        if (c.EnableInStudioSkin != v)
+                        if (c.EnableInStudioIris != v)
                         {
                             c.EnableInStudioIris = v;
                             c.UpdateTexture(TexType.EyeUnder);
