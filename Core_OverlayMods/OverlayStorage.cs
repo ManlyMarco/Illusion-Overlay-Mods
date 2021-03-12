@@ -136,12 +136,17 @@ namespace KoiSkinOverlayX
 
         private void PurgeUnused()
         {
-            //foreach (var dic in _allOverlayTextures.ToList())
-            //{
-            //    if (dic.Value.Count == 0)
-            //        _allOverlayTextures.Remove(dic.Key);
-            //}
             _textureStorage.PurgeUnused(_allOverlayTextures.SelectMany(x => x.Value.Values));
+
+            var allTextures = _textureStorage.GetAllTextureIDs();
+            foreach (var dic in _allOverlayTextures)
+            {
+                foreach (var invalidEntry in dic.Value.Where(x => !allTextures.Contains(x.Value)).ToList())
+                {
+                    KoiSkinOverlayMgr.Logger.LogWarning($"Invalid texture ID found, entry will be removed: coord={dic.Key} type={invalidEntry.Key} texID={invalidEntry.Value}");
+                    dic.Value.Remove(invalidEntry.Key);
+                }
+            }
         }
 
 #if KK

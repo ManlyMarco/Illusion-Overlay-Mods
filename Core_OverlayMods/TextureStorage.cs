@@ -43,6 +43,14 @@ namespace KoiSkinOverlayX
             }
         }
 
+        public int[] GetAllTextureIDs()
+        {
+            lock (_data)
+            {
+                return _data.Keys.ToArray();
+            }
+        }
+
         public void Clear()
         {
             ((IDisposable)this).Dispose();
