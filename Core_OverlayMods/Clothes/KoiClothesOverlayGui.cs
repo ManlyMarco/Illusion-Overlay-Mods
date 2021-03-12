@@ -326,7 +326,7 @@ namespace KoiClothesOverlayX
             {
                 enabled = false;
                 var cat = StudioAPI.GetOrCreateCurrentStateCategory("Overlays");
-                cat.AddControl(new CurrentStateCategorySwitch("Enable clothes overlays",
+                cat.AddControl(new CurrentStateCategorySwitch("Clothes overlays",
                     c => c.charInfo.GetComponent<KoiClothesOverlayController>().EnableInStudio)).Value.Subscribe(
                     v => StudioAPI.GetSelectedControllers<KoiClothesOverlayController>().Do(c =>
                     {

@@ -350,7 +350,7 @@ namespace KoiSkinOverlayX
             {
                 enabled = false;
                 var cat = StudioAPI.GetOrCreateCurrentStateCategory("Overlays");
-                cat.AddControl(new CurrentStateCategorySwitch("Enable skin overlays",
+                cat.AddControl(new CurrentStateCategorySwitch("Skin overlays",
                     c => c.charInfo.GetComponent<KoiSkinOverlayController>().EnableInStudioSkin)).Value.Subscribe(
                     v => StudioAPI.GetSelectedControllers<KoiSkinOverlayController>().Do(c =>
                     {
@@ -360,7 +360,7 @@ namespace KoiSkinOverlayX
                             c.UpdateTexture(TexType.Unknown);
                         }
                     }));
-                cat.AddControl(new CurrentStateCategorySwitch("Enable eye overlays",
+                cat.AddControl(new CurrentStateCategorySwitch("Eye overlays",
                     c => c.charInfo.GetComponent<KoiSkinOverlayController>().EnableInStudioIris)).Value.Subscribe(
                     v => StudioAPI.GetSelectedControllers<KoiSkinOverlayController>().Do(c =>
                     {
