@@ -68,34 +68,6 @@ namespace KoiSkinOverlayX
             RenderTexture.ReleaseTemporary(trt);
         }
 
-        /*//private Texture2D GetTexture(ChaListDefine.CategoryNo type, int id, ChaListDefine.KeyType manifestKey, ChaListDefine.KeyType assetBundleKey, ChaListDefine.KeyType assetKey, string addStr = "")
-        //public bool ChangeEyesKind(int lr)
-        [HarmonyPostfix, HarmonyPatch(typeof(ChaControl), "ChangeEyesKind", typeof(int))]
-        public static void EyeTexHook(ChaControl __instance, int lr)
-        {
-            if (null == __instance.cmpFace) return;
-            Renderer[] rendEyes = __instance.cmpFace.targetCustom.rendEyes;
-            if (rendEyes == null) return;
-
-            var overlay = __instance.GetComponent<KoiSkinOverlayController>();
-            if (overlay != null)
-            {
-                for (int i = 0; i < 2; i++)
-                {
-                    // todo left/right eye
-                    if (lr == 2 || lr == i)
-                    {
-                        if (null != rendEyes[i])
-                        {
-                            var dest = RenderTexture.GetTemporary(__result.width, __result.height, 0, RenderTextureFormat.ARGB32);
-                            OverlayBlitImpl(__result, dest, mat, pass, overlay, TexType.EyeUnder);
-                            overlay.ApplyOverlayToRT(dest, TexType.EyeOver);
-                        }
-                    }
-                }
-            }
-        }*/
-
         [HarmonyTranspiler, HarmonyPatch(typeof(CustomTextureCreate), nameof(CustomTextureCreate.RebuildTextureAndSetMaterial))]
         public static IEnumerable<CodeInstruction> tpl_CustomTextureCreate_RebuildTextureAndSetMaterial(IEnumerable<CodeInstruction> _instructions)
         {
@@ -115,7 +87,6 @@ namespace KoiSkinOverlayX
             }
         }
 
-        //private void ChangeTexture(Renderer rend, ChaListDefine.CategoryNo type, int id, ChaListDefine.KeyType manifestKey, ChaListDefine.KeyType assetBundleKey, ChaListDefine.KeyType assetKey, int propertyID, string addStr = "")
         [HarmonyPostfix, HarmonyPatch(typeof(ChaControl), "ChangeTexture", typeof(Renderer), typeof(ChaListDefine.CategoryNo), typeof(int), typeof(ChaListDefine.KeyType), typeof(ChaListDefine.KeyType), typeof(ChaListDefine.KeyType), typeof(int), typeof(string))]
         public static void ChangeTextureHook(ChaControl __instance, Renderer rend, ChaListDefine.CategoryNo type)
         {
