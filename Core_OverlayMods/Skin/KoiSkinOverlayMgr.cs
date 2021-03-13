@@ -39,9 +39,10 @@ namespace KoiSkinOverlayX
                 return Directory.Exists(path) ? path : _defaultOverlayDirectory;
             }
         }
-        
+
         private static Shader LoadShader(string assetName)
         {
+            Logger.LogDebug($"Loading shader {assetName} from resources");
             var ab = AssetBundle.LoadFromMemory(ResourceUtils.GetEmbeddedResource("composite.unity3d"));
             var s = ab.LoadAsset<Shader>(assetName) ?? throw new MissingMemberException(assetName + " shader is missing");
             ab.Unload(false);
@@ -53,7 +54,6 @@ namespace KoiSkinOverlayX
         {
             get
             {
-                //todo test to see if it works in kk
                 if (_overlayMat == null) _overlayMat = new Material(LoadShader("composite"));
                 return _overlayMat;
             }
@@ -77,7 +77,7 @@ namespace KoiSkinOverlayX
 
             ExportDirectory = Config.AddSetting("Maker", "Overlay export/open folder", _defaultOverlayDirectory, "The value needs to be a valid full path to an existing folder. Default folder will be used if the value is invalid. Exported overlays will be saved there, and by default open overlay dialog will show this directory.");
             CompressTextures = Config.AddSetting("General", "Compress overlay textures in RAM", false, "Reduces RAM usage to about 1/4th at the cost of lower quality. Use when loading lots of characters with overlays if you're running out of memory.");
-            
+
             Hooks.Init();
             CharacterApi.RegisterExtraBehaviour<KoiSkinOverlayController>(GUID);
 

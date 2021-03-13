@@ -144,7 +144,8 @@ namespace KoiSkinOverlayX
                         }
 
                         var overlays = controller.GetOverlayTextures(i == 0 ? TexType.EyeOverL : TexType.EyeOverR).ToList();
-                        var mat = rend.materials.FirstOrDefault(x => x.shader == KoiSkinOverlayMgr.EyeOverShader);
+                        var shaderName = KoiSkinOverlayMgr.EyeOverShader.name;
+                        var mat = rend.materials.LastOrDefault(x => x.shader.name == shaderName);
                         if (overlays.Count == 0)
                         {
                             if (mat != null)
