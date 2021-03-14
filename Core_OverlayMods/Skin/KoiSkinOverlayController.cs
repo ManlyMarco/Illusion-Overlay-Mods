@@ -109,6 +109,9 @@ namespace KoiSkinOverlayX
                     }
                 }
             }
+#if KK
+            OverlayStorage.CopyToOtherCoords();
+#endif
         }
 
         public void ApplyOverlayToRT(RenderTexture bodyTexture, TexType overlayType)
