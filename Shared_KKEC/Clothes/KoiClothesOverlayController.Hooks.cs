@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using ChaCustom;
+using ExtensibleSaveFormat;
 using HarmonyLib;
 using KKAPI.Chara;
 using KKAPI.Maker;
@@ -19,6 +20,54 @@ namespace KoiClothesOverlayX
             public static void Init()
             {
                 Harmony.CreateAndPatchAll(typeof(Hooks), nameof(KoiClothesOverlayController));
+
+#if KKS || EC
+                ExtendedSave.CardBeingImported += importedData =>
+                {
+                    if (importedData.TryGetValue(KoiClothesOverlayMgr.GUID, out var pluginData) && pluginData != null)
+                    {
+                        var dic = ReadOverlayExtData(pluginData);
+
+                        // Only keep 1st coord
+                        foreach (var coordKey in dic.Keys.ToList())
+                        {
+                            if (coordKey != 0)
+                            {
+#if DEBUG
+                                UnityEngine.Debug.Log("Removing coord " + coordKey);
+#endif
+                                dic.Remove(coordKey);
+                            }
+                            else
+                            {
+                                var group = dic[coordKey];
+                                if (group == null)
+                                {
+                                    dic.Remove(coordKey);
+                                    continue;
+                                }
+#if EC
+                                // Convert shoe overlays to EC format (1 pair instead of 2)
+                                if (group.TryGetValue("ct_shoes_outer", out var data))
+                                {
+                                    group["ct_shoes"] = data;
+                                    group.Remove("ct_shoes_outer");
+                                }
+#endif
+                                // Neither EC or KKS use inner shoes
+                                group.Remove("ct_shoes_inner");
+                            }
+                        }
+
+                        CleanupTextureList(dic);
+
+                        if (dic.Count == 0)
+                            importedData.Remove(KoiClothesOverlayMgr.GUID);
+                        else
+                            SetOverlayExtData(dic, pluginData);
+                    }
+                };
+#endif
             }
 
             #region Main tex overlays

@@ -383,8 +383,7 @@ namespace KoiClothesOverlayX
 
             CleanupTextureList();
 
-            if (_allOverlayTextures.Count > 0)
-                data.data.Add(OverlayDataKey, MessagePackSerializer.Serialize(_allOverlayTextures));
+            SetOverlayExtData(_allOverlayTextures, data);
 
 #if !EC
             if (!EnableInStudio) data.data[nameof(EnableInStudio)] = EnableInStudio;
@@ -406,25 +405,9 @@ namespace KoiClothesOverlayX
 #endif
 
             var pd = GetExtendedData();
-            if (pd != null && pd.data.TryGetValue(OverlayDataKey, out var overlayData))
+            if (pd != null)
             {
-                if (overlayData is byte[] overlayBytes)
-                {
-                    try
-                    {
-                        _allOverlayTextures = MessagePackSerializer.Deserialize<
-                            Dictionary<CoordinateType, Dictionary<string, ClothesTexData>>>(
-                            overlayBytes);
-                    }
-                    catch (Exception ex)
-                    {
-                        if (MakerAPI.InsideMaker)
-                            KoiSkinOverlayMgr.Logger.LogMessage("WARNING: Failed to load embedded overlay data for " + (ChaFileControl?.charaFileName ?? "?"));
-                        else
-                            KoiSkinOverlayMgr.Logger.LogDebug("WARNING: Failed to load embedded overlay data for " + (ChaFileControl?.charaFileName ?? "?"));
-                        KoiSkinOverlayMgr.Logger.LogError(ex);
-                    }
-                }
+                _allOverlayTextures = ReadOverlayExtData(pd);
 #if !EC
                 EnableInStudio = !pd.data.TryGetValue(nameof(EnableInStudio), out var val1) || !(val1 is bool) || (bool)val1;
 #endif
@@ -435,6 +418,45 @@ namespace KoiClothesOverlayX
 
             if (anyPrevious || _allOverlayTextures.Any())
                 StartCoroutine(RefreshAllTexturesCo());
+        }
+
+        private static void SetOverlayExtData(Dictionary<CoordinateType, Dictionary<string, ClothesTexData>> allOverlayTextures, PluginData data)
+        {
+            if (allOverlayTextures.Count > 0)
+                data.data[OverlayDataKey] = MessagePackSerializer.Serialize(allOverlayTextures);
+            else
+                data.data.Remove(OverlayDataKey);
+        }
+
+        private static Dictionary<CoordinateType, Dictionary<string, ClothesTexData>> ReadOverlayExtData(PluginData pd)
+        {
+            if (pd.data.TryGetValue(OverlayDataKey, out var overlayData))
+            {
+                if (overlayData is byte[] overlayBytes)
+                    return ReadOverlayExtData(overlayBytes);
+            }
+
+            return null;
+        }
+
+        private static Dictionary<CoordinateType, Dictionary<string, ClothesTexData>> ReadOverlayExtData(byte[] overlayBytes)
+        {
+            try
+            {
+                return MessagePackSerializer.Deserialize<
+                    Dictionary<CoordinateType, Dictionary<string, ClothesTexData>>>(
+                    overlayBytes);
+            }
+            catch (Exception ex)
+            {
+                if (MakerAPI.InsideMaker) 
+                    KoiSkinOverlayMgr.Logger.LogMessage("WARNING: Failed to load clothes overlay data");
+                else 
+                    KoiSkinOverlayMgr.Logger.LogDebug("WARNING: Failed to load clothes overlay data");
+                KoiSkinOverlayMgr.Logger.LogError(ex);
+
+                return null;
+            }
         }
 
         protected override void OnCoordinateBeingSaved(ChaFileCoordinate coordinate)
@@ -540,32 +562,21 @@ namespace KoiClothesOverlayX
 
         private void CleanupTextureList()
         {
-            if (_allOverlayTextures == null) return;
+            CleanupTextureList(_allOverlayTextures);
+        }
 
-            foreach (var group in _allOverlayTextures.Values)
+        private static void CleanupTextureList(Dictionary<CoordinateType, Dictionary<string, ClothesTexData>> allOverlayTextures)
+        {
+            if (allOverlayTextures == null) return;
+
+            foreach (var group in allOverlayTextures.Values)
             {
                 foreach (var texture in group.Where(x => x.Value.IsEmpty()).ToList())
                     group.Remove(texture.Key);
-
-#if EC
-                // Convert shoe overlays to EC format (1 pair instead of 2)
-                if (group.TryGetValue("ct_shoes_outer", out var data))
-                {
-                    group["ct_shoes"] = data;
-                    group.Remove("ct_shoes_outer");
-                }
-                group.Remove("ct_shoes_inner");
-#endif
             }
 
-            foreach (var group in _allOverlayTextures.Where(x => !x.Value.Any()).ToList())
-                _allOverlayTextures.Remove(group.Key);
-
-#if EC
-            // Remove all overlays for clothes other than the main outfit since they can't be used in EC
-            foreach (var group in _allOverlayTextures.Where(x => x.Key != CoordinateType.School01).ToList())
-                _allOverlayTextures.Remove(group.Key);
-#endif
+            foreach (var group in allOverlayTextures.Where(x => !x.Value.Any()).ToList())
+                allOverlayTextures.Remove(group.Key);
         }
 
         private void DumpBaseTextureImpl(Renderer[][] rendererArrs)
