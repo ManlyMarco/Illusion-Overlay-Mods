@@ -130,7 +130,7 @@ namespace KoiClothesOverlayX
             var coordLoadToggle = e.AddCoordinateLoadToggle(new MakerCoordinateLoadToggle("Clothes overlays"));
             coordLoadToggle.ValueChanged.Subscribe(newValue => GetControllerRegistration().MaintainCoordinateState = !newValue);
 
-#if KK || EC
+#if KK || KKS || EC
             var makerCategory = MakerConstants.GetBuiltInCategory("03_ClothesTop", "tglTop");
 
             // Either the 3 subs will be visible or the one main. 1st separator is made by the API
@@ -152,11 +152,13 @@ namespace KoiClothesOverlayX
                 new KeyValuePair<string, string>("tglGloves", "ct_gloves"),
                 new KeyValuePair<string, string>("tglPanst", "ct_panst"),
                 new KeyValuePair<string, string>("tglSocks", "ct_socks"),
-#if KK
+#if KK 
                 new KeyValuePair<string, string>("tglInnerShoes", "ct_shoes_inner"),
                 new KeyValuePair<string, string>("tglOuterShoes", "ct_shoes_outer")
 #elif EC
                 new KeyValuePair<string, string>("tglShoes", "ct_shoes"),
+#elif KKS
+                new KeyValuePair<string, string>("tglOuterShoes", "ct_shoes_outer")
 #endif
             };
 
@@ -188,7 +190,7 @@ namespace KoiClothesOverlayX
             }
 #endif
 
-#if KK
+#if KK || KKS
             GetOverlayController().CurrentCoordinate.Subscribe(type => RefreshInterface());
 #endif
         }
@@ -362,7 +364,7 @@ namespace KoiClothesOverlayX
             {
                 try
                 {
-#if KK || EC
+#if KK || KKS || EC
                     var isMask = KoiClothesOverlayController.IsMaskKind(_typeToLoad);
 
                     // Always save to the card in lossless format

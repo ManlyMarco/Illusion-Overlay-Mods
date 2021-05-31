@@ -18,7 +18,7 @@ namespace KoiSkinOverlayX
     [BepInPlugin(GUID, "Skin Overlay Mod", Version)]
     [BepInDependency(ExtendedSave.GUID)]
     [BepInDependency(KoikatuAPI.GUID, KoikatuAPI.VersionConst)]
-#if KK
+#if KK || KKS
     [BepInIncompatibility("com.jim60105.kk.irisoverlaybycoordinate")]
     [BepInIncompatibility("com.jim60105.kk.charaoverlaysbasedoncoordinate")]
 #endif

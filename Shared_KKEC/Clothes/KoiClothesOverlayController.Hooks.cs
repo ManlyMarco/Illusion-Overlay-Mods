@@ -136,7 +136,7 @@ namespace KoiClothesOverlayX
 
             #endregion
 
-#if KK
+#if KK || KKS
             /// <summary>
             /// Handle copying clothes between coordinates
             /// </summary>

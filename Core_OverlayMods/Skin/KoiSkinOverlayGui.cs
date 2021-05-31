@@ -135,7 +135,7 @@ namespace KoiSkinOverlayX
 
             SetupEyeInterface(e, owner);
 
-#if KK 
+#if KK || KKS 
             var ctrl = MakerAPI.GetCharacterControl().GetComponent<KoiSkinOverlayController>();
             ctrl.CurrentCoordinate.Subscribe(_ => UpdateInterface(ctrl));
 #endif
@@ -143,7 +143,7 @@ namespace KoiSkinOverlayX
 
         private void SetupBodyInterface(RegisterSubCategoriesEvent e, KoiSkinOverlayMgr owner)
         {
-#if KK || EC
+#if KK || KKS || EC
             var paintCategory = MakerConstants.Body.Paint;
             var makerCategory = new MakerCategory(paintCategory.CategoryName, "tglOverlayKSOX", paintCategory.Position + 5, "Skin Overlays");
 #else
@@ -177,7 +177,7 @@ namespace KoiSkinOverlayX
 
         private void SetupEyeInterface(RegisterSubCategoriesEvent e, KoiSkinOverlayMgr owner)
         {
-#if KK || EC
+#if KK || KKS || EC
             var irisCategory = MakerConstants.Face.Iris;
             var eyeCategory = new MakerCategory(irisCategory.CategoryName, "tglEyeOverlayKSOX", irisCategory.Position + 5, "Iris Overlays");
             var irisTemplateName = "Get iris overlay template";
@@ -207,7 +207,7 @@ namespace KoiSkinOverlayX
             tWatch.Value = WatchLoadedTexForChanges.Value;
             tWatch.ValueChanged.Subscribe(b => WatchLoadedTexForChanges.Value = b);
 
-#if KK
+#if KK || KKS
             var id = _tPerCoord[0] == null ? 0 : 1;
             var otherId = _tPerCoord[0] == null ? 1 : 0;
             _tPerCoord[id] = e.AddControl(new MakerToggle(makerCategory, "Use different overlays per outfit", owner));
@@ -236,7 +236,7 @@ namespace KoiSkinOverlayX
             var ctrl = GetOverlayController();
             var overlay = ctrl.SetOverlayTex(tex, texType);
 
-#if KK
+#if KK || KKS
             if (!_tPerCoord[0].Value) ctrl.OverlayStorage.CopyToOtherCoords();
 #endif
 

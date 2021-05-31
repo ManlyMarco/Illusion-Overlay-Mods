@@ -7,7 +7,7 @@ using KKAPI.Maker;
 using KoiClothesOverlayX;
 using MessagePack;
 using UnityEngine;
-#if KK
+#if KK || KKS
 using CoordinateType = ChaFileDefine.CoordinateType;
 #elif EC
 using CoordinateType = KoikatsuCharaFile.ChaFileDefine.CoordinateType;
@@ -41,7 +41,7 @@ namespace KoiSkinOverlayX
 
         private Dictionary<TexType, int> GetCurrentOverlayTextures()
         {
-#if KK
+#if KK || KKS
             // Need to do this instead of polling the CurrentCoordinate prop because it's updated too late
             var coordinateType = (CoordinateType)_chaControl.fileStatus.coordinateType;
 #elif EC
@@ -149,7 +149,7 @@ namespace KoiSkinOverlayX
             }
         }
 
-#if KK
+#if KK || KKS
         public bool IsPerCoord()
         {
             Dictionary<TexType, int> first = null;

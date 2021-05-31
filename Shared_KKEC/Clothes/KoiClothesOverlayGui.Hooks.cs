@@ -50,7 +50,7 @@ namespace KoiClothesOverlayX
                     case CustomSelectKind.SelectKindType.CosSocks:
                         //case CustomSelectKind.SelectKindType.CosSocksEmblem:
                         break;
-#if KK
+#if KK 
                     case CustomSelectKind.SelectKindType.CosInnerShoes:
                         //case CustomSelectKind.SelectKindType.CosInnerShoesEmblem:
                         break;
@@ -60,6 +60,10 @@ namespace KoiClothesOverlayX
 #elif EC
                     case CustomSelectKind.SelectKindType.CosShoes:
                         //case CustomSelectKind.SelectKindType.CosInnerShoesEmblem:
+                        break;
+#elif KKS
+                    case CustomSelectKind.SelectKindType.CosOuterShoes:
+                        //case CustomSelectKind.SelectKindType.CosOuterShoesEmblem:
                         break;
 #endif
                     default:

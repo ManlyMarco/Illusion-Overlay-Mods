@@ -14,7 +14,7 @@ namespace KoiClothesOverlayX
     {
         public const string GUID = Metadata.GUID_KCOX;
 
-#if KK || EC
+#if KK || KKS || EC
         public static readonly string[] MainClothesNames =
         {
             "ct_clothesTop",
@@ -24,7 +24,7 @@ namespace KoiClothesOverlayX
             "ct_gloves",
             "ct_panst",
             "ct_socks",
-#if KK
+#if KK || KKS
             "ct_shoes_inner",
             "ct_shoes_outer"
 #elif EC

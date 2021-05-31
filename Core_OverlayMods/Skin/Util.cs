@@ -82,7 +82,7 @@ namespace KoiSkinOverlayX
         {
             switch (texType)
             {
-#if KK || EC
+#if KK || KKS || EC
                 case TexType.BodyOver:
                 case TexType.BodyUnder:
                     return 2048;

@@ -31,7 +31,7 @@ namespace KoiSkinOverlayX
         {
             base.Awake();
             OverlayStorage = new OverlayStorage(this);
-#if KK
+#if KK || KKS
             CurrentCoordinate.Subscribe(v => UpdateTexture(0));
 #endif
         }
@@ -109,7 +109,7 @@ namespace KoiSkinOverlayX
                     }
                 }
             }
-#if KK
+#if KK || KKS
             OverlayStorage.CopyToOtherCoords();
 #endif
         }
@@ -188,7 +188,7 @@ namespace KoiSkinOverlayX
         {
             if (cc == null) return;
             if (cc.customTexCtrlBody == null || cc.customTexCtrlFace == null) return;
-#if KK || EC
+#if KK || KKS || EC
             switch (type)
             {
                 case TexType.BodyOver:
@@ -264,7 +264,7 @@ namespace KoiSkinOverlayX
             RenderTexture.active = rta;
 
             KoiSkinOverlayMgr.OverlayMat.SetTexture("_Overlay", blitTex);
-#if KK || EC //todo the same?
+#if KK || KKS || EC //todo the same?
             Graphics.Blit(mainTex, rtTemp, KoiSkinOverlayMgr.OverlayMat);
             Graphics.Blit(rtTemp, mainTex);
 #else

@@ -9,7 +9,7 @@ using KoiSkinOverlayX;
 using MessagePack;
 using UnityEngine;
 using ExtensibleSaveFormat;
-#if KK
+#if KK || KKS
 using CoordinateType = ChaFileDefine.CoordinateType;
 using KKAPI.Studio;
 using Studio;
@@ -46,7 +46,7 @@ namespace KoiClothesOverlayX
         {
             get
             {
-#if KK
+#if KK || KKS
                 // Need to do this instead of polling the CurrentCoordinate prop because it's updated too late
                 var coordinateType = (CoordinateType)ChaControl.fileStatus.coordinateType;
 #elif EC
@@ -75,7 +75,7 @@ namespace KoiClothesOverlayX
 
         public void DumpBaseTexture(string clothesId, Action<byte[]> callback)
         {
-#if KK || EC
+#if KK || KKS || EC
             if (IsMaskKind(clothesId))
             {
                 try
@@ -110,13 +110,13 @@ namespace KoiClothesOverlayX
 
         public static bool IsMaskKind(string clothesId)
         {
-#if KK || EC
+#if KK || KKS || EC
             return Enum.GetNames(typeof(MaskKind)).Contains(clothesId);
 #else
             return false;
 #endif
         }
-#if KK || EC
+#if KK || KKS || EC
         public ChaClothesComponent GetCustomClothesComponent(string clothesObjectName)
         {
             return ChaControl.cusClothesCmp.Concat(ChaControl.cusClothesSubCmp).FirstOrDefault(x => x != null && x.gameObject.name == clothesObjectName);
@@ -150,7 +150,7 @@ namespace KoiClothesOverlayX
 
         public IEnumerable<Renderer> GetApplicableRenderers(string clothesId)
         {
-#if KK || EC
+#if KK || KKS || EC
             if (IsMaskKind(clothesId))
             {
                 var toCheck = KoiClothesOverlayMgr.SubClothesNames.Concat(new[] { KoiClothesOverlayMgr.MainClothesNames[0] });
@@ -190,14 +190,14 @@ namespace KoiClothesOverlayX
             }
         }
 
-#if KK || EC
+#if KK || KKS || EC
         public static Renderer[][] GetRendererArrays(ChaClothesComponent clothesCtrl)
         {
             return new[] {
                 clothesCtrl.rendNormal01,
                 clothesCtrl.rendNormal02,
                 clothesCtrl.rendAlpha01,
-#if KK
+#if KK || KKS
                 clothesCtrl.rendAlpha02
 #endif
             };
@@ -213,7 +213,7 @@ namespace KoiClothesOverlayX
         }
 #endif
 
-#if KK || EC
+#if KK || KKS || EC
         public void RefreshAllTextures()
         {
             RefreshAllTextures(false);
@@ -221,7 +221,7 @@ namespace KoiClothesOverlayX
 
         public void RefreshAllTextures(bool onlyMasks)
         {
-#if KK
+#if KK || KKS
             if (KKAPI.Studio.StudioAPI.InsideStudio)
             {
                 // Studio needs a more aggresive refresh to update the textures
@@ -480,7 +480,7 @@ namespace KoiClothesOverlayX
             RefreshAllTextures();
         }
 
-#if KK || EC
+#if KK || KKS || EC
         private void ApplyOverlays(ChaClothesComponent clothesCtrl)
 #else
         private void ApplyOverlays(CmpClothes clothesCtrl)
