@@ -1,6 +1,5 @@
 ﻿using System.Linq;
 using AIChara;
-using BepInEx.Harmony;
 using HarmonyLib;
 using KKAPI.Maker;
 using KoiSkinOverlayX;
@@ -13,7 +12,7 @@ namespace KoiClothesOverlayX
         {
             public static void Init()
             {
-                HarmonyWrapper.PatchAll(typeof(Hooks));
+                Harmony.CreateAndPatchAll(typeof(Hooks), nameof(KoiClothesOverlayController));
             }
 
             #region Main tex overlays

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using BepInEx.Harmony;
 using ChaCustom;
 using HarmonyLib;
 using KKAPI.Chara;
@@ -19,7 +18,7 @@ namespace KoiClothesOverlayX
         {
             public static void Init()
             {
-                HarmonyWrapper.PatchAll(typeof(Hooks));
+                Harmony.CreateAndPatchAll(typeof(Hooks), nameof(KoiClothesOverlayController));
             }
 
             #region Main tex overlays
@@ -120,21 +119,16 @@ namespace KoiClothesOverlayX
                 return null;
             }
 
-            public static Traverse GetMaskField(KoiClothesOverlayController controller, MaskKind kind)
-            {
-                return Traverse.Create(controller.ChaControl).Property(GetMaskFieldName(kind));
-            }
-
-            private static string GetMaskFieldName(MaskKind kind)
+            public static Texture GetMask(KoiClothesOverlayController controller, MaskKind kind)
             {
                 switch (kind)
                 {
                     case MaskKind.BodyMask:
-                        return "texBodyAlphaMask";
+                        return controller.ChaControl.texBodyAlphaMask;
                     case MaskKind.InnerMask:
-                        return "texInnerAlphaMask";
+                        return controller.ChaControl.texInnerAlphaMask;
                     case MaskKind.BraMask:
-                        return "texBraAlphaMask";
+                        return controller.ChaControl.texBraAlphaMask;
                     default:
                         throw new ArgumentOutOfRangeException(nameof(kind), kind, null);
                 }

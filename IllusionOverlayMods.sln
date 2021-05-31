@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HS2_OverlayMods", "HS2_Over
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Shared_AIHS2", "Shared_AIHS2\Shared_AIHS2.shproj", "{E8EB0F3A-1A91-4E78-8254-906E028AE553}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KKS_OverlayMods", "KKS_OverlayMods\KKS_OverlayMods.csproj", "{B7376859-1D98-44A0-890B-4E5452F81919}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Core_OverlayMods\Core_OverlayMods.projitems*{0d7059b0-0f57-49c1-989f-7933496444ce}*SharedItemsImports = 4
@@ -27,6 +29,8 @@ Global
 		Core_OverlayMods\Core_OverlayMods.projitems*{86ecf2b4-e255-4fd4-a65c-98b2f21676c4}*SharedItemsImports = 13
 		Core_OverlayMods\Core_OverlayMods.projitems*{9592d6dc-707b-4898-a172-fe204b98770d}*SharedItemsImports = 4
 		Shared_AIHS2\Shared_AIHS2.projitems*{9592d6dc-707b-4898-a172-fe204b98770d}*SharedItemsImports = 4
+		Core_OverlayMods\Core_OverlayMods.projitems*{b7376859-1d98-44a0-890b-4e5452f81919}*SharedItemsImports = 4
+		Shared_KKEC\Shared_KKEC.projitems*{b7376859-1d98-44a0-890b-4e5452f81919}*SharedItemsImports = 4
 		Core_OverlayMods\Core_OverlayMods.projitems*{c6977f34-ba61-4c41-b39b-311a0ab9b18b}*SharedItemsImports = 4
 		Shared_KKEC\Shared_KKEC.projitems*{c6977f34-ba61-4c41-b39b-311a0ab9b18b}*SharedItemsImports = 4
 		Shared_AIHS2\Shared_AIHS2.projitems*{e8eb0f3a-1a91-4e78-8254-906e028ae553}*SharedItemsImports = 13
@@ -52,6 +56,10 @@ Global
 		{0D7059B0-0F57-49C1-989F-7933496444CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0D7059B0-0F57-49C1-989F-7933496444CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0D7059B0-0F57-49C1-989F-7933496444CE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7376859-1D98-44A0-890B-4E5452F81919}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7376859-1D98-44A0-890B-4E5452F81919}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7376859-1D98-44A0-890B-4E5452F81919}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7376859-1D98-44A0-890B-4E5452F81919}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

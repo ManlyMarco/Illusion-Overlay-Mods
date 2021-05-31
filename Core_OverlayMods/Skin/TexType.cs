@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace KoiSkinOverlayX
+﻿namespace KoiSkinOverlayX
 {
     // Names and values are important, don't change!
     public enum TexType

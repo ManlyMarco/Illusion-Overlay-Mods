@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using BepInEx.Logging;
 using KKAPI;
 using KKAPI.Chara;
 using KKAPI.Maker;
@@ -10,8 +9,6 @@ using KoiSkinOverlayX;
 using MessagePack;
 using UnityEngine;
 using ExtensibleSaveFormat;
-using HarmonyLib;
-using KKAPI.Utilities;
 #if KK
 using CoordinateType = ChaFileDefine.CoordinateType;
 using KKAPI.Studio;
@@ -127,7 +124,7 @@ namespace KoiClothesOverlayX
 
         internal Texture GetOriginalMask(MaskKind kind)
         {
-            return Hooks.GetMaskField(this, kind).GetValue<Texture>();
+            return Hooks.GetMask(this, kind);
         }
 #else
         public CmpClothes GetCustomClothesComponent(string clothesObjectName)
@@ -374,7 +371,7 @@ namespace KoiClothesOverlayX
             //ocic.female.UpdateBustSoftnessAndGravity();
             var active = ocic.oiCharInfo.activeFK[6];
             ocic.ActiveFK(OIBoneInfo.BoneGroup.Skirt, false, ocic.oiCharInfo.enableFK);
-            Traverse.Create(ocic.fkCtrl).Method("ResetUsedBone", new[] {typeof(OCIChar)}).GetValue(ocic);
+            ocic.fkCtrl.ResetUsedBone(ocic);
             ocic.skirtDynamic = AddObjectFemale.GetSkirtDynamic(ocic.charInfo.objClothes);
             ocic.ActiveFK(OIBoneInfo.BoneGroup.Skirt, active, ocic.oiCharInfo.enableFK);
         }
