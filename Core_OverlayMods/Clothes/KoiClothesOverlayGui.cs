@@ -376,7 +376,7 @@ namespace KoiClothesOverlayX
                         controller.GetOriginalMask((MaskKind)Enum.Parse(typeof(MaskKind), _typeToLoad)) :
                         controller.GetApplicableRenderers(_typeToLoad).First().material.mainTexture;
 
-                    var isWrongRes = origTex != null && isMask ? tex.width > origTex.width || tex.height > origTex.height : tex.width != origTex.width || tex.height != origTex.height;
+                    var isWrongRes = origTex != null && (isMask ? tex.width > origTex.width || tex.height > origTex.height : tex.width != origTex.width || tex.height != origTex.height);
 #else
                     // Always save to the card in lossless format
                     var textureFormat = TextureFormat.ARGB32;
