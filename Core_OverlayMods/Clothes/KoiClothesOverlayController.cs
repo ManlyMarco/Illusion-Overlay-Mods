@@ -9,6 +9,7 @@ using KoiSkinOverlayX;
 using MessagePack;
 using UnityEngine;
 using ExtensibleSaveFormat;
+using KKAPI.Utilities;
 #if KK || KKS
 using CoordinateType = ChaFileDefine.CoordinateType;
 using KKAPI.Studio;
@@ -85,7 +86,8 @@ namespace KoiClothesOverlayX
                     if (tex == null)
                         throw new Exception("There is no texture to dump");
 
-                    var t = tex.TextureToTexture2D();
+                    // Fix being unable to save some texture formats with EncodeToPNG
+                    var t = tex.ToTexture2D();
                     var bytes = t.EncodeToPNG();
                     Destroy(t);
                     callback(bytes);
@@ -449,9 +451,9 @@ namespace KoiClothesOverlayX
             }
             catch (Exception ex)
             {
-                if (MakerAPI.InsideMaker) 
+                if (MakerAPI.InsideMaker)
                     KoiSkinOverlayMgr.Logger.LogMessage("WARNING: Failed to load clothes overlay data");
-                else 
+                else
                     KoiSkinOverlayMgr.Logger.LogDebug("WARNING: Failed to load clothes overlay data");
                 KoiSkinOverlayMgr.Logger.LogError(ex);
 

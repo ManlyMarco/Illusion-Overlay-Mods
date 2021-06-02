@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using KKAPI.Utilities;
 using UnityEngine;
 
 namespace KoiSkinOverlayX
@@ -19,10 +20,7 @@ namespace KoiSkinOverlayX
         public static Texture2D TextureFromBytes(byte[] texBytes, TextureFormat format)
         {
             if (texBytes == null || texBytes.Length == 0) return null;
-
-            var tex = new Texture2D(2, 2, format, false);
-            tex.LoadImage(texBytes);
-            return tex;
+            return texBytes.LoadTexture(format);
         }
 
         /// <summary>
@@ -35,25 +33,6 @@ namespace KoiSkinOverlayX
 
             try { NativeMethods.OpenFolderAndSelectFile(filename); }
             catch (Exception) { Process.Start("explorer.exe", $"/select, \"{filename}\""); }
-        }
-
-        public static Texture2D TextureToTexture2D(this Texture tex)
-        {
-            var rt = RenderTexture.GetTemporary(tex.width, tex.height);
-            var prev = RenderTexture.active;
-            RenderTexture.active = rt;
-
-            GL.Clear(true, true, Color.clear);
-
-            Graphics.Blit(tex, rt);
-
-            var t = new Texture2D(tex.width, tex.height, TextureFormat.ARGB32, false);
-            t.ReadPixels(new Rect(0, 0, tex.width, tex.height), 0, 0);
-            t.Apply(false);
-
-            RenderTexture.active = prev;
-            RenderTexture.ReleaseTemporary(rt);
-            return t;
         }
 
         private static class NativeMethods

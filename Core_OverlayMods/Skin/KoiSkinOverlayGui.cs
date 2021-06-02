@@ -304,7 +304,10 @@ namespace KoiSkinOverlayX
                         {
                             var tex = GetTex(GetTexType(true));
                             if (tex == null) return;
-                            WriteAndOpenPng(tex.EncodeToPNG(), GetTexType(false).ToString());
+                            // Fix being unable to save some texture formats with EncodeToPNG
+                            var texCopy = tex.ToTexture2D();
+                            WriteAndOpenPng(texCopy.EncodeToPNG(), GetTexType(false).ToString());
+                            Destroy(texCopy);
                         }
                         catch (Exception ex)
                         {
