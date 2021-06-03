@@ -156,7 +156,7 @@ namespace KoiSkinOverlayX
             e.AddControl(new MakerButton("Get body overlay template", makerCategory, owner))
                 .OnClick.AddListener(() => WriteAndOpenPng(ResourceUtils.GetEmbeddedResource("body.png"), "Body template"));
 
-            AddConfigSettings(e, owner, makerCategory);
+            AddConfigSettings(e, owner, makerCategory, 0);
 
             e.AddControl(new MakerSeparator(makerCategory, owner));
 
@@ -190,7 +190,7 @@ namespace KoiSkinOverlayX
             e.AddControl(new MakerButton(irisTemplateName, eyeCategory, owner))
                 .OnClick.AddListener(() => WriteAndOpenPng(ResourceUtils.GetEmbeddedResource("eye.png"), "Iris template"));
 
-            AddConfigSettings(e, owner, eyeCategory);
+            AddConfigSettings(e, owner, eyeCategory, 1);
 
             e.AddControl(new MakerSeparator(eyeCategory, owner));
 
@@ -201,15 +201,14 @@ namespace KoiSkinOverlayX
             SetupTexControls(e, eyeCategory, owner, TexType.EyeUnder, "Iris underlay texture (Before coloring and effects)");
         }
 
-        private static void AddConfigSettings(RegisterSubCategoriesEvent e, KoiSkinOverlayMgr owner, MakerCategory makerCategory)
+        private static void AddConfigSettings(RegisterSubCategoriesEvent e, KoiSkinOverlayMgr owner, MakerCategory makerCategory, int id)
         {
             var tWatch = e.AddControl(new MakerToggle(makerCategory, "Watch last loaded texture file for changes", owner));
             tWatch.Value = WatchLoadedTexForChanges.Value;
             tWatch.ValueChanged.Subscribe(b => WatchLoadedTexForChanges.Value = b);
 
 #if KK || KKS
-            var id = _tPerCoord[0] == null ? 0 : 1;
-            var otherId = _tPerCoord[0] == null ? 1 : 0;
+            var otherId = id == 0 ? 1 : 0;
             _tPerCoord[id] = e.AddControl(new MakerToggle(makerCategory, "Use different overlays per outfit", owner));
             _tPerCoord[id].BindToFunctionController<KoiSkinOverlayController, bool>(c => c.OverlayStorage.IsPerCoord(),
                 (c, value) =>
