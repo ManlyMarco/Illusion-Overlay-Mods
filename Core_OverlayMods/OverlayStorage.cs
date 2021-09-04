@@ -150,7 +150,7 @@ namespace KoiSkinOverlayX
         }
 
 #if KK || KKS
-        public bool IsPerCoord()
+        public bool IsPerCoord() //todo handle adding coords
         {
             Dictionary<TexType, int> first = null;
             foreach (var dic in _allOverlayTextures)
@@ -168,9 +168,9 @@ namespace KoiSkinOverlayX
         {
             var cur = GetCurrentOverlayTextures();
 
-            foreach (CoordinateType ctype in Enum.GetValues(typeof(CoordinateType)))
+            for (var coordId = 0; coordId < _chaControl.chaFile.coordinate.Length; coordId++)
             {
-                var other = GetOverlayTextures(ctype);
+                var other = GetOverlayTextures((CoordinateType)coordId);
                 if (cur == other) continue;
 
                 other.Clear();
@@ -179,5 +179,31 @@ namespace KoiSkinOverlayX
             }
         }
 #endif
+
+#if KKS
+        public static void ImportFromKK(PluginData pluginData, Dictionary<int, int?> mapping)
+        {
+            pluginData.data.TryGetValue(OverlayDataKey, out var lookup);
+            if (lookup is byte[] lookuparr)
+            {
+                var dic = MessagePackSerializer.Deserialize<Dictionary<CoordinateType, Dictionary<TexType, int>>>(lookuparr);
+                var outDic = new Dictionary<CoordinateType, Dictionary<TexType, int>>(dic.Count);
+
+                foreach (var map in mapping)
+                {
+                    // Discard unused
+                    if (map.Value == null) continue;
+
+                    dic.TryGetValue((CoordinateType)map.Key, out var value);
+                    if (value != null)
+                    {
+                        outDic[(CoordinateType)map.Value.Value] = value;
+                    }
+                }
+
+                pluginData.data[OverlayDataKey] = MessagePackSerializer.Serialize(outDic);
+            }
+        }
     }
+#endif
 }

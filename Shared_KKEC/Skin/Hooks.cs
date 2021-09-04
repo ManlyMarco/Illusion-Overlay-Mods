@@ -11,6 +11,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
+using ExtensibleSaveFormat;
 using HarmonyLib;
 using UnityEngine;
 
@@ -21,6 +22,14 @@ namespace KoiSkinOverlayX
         public static void Init()
         {
             Harmony.CreateAndPatchAll(typeof(Hooks), nameof(KoiSkinOverlayMgr.GUID));
+
+#if KKS
+            ExtendedSave.CardBeingImported += (data, mapping) =>
+            {
+                if (data.TryGetValue(KoiSkinOverlayMgr.GUID, out var pluginData) && pluginData != null)
+                    OverlayStorage.ImportFromKK(pluginData, mapping);
+            };
+#endif
         }
 
         private static void OverlayBlit(Texture source, RenderTexture dest, Material mat, int pass, CustomTextureCreate instance)

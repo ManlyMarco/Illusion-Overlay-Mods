@@ -21,7 +21,7 @@ namespace KoiClothesOverlayX
             {
                 Harmony.CreateAndPatchAll(typeof(Hooks), nameof(KoiClothesOverlayController));
 
-#if KKS || EC
+#if EC
                 ExtendedSave.CardBeingImported += importedData =>
                 {
                     if (importedData.TryGetValue(KoiClothesOverlayMgr.GUID, out var pluginData) && pluginData != null)
@@ -65,6 +65,38 @@ namespace KoiClothesOverlayX
                             importedData.Remove(KoiClothesOverlayMgr.GUID);
                         else
                             SetOverlayExtData(dic, pluginData);
+                    }
+                };
+                
+#elif KKS
+                ExtendedSave.CardBeingImported += (data, mapping) =>
+                {
+                    if (data.TryGetValue(KoiClothesOverlayMgr.GUID, out var pluginData) && pluginData != null)
+                    {
+                        var dic = ReadOverlayExtData(pluginData);
+                        // Map coords into a new dictionary based on the mapping
+                        var outDic = new Dictionary<ChaFileDefine.CoordinateType, Dictionary<string, ClothesTexData>>(dic.Count);
+                        foreach (var map in mapping)
+                        {
+                            // Discard unused
+                            if (map.Value == null) continue;
+
+                            dic.TryGetValue((ChaFileDefine.CoordinateType) map.Key, out var value);
+                            if (value != null)
+                            {
+                                // KKS doesn't have inner shoes
+                                value.Remove("ct_shoes_inner");
+                                outDic[(ChaFileDefine.CoordinateType) map.Value.Value] = value;
+                            }
+                        }
+
+                        CleanupTextureList(outDic);
+
+                        // Overwrite with the new dictionary
+                        if (outDic.Count == 0)
+                            data.Remove(KoiClothesOverlayMgr.GUID);
+                        else
+                            SetOverlayExtData(outDic, pluginData);
                     }
                 };
 #endif
