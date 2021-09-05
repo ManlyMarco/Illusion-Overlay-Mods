@@ -67,7 +67,6 @@ namespace KoiClothesOverlayX
                             SetOverlayExtData(dic, pluginData);
                     }
                 };
-                
 #elif KKS
                 ExtendedSave.CardBeingImported += (data, mapping) =>
                 {

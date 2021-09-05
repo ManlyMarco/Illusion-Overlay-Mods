@@ -204,6 +204,6 @@ namespace KoiSkinOverlayX
                 pluginData.data[OverlayDataKey] = MessagePackSerializer.Serialize(outDic);
             }
         }
-    }
 #endif
+    }
 }
