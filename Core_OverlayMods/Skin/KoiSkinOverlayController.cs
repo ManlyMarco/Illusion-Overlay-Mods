@@ -32,7 +32,12 @@ namespace KoiSkinOverlayX
             base.Awake();
             OverlayStorage = new OverlayStorage(this);
 #if KK || KKS
-            CurrentCoordinate.Subscribe(v => UpdateTexture(0));
+            // this causes massive lag on overworld since charas change coords in background so avoid running this whenever possible
+            CurrentCoordinate.Subscribe(v =>
+            {
+                if (OverlayStorage.IsPerCoord())
+                    UpdateTexture(WhatTexturesNeedUpdating());
+            });
 #endif
         }
 
@@ -274,6 +279,59 @@ namespace KoiSkinOverlayX
 #endif
 
             RenderTexture.ReleaseTemporary(rtTemp);
+        }
+
+        /// <summary>
+        /// For use with UpdateTexture, returns the most restrictive (fastest) update type that will cover all overlays
+        /// </summary>
+        private TexType WhatTexturesNeedUpdating()
+        {
+            var lastStatus = TexType.Unknown;
+            foreach (var texType in OverlayStorage.GetAllTypes())
+            {
+                if (lastStatus != TexType.Unknown)
+                {
+                    switch (texType)
+                    {
+                        case TexType.BodyOver:
+                        case TexType.BodyUnder:
+                            if (lastStatus != TexType.BodyUnder && lastStatus != TexType.BodyOver)
+                            {
+                                lastStatus = TexType.Unknown;
+                                goto ExitLoop;
+                            }
+
+                            break;
+                        case TexType.FaceOver:
+                        case TexType.FaceUnder:
+                            if (lastStatus != TexType.FaceUnder && lastStatus != TexType.FaceOver)
+                            {
+                                lastStatus = TexType.Unknown;
+                                goto ExitLoop;
+                            }
+
+                            break;
+                        case TexType.EyeUnder:
+                        case TexType.EyeOver:
+                        case TexType.EyeUnderL:
+                        case TexType.EyeOverL:
+                        case TexType.EyeUnderR:
+                        case TexType.EyeOverR:
+                            if (lastStatus < TexType.EyeUnder)
+                            {
+                                lastStatus = TexType.Unknown;
+                                goto ExitLoop;
+                            }
+
+                            break;
+                    }
+                }
+
+                lastStatus = texType;
+            }
+
+        ExitLoop:
+            return lastStatus;
         }
     }
 }

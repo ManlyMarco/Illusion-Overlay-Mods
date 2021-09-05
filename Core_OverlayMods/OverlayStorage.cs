@@ -58,7 +58,12 @@ namespace KoiSkinOverlayX
 
             if (dict == null)
             {
-                dict = new Dictionary<TexType, int>();
+#if KK || KKS
+                if (!IsPerCoord() && _allOverlayTextures.Count > 0)
+                    dict = new Dictionary<TexType, int>(_allOverlayTextures.First().Value);
+                else
+#endif
+                    dict = new Dictionary<TexType, int>();
                 _allOverlayTextures.Add(coordinateType, dict);
             }
 
@@ -92,6 +97,11 @@ namespace KoiSkinOverlayX
         public int GetCount(bool onlyCurrentCoord = true)
         {
             return onlyCurrentCoord ? GetCurrentOverlayTextures().Count : _allOverlayTextures.Sum(x => x.Value.Count);
+        }
+
+        internal IEnumerable<TexType> GetAllTypes()
+        {
+            return _allOverlayTextures.SelectMany(x => x.Value.Keys);
         }
 
         public void Clear()
@@ -150,7 +160,7 @@ namespace KoiSkinOverlayX
         }
 
 #if KK || KKS
-        public bool IsPerCoord() //todo handle adding coords
+        public bool IsPerCoord()
         {
             Dictionary<TexType, int> first = null;
             foreach (var dic in _allOverlayTextures)
@@ -181,7 +191,7 @@ namespace KoiSkinOverlayX
 #endif
 
 #if KKS
-        public static void ImportFromKK(PluginData pluginData, Dictionary<int, int?> mapping)
+        internal static void ImportFromKK(PluginData pluginData, Dictionary<int, int?> mapping)
         {
             pluginData.data.TryGetValue(OverlayDataKey, out var lookup);
             if (lookup is byte[] lookuparr)
