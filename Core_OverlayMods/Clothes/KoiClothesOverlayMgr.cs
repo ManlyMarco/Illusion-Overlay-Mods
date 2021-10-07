@@ -2,17 +2,17 @@
 using ExtensibleSaveFormat;
 using KKAPI;
 using KKAPI.Chara;
-using KoiSkinOverlayX;
 using OverlayMods;
 
 namespace KoiClothesOverlayX
 {
-    [BepInPlugin(GUID, "Clothes Overlay Mod", KoiSkinOverlayMgr.Version)]
+    [BepInPlugin(GUID, "Clothes Overlay Mod", Version)]
     [BepInDependency(ExtendedSave.GUID)]
     [BepInDependency(KoikatuAPI.GUID, KoikatuAPI.VersionConst)]
     public class KoiClothesOverlayMgr : BaseUnityPlugin
     {
         public const string GUID = Metadata.GUID_KCOX;
+        public const string Version = Metadata.Version;
 
 #if KK || KKS || EC
         public static readonly string[] MainClothesNames =
