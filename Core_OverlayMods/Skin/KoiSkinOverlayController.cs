@@ -269,12 +269,12 @@ namespace KoiSkinOverlayX
             RenderTexture.active = rta;
 
             KoiSkinOverlayMgr.OverlayMat.SetTexture("_Overlay", blitTex);
-#if KK || KKS || EC //todo the same?
+#if KK || EC
             Graphics.Blit(mainTex, rtTemp, KoiSkinOverlayMgr.OverlayMat);
             Graphics.Blit(rtTemp, mainTex);
 #else
             Graphics.Blit(mainTex, rtTemp);
-            // Need to use the material on the second blit or body tex gets messed up in AI/HS2
+            // Need to use the material on the second blit or body tex gets messed up in AI/HS2/KKS
             Graphics.Blit(rtTemp, mainTex, KoiSkinOverlayMgr.OverlayMat);
 #endif
 
