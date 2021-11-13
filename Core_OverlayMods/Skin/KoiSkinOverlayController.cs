@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using ExtensibleSaveFormat;
@@ -53,6 +54,10 @@ namespace KoiSkinOverlayX
 #endif
 
             SetExtendedData(pd.data.Count > 0 ? pd : null);
+
+#if KK || KKS
+            ExtendedSave.SetExtendedDataById(ChaFileControl, "com.jim60105.kk.charaoverlaysbasedoncoordinate", null);
+#endif
         }
 
         protected override void OnReload(GameMode currentGameMode, bool maintainState)
@@ -83,6 +88,10 @@ namespace KoiSkinOverlayX
 #endif
                 }
             }
+            else
+            {
+                TryImportCOBOC();
+            }
 
             if (needsUpdate || OverlayStorage.GetCount() > 0)
                 UpdateTexture(TexType.Unknown);
@@ -90,6 +99,9 @@ namespace KoiSkinOverlayX
 
         private void ReadLegacyData(PluginData data)
         {
+            if (TryImportCOBOC()) return;
+
+            KoiSkinOverlayMgr.Logger.LogInfo("Reading legacy overlay data");
             foreach (TexType texType in Enum.GetValues(typeof(TexType)))
             {
                 if (texType == TexType.Unknown) continue;
@@ -117,6 +129,80 @@ namespace KoiSkinOverlayX
 #if KK || KKS
             OverlayStorage.CopyToOtherCoords();
 #endif
+        }
+
+        /// <summary>
+        /// Attempt to import old KK_CharaOverlaysBasedOnCoordinate data.
+        /// Based on code from https://github.com/jim60105/KK/blob/99dd9a055679cea8bf2c7d85a357ca53c4233636/KK_CharaOverlaysBasedOnCoordinate/KK_CharaOverlaysBasedOnCoordinate.cs
+        /// </summary>
+        private bool TryImportCOBOC()
+        {
+#if KK || KKS
+            var data = ExtendedSave.GetExtendedDataById(ChaFileControl, "com.jim60105.kk.charaoverlaysbasedoncoordinate");
+            if (data == null) return false;
+
+            KoiSkinOverlayMgr.Logger.LogInfo("[Import] Trying to import KK_CharaOverlaysBasedOnCoordinate data.");
+
+            Dictionary<TKey, TValue> ToDictionary<TKey, TValue>(object self)
+            {
+                if (!(self is IDictionary dictionary))
+                {
+                    KoiSkinOverlayMgr.Logger.LogWarning($"[Import] Failed to cast to Dictionary! Likely invalid data.");
+                    return null;
+                }
+
+                return CastDict(dictionary).ToDictionary(entry => (TKey)entry.Key, entry => (TValue)entry.Value);
+
+                IEnumerable<DictionaryEntry> CastDict(IDictionary dic)
+                {
+                    foreach (DictionaryEntry entry in dic)
+                        yield return entry;
+                }
+            }
+
+            if ((!data.data.TryGetValue("AllCharaOverlayTable", out var tmpOverlayTable) || tmpOverlayTable == null) ||
+                (!data.data.TryGetValue("AllCharaResources", out var tmpResources) || null == tmpResources))
+            {
+                KoiSkinOverlayMgr.Logger.LogWarning("[Import] Wrong PluginData version, can't import.");
+            }
+            else
+            {
+                var overlays = new Dictionary<ChaFileDefine.CoordinateType, Dictionary<TexType, byte[]>>();
+                var resourceList = ToDictionary<int, byte[]>(tmpResources).Select(x => x.Value).ToList();
+                Dictionary<TexType, byte[]> firstCoord = null;
+                foreach (var kvp in ToDictionary<ChaFileDefine.CoordinateType, object>(tmpOverlayTable))
+                {
+                    var coordinate = new Dictionary<TexType, byte[]>();
+                    foreach (var kvp2 in ToDictionary<TexType, int>(kvp.Value))
+                    {
+                        coordinate.Add(kvp2.Key, resourceList[kvp2.Value]);
+                        if (kvp2.Value != 0) KoiSkinOverlayMgr.Logger.LogDebug($"[Import] Add overlay ->{kvp.Key}: {kvp2.Key}, {kvp2.Value}");
+                    }
+
+                    if (firstCoord == null)
+                    {
+                        firstCoord = coordinate;
+                    }
+                    else
+                    {
+                        foreach (var missing in firstCoord.Where(x => x.Value != null && (!coordinate.TryGetValue(x.Key, out var val) || val == null)).ToList())
+                        {
+                            coordinate[missing.Key] = missing.Value;
+                            KoiSkinOverlayMgr.Logger.LogDebug($"[Import] Fill in missing overlay ->{kvp.Key}: {missing.Key}");
+                        }
+                    }
+
+                    overlays.Add(kvp.Key, coordinate);
+                }
+
+                OverlayStorage.Load(overlays);
+
+                KoiSkinOverlayMgr.Logger.LogInfo("[Import] Imported KK_CharaOverlaysBasedOnCoordinate data successfully. Save the card to migrate it to new data format.");
+
+                return true;
+            }
+#endif
+            return false;
         }
 
         public void ApplyOverlayToRT(RenderTexture bodyTexture, TexType overlayType)

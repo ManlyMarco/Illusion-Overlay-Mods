@@ -120,16 +120,41 @@ namespace KoiSkinOverlayX
                 {
                     _allOverlayTextures = MessagePackSerializer.Deserialize<Dictionary<CoordinateType, Dictionary<TexType, int>>>(lookuparr);
                     _textureStorage.Load(data);
+                    return;
                 }
                 catch (Exception ex)
                 {
                     if (MakerAPI.InsideMaker)
                         KoiSkinOverlayMgr.Logger.LogMessage("WARNING: Failed to load embedded overlay data for " + (_chaControl.chaFile?.charaFileName ?? "?"));
                     else
-                        KoiSkinOverlayMgr.Logger.LogDebug("WARNING: Failed to load embedded overlay data for " + (_chaControl.chaFile?.charaFileName ?? "?"));
+                        KoiSkinOverlayMgr.Logger.LogWarning("WARNING: Failed to load embedded overlay data for " + (_chaControl.chaFile?.charaFileName ?? "?"));
                     KoiSkinOverlayMgr.Logger.LogError(ex);
+                }
+            }
 
-                    Clear();
+            // If anything goes wrong, make sure we are in a sane state
+            Clear();
+        }
+        
+        public void Load(Dictionary<CoordinateType, Dictionary<TexType, byte[]>> overlays)
+        {
+            Clear();
+
+            foreach (var coordType in overlays)
+            {
+                var textureDic = GetOverlayTextures(coordType.Key);
+
+                foreach (var texType in coordType.Value)
+                {
+                    if (texType.Value == null)
+                    {
+                        textureDic.Remove(texType.Key);
+                    }
+                    else
+                    {
+                        var id = _textureStorage.StoreTexture(texType.Value);
+                        textureDic[texType.Key] = id;
+                    }
                 }
             }
         }

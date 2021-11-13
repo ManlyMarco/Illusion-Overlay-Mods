@@ -96,7 +96,8 @@ namespace KoiSkinOverlayX
         }
 
         // auto dedupe and return the same id
-        public int StoreTexture(byte[] tex)
+        public int StoreTexture(byte[] tex) => StoreTexture(tex, true);
+        public int StoreTexture(byte[] tex, bool logDuplicates)
         {
             if (tex == null) throw new ArgumentNullException(nameof(tex));
             lock (_data)
@@ -104,7 +105,7 @@ namespace KoiSkinOverlayX
                 var existing = _data.FirstOrDefault(x => x.Value != null && x.Value.Data.SequenceEqual(tex));
                 if (existing.Value != null)
                 {
-                    Console.WriteLine("StoreTexture - Texture already exists, reusing it");
+                    if (logDuplicates) KoiSkinOverlayMgr.Logger.LogDebug("StoreTexture - Texture already exists, reusing it");
                     return existing.Key;
                 }
 
