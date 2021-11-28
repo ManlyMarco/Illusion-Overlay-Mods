@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using ExtensibleSaveFormat;
 using KKAPI;
@@ -279,6 +280,11 @@ namespace KoiSkinOverlayX
         {
             if (cc == null) return;
             if (cc.customTexCtrlBody == null || cc.customTexCtrlFace == null) return;
+
+            // Prevent lag when reloading textures at the cost of extra memory usage for the no longer used textures (until something else collects garbage)
+            var prevGcClear = Util.EnableCharaLoadGC;
+            Util.EnableCharaLoadGC = false;
+
 #if KK || KKS || EC
             switch (type)
             {
@@ -342,6 +348,8 @@ namespace KoiSkinOverlayX
                     break;
             }
 #endif
+
+            Util.EnableCharaLoadGC = prevGcClear;
         }
 
         public static void ApplyOverlay(RenderTexture mainTex, Texture2D blitTex)

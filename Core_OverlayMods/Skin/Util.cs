@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using KKAPI.Utilities;
+using Manager;
 using UnityEngine;
 
 namespace KoiSkinOverlayX
@@ -102,6 +103,27 @@ namespace KoiSkinOverlayX
             GL.Clear(false, true, Color.clear);
             RenderTexture.active = rta;
             return rt;
+        }
+
+        public static bool EnableCharaLoadGC
+        {
+#if KKS
+            get => Character.enableCharaLoadGCClear;
+            set => Character.enableCharaLoadGCClear = value;
+#else
+            get
+            {
+                if (Character.IsInstance())
+                    return Character.Instance.enableCharaLoadGCClear;
+                else
+                    return true;
+            }
+            set
+            {
+                if (Character.IsInstance())
+                    Character.Instance.enableCharaLoadGCClear = value;
+            }
+#endif
         }
     }
 }
