@@ -135,7 +135,7 @@ namespace KoiSkinOverlayX
             // If anything goes wrong, make sure we are in a sane state
             Clear();
         }
-        
+
         public void Load(Dictionary<CoordinateType, Dictionary<TexType, byte[]>> overlays)
         {
             Clear();
@@ -171,6 +171,16 @@ namespace KoiSkinOverlayX
 
         private void PurgeUnused()
         {
+#if KK || KKS
+            var unusedCoords = _allOverlayTextures.Keys.Where(x => (int)x >= _chaControl.chaFile.coordinate.Length).ToList();
+            if (unusedCoords.Count > 0)
+            {
+                KoiSkinOverlayMgr.Logger.LogWarning($"Removing data for missing coordinates: {string.Join(", ", unusedCoords.Select(x => x.ToString()).ToArray())}");
+                foreach (var unusedCoord in unusedCoords)
+                    _allOverlayTextures.Remove(unusedCoord);
+            }
+#endif
+
             _textureStorage.PurgeUnused(_allOverlayTextures.SelectMany(x => x.Value.Values));
 
             var allTextures = _textureStorage.GetAllTextureIDs();
