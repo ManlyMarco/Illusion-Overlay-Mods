@@ -65,12 +65,12 @@ namespace KoiSkinOverlayX
             var overlays = overlayController.GetOverlayTextures(overlayType).ToList();
             if (overlays.Count > 0)
             {
-            var trt = RenderTexture.GetTemporary(source.width, source.height, dest.depth, dest.format);
-            Graphics.Blit(source, trt);
+                var trt = RenderTexture.GetTemporary(source.width, source.height, dest.depth, dest.format);
+                Graphics.Blit(source, trt);
                 KoiSkinOverlayController.ApplyOverlays(trt, overlays);
-            Graphics.Blit(trt, dest, mat, pass);
-            RenderTexture.ReleaseTemporary(trt);
-        }
+                Graphics.Blit(trt, dest, mat, pass);
+                RenderTexture.ReleaseTemporary(trt);
+            }
             else
             {
                 // Fall back to original code
@@ -97,70 +97,95 @@ namespace KoiSkinOverlayX
             }
         }
 
-        [HarmonyPostfix, HarmonyPatch(typeof(ChaControl), "ChangeTexture", typeof(Renderer), typeof(ChaListDefine.CategoryNo), typeof(int), typeof(ChaListDefine.KeyType), typeof(ChaListDefine.KeyType), typeof(ChaListDefine.KeyType), typeof(int), typeof(string))]
-        public static void ChangeTextureHook(ChaControl __instance, Renderer rend, ChaListDefine.CategoryNo type)
+        [HarmonyPostfix]
+        [HarmonyWrapSafe]
+        [HarmonyPatch(typeof(ChaControl), nameof(ChaControl.ChangeTexture),
+                      typeof(Material), typeof(ChaListDefine.CategoryNo), typeof(int), typeof(ChaListDefine.KeyType), typeof(ChaListDefine.KeyType), typeof(ChaListDefine.KeyType), typeof(int), typeof(string))]
+        public static void ChangeTextureHook(ChaControl __instance, Material mat, ChaListDefine.CategoryNo type, int propertyID)
         {
             if (type == ChaListDefine.CategoryNo.st_eye)
             {
-                var controller = __instance.GetComponent<KoiSkinOverlayController>();
-                if (controller == null)
-                {
-                    KoiSkinOverlayMgr.Logger.LogWarning("No KoiSkinOverlayController found on character " + __instance.fileParam.fullname);
-                    return;
-                }
-
                 for (int i = 0; i < 2; i++)
                 {
-                    if (__instance.cmpFace.targetCustom.rendEyes[i] == rend)
+                    var rend = __instance.cmpFace.targetCustom.rendEyes[i];
+                    if (rend != null && rend.material == mat)
                     {
-                        var underlays = controller.GetOverlayTextures(i == 0 ? TexType.EyeUnderL : TexType.EyeUnderR).ToList();
-                        if (underlays.Count > 0)
-                        {
-                            var orig = rend.material.GetTexture(ChaShader.PupilTex);
-                            var rt = Util.CreateRT(orig.width, orig.height);
-                            KoiSkinOverlayController.ApplyOverlays(rt, underlays);
-                            // Never destroy the original texture because game caches it, only overwrite
-                            // bug memory leak, rt will be replaced next time iris is updated, will be cleaned up on next unloadunusedassets
-                            rend.material.SetTexture(ChaShader.PupilTex, rt);
-                        }
-
-                        var overlays = controller.GetOverlayTextures(i == 0 ? TexType.EyeOverL : TexType.EyeOverR).ToList();
-                        var shaderName = KoiSkinOverlayMgr.EyeOverShader.name;
-                        var mat = rend.materials.LastOrDefault(x => x.shader.name == shaderName);
-                        if (overlays.Count == 0)
-                        {
-                            if (mat != null)
-                            {
-                                rend.materials = rend.materials.Where(x => x != mat).ToArray();
-                                Object.Destroy(mat.mainTexture);
-                                Object.Destroy(mat);
-                            }
-                        }
-                        else
-                        {
-                            if (mat == null)
-                            {
-                                KoiSkinOverlayMgr.Logger.LogDebug($"Adding eye overlay material to {rend.name} on {__instance.fileParam.fullname}");
-                                mat = new Material(KoiSkinOverlayMgr.EyeOverShader);
-                                rend.materials = rend.materials.AddItem(mat).ToArray();
-                            }
-                            else
-                            {
-                                // Clean up previous texture since it's no longer needed
-                                Object.Destroy(mat.mainTexture);
-                            }
-
-                            var size = Util.GetRecommendedTexSize(TexType.EyeOver);
-                            var rt = Util.CreateRT(size, size);
-                            KoiSkinOverlayController.ApplyOverlays(rt, overlays);
-                            mat.mainTexture = rt;
-                        }
-
+                        var controller = GetController(__instance);
+                        ApplyEyeUnderlays(controller, i == 0 ? TexType.EyeUnderL : TexType.EyeUnderR, mat, propertyID);
+                        ApplyEyeOverlays(controller, i == 0 ? TexType.EyeOverL : TexType.EyeOverR, rend);
                         break;
                     }
                 }
             }
-            //else if (type == ChaListDefine.CategoryNo.st_eyebrow)
+            else if (type == ChaListDefine.CategoryNo.st_eyebrow)
+            {
+                if (__instance.customTexCtrlFace.matDraw == mat)
+                {
+                    var controller = GetController(__instance);
+                    ApplyEyeUnderlays(controller, TexType.EyebrowUnder, mat, propertyID);
+                }
+            }
+        }
+
+        private static KoiSkinOverlayController GetController(ChaControl instance)
+        {
+            var controller = instance.GetComponent<KoiSkinOverlayController>();
+            if (controller == null)
+            {
+                KoiSkinOverlayMgr.Logger.LogWarning("No KoiSkinOverlayController found on character " + instance.fileParam.fullname);
+                return null;
+            }
+
+            return controller;
+        }
+
+        private static void ApplyEyeUnderlays(KoiSkinOverlayController controller, TexType texType, Material material, int propertyID)
+        {
+            var underlays = controller.GetOverlayTextures(texType).ToList();
+            if (underlays.Count > 0)
+            {
+                var orig = material.GetTexture(propertyID);
+                var rt = Util.CreateRT(orig?.width ?? 512, orig?.height ?? 512);
+                KoiSkinOverlayController.ApplyOverlays(rt, underlays);
+                // Never destroy the original texture because game caches it, only overwrite
+                // bug memory leak, rt will be replaced next time iris is updated, will be cleaned up on next unloadunusedassets
+                material.SetTexture(propertyID, rt);
+            }
+        }
+
+        private static void ApplyEyeOverlays(KoiSkinOverlayController controller, TexType texType, Renderer rend)
+        {
+            var overlays = controller.GetOverlayTextures(texType).ToList();
+            var shaderName = KoiSkinOverlayMgr.EyeOverShader.name;
+            var ourMat = rend.materials.LastOrDefault(x => x.shader.name == shaderName);
+            if (overlays.Count == 0)
+            {
+                if (ourMat != null)
+                {
+                    rend.materials = rend.materials.Where(x => x != ourMat).ToArray();
+                    Object.Destroy(ourMat.mainTexture);
+                    Object.Destroy(ourMat);
+                }
+            }
+            else
+            {
+                if (ourMat == null)
+                {
+                    KoiSkinOverlayMgr.Logger.LogDebug($"Adding eye overlay material to {rend.name} on {controller.ChaControl.fileParam.fullname}");
+                    ourMat = new Material(KoiSkinOverlayMgr.EyeOverShader);
+                    rend.materials = rend.materials.AddItem(ourMat).ToArray();
+                }
+                else
+                {
+                    // Clean up previous texture since it's no longer needed
+                    Object.Destroy(ourMat.mainTexture);
+                }
+
+                var size = Util.GetRecommendedTexSize(texType);
+                var rt = Util.CreateRT(size, size);
+                KoiSkinOverlayController.ApplyOverlays(rt, overlays);
+                ourMat.mainTexture = rt;
+            }
         }
     }
 }

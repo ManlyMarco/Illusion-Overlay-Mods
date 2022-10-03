@@ -19,6 +19,11 @@
         EyeUnderL = 7,
         EyeOverL = 8,
         EyeUnderR = 9,
-        EyeOverR = 10
+        EyeOverR = 10,
+        
+        /// <summary>
+        /// There's no EyebrowOver because it's effectively the same as FaceOver
+        /// </summary>
+        EyebrowUnder = 20,
     }
 }
