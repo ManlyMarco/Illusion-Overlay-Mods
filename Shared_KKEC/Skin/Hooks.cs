@@ -88,12 +88,12 @@ namespace KoiSkinOverlayX
             var overlays = overlayController.GetOverlayTextures(overlayType).ToList();
             if (overlays.Count > 0)
             {
-            var trt = RenderTexture.GetTemporary(source.width, source.height, dest.depth, dest.format);
-            Graphics.Blit(source, trt);
+                var trt = RenderTexture.GetTemporary(source.width, source.height, dest.depth, dest.format);
+                Graphics.Blit(source, trt);
                 KoiSkinOverlayController.ApplyOverlays(trt, overlays);
-            Graphics.Blit(trt, dest, mat, pass);
-            RenderTexture.ReleaseTemporary(trt);
-        }
+                Graphics.Blit(trt, dest, mat, pass);
+                RenderTexture.ReleaseTemporary(trt);
+            }
             else
             {
                 // Fall back to original code
@@ -118,6 +118,32 @@ namespace KoiSkinOverlayX
                     yield return instruction;
                 }
             }
+        }
+
+        [HarmonyPostfix]
+        [HarmonyWrapSafe]
+        [HarmonyPatch(typeof(ChaControl), nameof(ChaControl.ChangeSettingEyebrow))]
+        private static void ChangeEyebrowTexPostfix(ChaControl __instance)
+        {
+            var rendEyebrow = __instance.rendEyebrow;
+            if (rendEyebrow != null)
+            {
+                var material = rendEyebrow.material;
+                if (material != null)
+                {
+                    var controller = __instance.GetComponent<KoiSkinOverlayController>();
+                    var underlays = controller.GetOverlayTextures(TexType.EyebrowUnder).ToList();
+                    if (underlays.Count > 0)
+                    {
+                        var orig = material.GetTexture(ChaShader._MainTex);
+                        var rt = Util.CreateRT(orig?.width ?? 512, orig?.height ?? 512);
+                        KoiSkinOverlayController.ApplyOverlays(rt, underlays);
+                        material.SetTexture(ChaShader._MainTex, rt);
+                    }
+                    return;
+                }
+            }
+            KoiSkinOverlayMgr.Logger.LogError(__instance.name + " eyebrow renderer or material is null, can't apply overlays!");
         }
     }
 }

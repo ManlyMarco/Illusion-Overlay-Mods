@@ -75,6 +75,7 @@ namespace KoiSkinOverlayX
                 case TexType.EyeOverL:
                 case TexType.EyeUnderR:
                 case TexType.EyeOverR:
+                case TexType.EyebrowUnder:
                     return 512;
 #elif AI || HS2
                 case TexType.BodyOver:
@@ -88,6 +89,7 @@ namespace KoiSkinOverlayX
                 case TexType.EyeOverL:
                 case TexType.EyeUnderR:
                 case TexType.EyeOverR:
+                case TexType.EyebrowUnder:
                     return 512;
 #endif
                 default:

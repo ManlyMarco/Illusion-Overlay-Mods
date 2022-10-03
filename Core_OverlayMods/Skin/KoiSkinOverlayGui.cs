@@ -179,10 +179,10 @@ namespace KoiSkinOverlayX
         {
 #if KK || KKS || EC
             var irisCategory = MakerConstants.Face.Iris;
-            var eyeCategory = new MakerCategory(irisCategory.CategoryName, "tglEyeOverlayKSOX", irisCategory.Position + 5, "Iris Overlays");
+            var eyeCategory = new MakerCategory(irisCategory.CategoryName, "tglEyeOverlayKSOX", irisCategory.Position + 5, "Eye Overlays");
             var irisTemplateName = "Get iris overlay template";
 #else
-            var eyeCategory = new MakerCategory(MakerConstants.Face.CategoryName, "overlayModIris", 11111, "Iris Overlays");
+            var eyeCategory = new MakerCategory(MakerConstants.Face.CategoryName, "overlayModIris", 11111, "Eye Overlays");
             var irisTemplateName = "Get iris underlay template";
 #endif
             e.AddSubCategory(eyeCategory);
@@ -199,6 +199,10 @@ namespace KoiSkinOverlayX
             e.AddControl(new MakerSeparator(eyeCategory, owner));
 
             SetupTexControls(e, eyeCategory, owner, TexType.EyeUnder, "Iris underlay texture (Before coloring and effects)");
+
+            e.AddControl(new MakerSeparator(eyeCategory, owner));
+            
+            SetupTexControls(e, eyeCategory, owner, TexType.EyebrowUnder, "Eyebrow override texture (Before coloring and effects)");
         }
 
         private static void AddConfigSettings(RegisterSubCategoriesEvent e, KoiSkinOverlayMgr owner, MakerCategory makerCategory, int id)
@@ -370,6 +374,7 @@ namespace KoiSkinOverlayX
                         {
                             c.EnableInStudioIris = v;
                             c.UpdateTexture(TexType.EyeUnder);
+                            c.UpdateTexture(TexType.EyebrowUnder);
                         }
                     }));
                 return;
