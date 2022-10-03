@@ -9,6 +9,7 @@
 */
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using ExtensibleSaveFormat;
@@ -51,25 +52,29 @@ namespace KoiSkinOverlayX
                 if (overlay.ChaControl.customTexCtrlFace == instance)
                 {
                     OverlayBlitImpl(source, dest, mat, pass, overlay, TexType.FaceUnder);
-                    overlay.ApplyOverlayToRT(dest, TexType.FaceOver);
+                    var overlays = overlay.GetOverlayTextures(TexType.FaceOver).ToList();
+                    if (overlays.Count > 0) KoiSkinOverlayController.ApplyOverlays(dest, overlays);
                     return;
                 }
                 if (overlay.ChaControl.customTexCtrlBody == instance)
                 {
                     OverlayBlitImpl(source, dest, mat, pass, overlay, TexType.BodyUnder);
-                    overlay.ApplyOverlayToRT(dest, TexType.BodyOver);
+                    var overlays = overlay.GetOverlayTextures(TexType.BodyOver).ToList();
+                    if (overlays.Count > 0) KoiSkinOverlayController.ApplyOverlays(dest, overlays);
                     return;
                 }
                 if (overlay.ChaControl.ctCreateEyeL == instance)
                 {
                     OverlayBlitImpl(source, dest, mat, pass, overlay, TexType.EyeUnderL);
-                    overlay.ApplyOverlayToRT(dest, TexType.EyeOverL);
+                    var overlays = overlay.GetOverlayTextures(TexType.EyeOverL).ToList();
+                    if (overlays.Count > 0) KoiSkinOverlayController.ApplyOverlays(dest, overlays);
                     return;
                 }
                 if (overlay.ChaControl.ctCreateEyeR == instance)
                 {
                     OverlayBlitImpl(source, dest, mat, pass, overlay, TexType.EyeUnderR);
-                    overlay.ApplyOverlayToRT(dest, TexType.EyeOverR);
+                    var overlays = overlay.GetOverlayTextures(TexType.EyeOverR).ToList();
+                    if (overlays.Count > 0) KoiSkinOverlayController.ApplyOverlays(dest, overlays);
                     return;
                 }
             }
@@ -80,11 +85,20 @@ namespace KoiSkinOverlayX
 
         private static void OverlayBlitImpl(Texture source, RenderTexture dest, Material mat, int pass, KoiSkinOverlayController overlayController, TexType overlayType)
         {
+            var overlays = overlayController.GetOverlayTextures(overlayType).ToList();
+            if (overlays.Count > 0)
+            {
             var trt = RenderTexture.GetTemporary(source.width, source.height, dest.depth, dest.format);
             Graphics.Blit(source, trt);
-            overlayController.ApplyOverlayToRT(trt, overlayType);
+                KoiSkinOverlayController.ApplyOverlays(trt, overlays);
             Graphics.Blit(trt, dest, mat, pass);
             RenderTexture.ReleaseTemporary(trt);
+        }
+            else
+            {
+                // Fall back to original code
+                Graphics.Blit(source, dest, mat, pass);
+            }
         }
 
         [HarmonyTranspiler, HarmonyPatch(typeof(CustomTextureCreate), nameof(CustomTextureCreate.RebuildTextureAndSetMaterial))]
