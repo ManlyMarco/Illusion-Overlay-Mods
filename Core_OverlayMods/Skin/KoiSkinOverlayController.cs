@@ -309,6 +309,9 @@ namespace KoiSkinOverlayX
                 case TexType.EyebrowUnder:
                     cc.ChangeSettingEyebrow();
                     break;
+                case TexType.EyelineUnder:
+                    cc.ChangeSettingEyelineUp();
+                    break;
                 default:
                     cc.AddUpdateCMBodyTexFlags(true, true, true, true, true);
                     cc.CreateBodyTexture();
@@ -316,6 +319,8 @@ namespace KoiSkinOverlayX
                     cc.CreateFaceTexture();
                     cc.ChangeSettingEye(true, true, true);
                     cc.ChangeSettingEyebrow();
+                    cc.ChangeSettingEyelineUp();
+                    //cc.ChangeSettingEyelineDown();
                     break;
             }
 #elif AI || HS2
@@ -346,6 +351,9 @@ namespace KoiSkinOverlayX
                 case TexType.EyebrowUnder:
                     cc.ChangeEyebrowKind();
                     break;
+                case TexType.EyelineUnder:
+                    cc.ChangeEyelashesKind();
+                    break;
                 default:
                     cc.AddUpdateCMBodyTexFlags(true, true, true, true);
                     cc.CreateBodyTexture();
@@ -353,6 +361,7 @@ namespace KoiSkinOverlayX
                     cc.CreateFaceTexture();
                     cc.ChangeEyesKind(2);
                     cc.ChangeEyebrowKind();
+                    cc.ChangeEyelashesKind();
                     break;
             }
 #endif
@@ -425,6 +434,13 @@ namespace KoiSkinOverlayX
                             break;
                         case TexType.EyebrowUnder:
                             if (lastStatus != TexType.EyebrowUnder)
+                            {
+                                lastStatus = TexType.Unknown;
+                                goto ExitLoop;
+                            }
+                            break;
+                        case TexType.EyelineUnder: //todo kk shadow overlay goes here if ever added
+                            if (lastStatus != TexType.EyelineUnder)
                             {
                                 lastStatus = TexType.Unknown;
                                 goto ExitLoop;

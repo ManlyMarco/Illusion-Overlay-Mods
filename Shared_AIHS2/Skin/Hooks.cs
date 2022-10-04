@@ -14,6 +14,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using AIChara;
 using HarmonyLib;
+using KKAPI.Utilities;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -125,6 +126,16 @@ namespace KoiSkinOverlayX
                     ApplyEyeUnderlays(controller, TexType.EyebrowUnder, mat, propertyID);
                 }
             }
+            else if (type == ChaListDefine.CategoryNo.st_eyelash)
+            {
+                if (__instance.cmpFace != null &&
+                    __instance.cmpFace.targetCustom.rendEyelashes != null &&
+                    __instance.cmpFace.targetCustom.rendEyelashes.material == mat)
+                {
+                    var controller = GetController(__instance);
+                    ApplyEyeUnderlays(controller, TexType.EyelineUnder, mat, propertyID);
+                }
+            }
         }
 
         private static KoiSkinOverlayController GetController(ChaControl instance)
@@ -145,7 +156,20 @@ namespace KoiSkinOverlayX
             if (underlays.Count > 0)
             {
                 var orig = material.GetTexture(propertyID);
-                var rt = Util.CreateRT(orig?.width ?? 512, orig?.height ?? 512);
+                int width, height;
+                if (orig != null)
+                {
+                    width = orig.width;
+                    height = orig.height;
+                }
+                else
+                {
+                    var recommendedTexSize = Util.GetRecommendedTexSize(texType);
+                    width = recommendedTexSize.Width;
+                    height = recommendedTexSize.Height;
+                }
+
+                var rt = Util.CreateRT(width, height);
                 KoiSkinOverlayController.ApplyOverlays(rt, underlays);
                 // Never destroy the original texture because game caches it, only overwrite
                 // bug memory leak, rt will be replaced next time iris is updated, will be cleaned up on next unloadunusedassets
@@ -182,7 +206,7 @@ namespace KoiSkinOverlayX
                 }
 
                 var size = Util.GetRecommendedTexSize(texType);
-                var rt = Util.CreateRT(size, size);
+                var rt = Util.CreateRT(size.Width, size.Height);
                 KoiSkinOverlayController.ApplyOverlays(rt, overlays);
                 ourMat.mainTexture = rt;
             }
