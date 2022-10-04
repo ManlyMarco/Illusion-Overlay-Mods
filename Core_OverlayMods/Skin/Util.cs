@@ -58,17 +58,37 @@ namespace KoiSkinOverlayX
             private static extern void ILFree(IntPtr pidl);
         }
 
-        public static int GetRecommendedTexSize(TexType texType)
+        public struct Size
+        {
+            public readonly int Width;
+            public readonly int Height;
+            public Size(int width, int height)
+            {
+                Width = width;
+                Height = height;
+            }
+            public Size(int size)
+            {
+                Width = size;
+                Height = size;
+            }
+            public override string ToString()
+            {
+                return Width + "x" + Height;
+            }
+        }
+
+        public static Size GetRecommendedTexSize(TexType texType)
         {
             switch (texType)
             {
 #if KK || KKS || EC
                 case TexType.BodyOver:
                 case TexType.BodyUnder:
-                    return 2048;
+                    return new Size(2048);
                 case TexType.FaceOver:
                 case TexType.FaceUnder:
-                    return 1024;
+                    return new Size(1024);
                 case TexType.EyeUnder:
                 case TexType.EyeOver:
                 case TexType.EyeUnderL:
@@ -76,21 +96,25 @@ namespace KoiSkinOverlayX
                 case TexType.EyeUnderR:
                 case TexType.EyeOverR:
                 case TexType.EyebrowUnder:
-                    return 512;
+                case TexType.EyelineUnder:
+                    return new Size(512);
 #elif AI || HS2
                 case TexType.BodyOver:
                 case TexType.BodyUnder:
                 case TexType.FaceOver:
                 case TexType.FaceUnder:
-                    return 4096;
+                    return new Size(4096);
                 case TexType.EyeUnder:
                 case TexType.EyeOver:
                 case TexType.EyeUnderL:
                 case TexType.EyeOverL:
                 case TexType.EyeUnderR:
                 case TexType.EyeOverR:
+                    return new Size(512);
                 case TexType.EyebrowUnder:
-                    return 512;
+                    return new Size(1024);
+                case TexType.EyelineUnder:
+                    return new Size(1024, 512);
 #endif
                 default:
                     throw new ArgumentOutOfRangeException(nameof(texType), texType, null);

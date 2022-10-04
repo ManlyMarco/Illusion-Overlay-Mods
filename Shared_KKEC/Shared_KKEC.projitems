@@ -16,11 +16,15 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)Resources\composite.shader" />
+    <None Include="$(MSBuildThisFileDirectory)Resources\eyeline.xcf" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Clothes\KoiClothesOverlayController.Hooks.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Clothes\KoiClothesOverlayGui.Hooks.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Clothes\MaskKind.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Skin\Hooks.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Resources\eyeline.png" />
   </ItemGroup>
 </Project>

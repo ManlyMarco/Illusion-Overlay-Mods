@@ -180,15 +180,21 @@ namespace KoiSkinOverlayX
 #if KK || KKS || EC
             var irisCategory = MakerConstants.Face.Iris;
             var eyeCategory = new MakerCategory(irisCategory.CategoryName, "tglEyeOverlayKSOX", irisCategory.Position + 5, "Eye Overlays");
-            var irisTemplateName = "Get iris overlay template";
+            const string irisTemplateName = "Get iris template";
+            const string eyelinerTemplateName = "Get eyeliner/eyebrow template";
 #else
             var eyeCategory = new MakerCategory(MakerConstants.Face.CategoryName, "overlayModIris", 11111, "Eye Overlays");
-            var irisTemplateName = "Get iris underlay template";
+            const string irisTemplateName = "Get iris underlay template";
+            const string eyelinerTemplateName = "Get eyelashes/eyeliner template";
 #endif
+
             e.AddSubCategory(eyeCategory);
 
             e.AddControl(new MakerButton(irisTemplateName, eyeCategory, owner))
                 .OnClick.AddListener(() => WriteAndOpenPng(ResourceUtils.GetEmbeddedResource("eye.png"), "Iris template"));
+
+            e.AddControl(new MakerButton(eyelinerTemplateName, eyeCategory, owner))
+                .OnClick.AddListener(() => WriteAndOpenPng(ResourceUtils.GetEmbeddedResource("eyeline.png"), "Eyeliner template"));
 
             AddConfigSettings(e, owner, eyeCategory, 1);
 
@@ -201,7 +207,11 @@ namespace KoiSkinOverlayX
             SetupTexControls(e, eyeCategory, owner, TexType.EyeUnder, "Iris underlay texture (Before coloring and effects)");
 
             e.AddControl(new MakerSeparator(eyeCategory, owner));
-            
+
+            SetupTexControls(e, eyeCategory, owner, TexType.EyelineUnder, "Eyelashes override texture (Before coloring and effects)");
+
+            e.AddControl(new MakerSeparator(eyeCategory, owner));
+
             SetupTexControls(e, eyeCategory, owner, TexType.EyebrowUnder, "Eyebrow override texture (Before coloring and effects)");
         }
 
@@ -269,7 +279,8 @@ namespace KoiSkinOverlayX
             e.AddControl(new MakerText(title, makerCategory, owner));
 
             var forceAllowBoth = false;
-            var bi = e.AddControl(new MakerImage(null, makerCategory, owner) { Height = 150, Width = 150 });
+            var size = Util.GetRecommendedTexSize(texType);
+            var bi = e.AddControl(new MakerImage(null, makerCategory, owner) { Width = Mathf.RoundToInt(150 * ((float)size.Width / size.Height)), Height = 150 });
             _textureChanged.Subscribe(
                 d =>
                 {
@@ -395,8 +406,8 @@ namespace KoiSkinOverlayX
                     var tex = Util.TextureFromBytes(_bytesToLoad, TextureFormat.ARGB32);
 
                     var recommendedSize = Util.GetRecommendedTexSize(_typeToLoad);
-                    if (tex.width != tex.height || tex.height != recommendedSize)
-                        Logger.LogMessage($"WARNING - Unusual texture resolution! It's recommended to use {recommendedSize}x{recommendedSize} for {_typeToLoad}.");
+                    if (tex.width != recommendedSize.Width || tex.height != recommendedSize.Height)
+                        Logger.LogMessage($"WARNING - Unusual texture resolution! It's recommended to use {recommendedSize} for {_typeToLoad}.");
                     else
                         Logger.LogMessage("Texture imported successfully");
 

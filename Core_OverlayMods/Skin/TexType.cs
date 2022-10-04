@@ -20,10 +20,15 @@
         EyeOverL = 8,
         EyeUnderR = 9,
         EyeOverR = 10,
-        
+
         /// <summary>
         /// There's no EyebrowOver because it's effectively the same as FaceOver
         /// </summary>
         EyebrowUnder = 20,
+        
+        /// <summary>
+        /// There's no up/down separation because it's effectively the same texture in KK. Also, there is no up/down separation in HS2 at all.
+        /// </summary>
+        EyelineUnder = 30,
     }
 }

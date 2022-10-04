@@ -12,7 +12,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using ExtensibleSaveFormat;
 using HarmonyLib;
 using UnityEngine;
 
@@ -22,10 +21,12 @@ namespace KoiSkinOverlayX
     {
         public static void Init()
         {
-            Harmony.CreateAndPatchAll(typeof(Hooks), nameof(KoiSkinOverlayMgr.GUID));
+            var hi = Harmony.CreateAndPatchAll(typeof(Hooks), nameof(KoiSkinOverlayMgr.GUID));
+            hi.Patch(typeof(ChaControl).GetMethods(AccessTools.allDeclared).Single(x => x.Name == nameof(ChaControl.ChangeTexture) && x.GetParameters()[0].ParameterType == typeof(Material)),
+                     postfix: new HarmonyMethod(typeof(Hooks), nameof(Hooks.ChangeTextureHook)));
 
 #if KKS
-            ExtendedSave.CardBeingImported += (data, mapping) =>
+            ExtensibleSaveFormat.ExtendedSave.CardBeingImported += (data, mapping) =>
             {
                 if (data.TryGetValue(KoiSkinOverlayMgr.GUID, out var pluginData) && pluginData != null)
                     OverlayStorage.ImportFromKK(pluginData, mapping);
@@ -102,7 +103,7 @@ namespace KoiSkinOverlayX
         }
 
         [HarmonyTranspiler, HarmonyPatch(typeof(CustomTextureCreate), nameof(CustomTextureCreate.RebuildTextureAndSetMaterial))]
-        public static IEnumerable<CodeInstruction> tpl_CustomTextureCreate_RebuildTextureAndSetMaterial(IEnumerable<CodeInstruction> _instructions)
+        private static IEnumerable<CodeInstruction> tpl_CustomTextureCreate_RebuildTextureAndSetMaterial(IEnumerable<CodeInstruction> _instructions)
         {
             foreach (var instruction in _instructions)
             {
@@ -120,30 +121,66 @@ namespace KoiSkinOverlayX
             }
         }
 
-        [HarmonyPostfix]
-        [HarmonyWrapSafe]
-        [HarmonyPatch(typeof(ChaControl), nameof(ChaControl.ChangeSettingEyebrow))]
-        private static void ChangeEyebrowTexPostfix(ChaControl __instance)
+        private static void ChangeTextureHook(ChaControl __instance, Material mat, ChaListDefine.CategoryNo type, int propertyID)
         {
-            var rendEyebrow = __instance.rendEyebrow;
-            if (rendEyebrow != null)
+            // mt_eyeline_up covers the bottom part as well, so making a mt_eyeline_down overlay is unnecessary
+            if (type == ChaListDefine.CategoryNo.mt_eyeline_up)
             {
-                var material = rendEyebrow.material;
-                if (material != null)
+                var rend = __instance.rendEyelineUp;
+                // todo EyelineShadowTex is materials[1], add an overlay for that as well or is it redundant?
+                if (rend != null && rend.materials[0] == mat)
                 {
-                    var controller = __instance.GetComponent<KoiSkinOverlayController>();
-                    var underlays = controller.GetOverlayTextures(TexType.EyebrowUnder).ToList();
-                    if (underlays.Count > 0)
-                    {
-                        var orig = material.GetTexture(ChaShader._MainTex);
-                        var rt = Util.CreateRT(orig?.width ?? 512, orig?.height ?? 512);
-                        KoiSkinOverlayController.ApplyOverlays(rt, underlays);
-                        material.SetTexture(ChaShader._MainTex, rt);
-                    }
-                    return;
+                    var controller = GetController(__instance);
+                    ApplyEyeUnderlays(controller, TexType.EyelineUnder, mat, propertyID);
                 }
             }
-            KoiSkinOverlayMgr.Logger.LogError(__instance.name + " eyebrow renderer or material is null, can't apply overlays!");
+            else if (type == ChaListDefine.CategoryNo.mt_eyebrow)
+            {
+                if (__instance.rendEyebrow != null && __instance.rendEyebrow.material == mat)
+                {
+                    var controller = GetController(__instance);
+                    ApplyEyeUnderlays(controller, TexType.EyebrowUnder, mat, propertyID);
+                }
+            }
+        }
+
+        private static KoiSkinOverlayController GetController(ChaControl instance)
+        {
+            var controller = instance.GetComponent<KoiSkinOverlayController>();
+            if (controller == null)
+            {
+                KoiSkinOverlayMgr.Logger.LogWarning("No KoiSkinOverlayController found on character " + instance.fileParam.fullname);
+                return null;
+            }
+
+            return controller;
+        }
+
+        private static void ApplyEyeUnderlays(KoiSkinOverlayController controller, TexType texType, Material material, int propertyID)
+        {
+            var underlays = controller.GetOverlayTextures(texType).ToList();
+            if (underlays.Count > 0)
+            {
+                var orig = material.GetTexture(propertyID);
+                int width, height;
+                if (orig != null)
+                {
+                    width = orig.width;
+                    height = orig.height;
+                }
+                else
+                {
+                    var recommendedTexSize = Util.GetRecommendedTexSize(texType);
+                    width = recommendedTexSize.Width;
+                    height = recommendedTexSize.Height;
+                }
+
+                var rt = Util.CreateRT(width, height);
+                KoiSkinOverlayController.ApplyOverlays(rt, underlays);
+                // Never destroy the original texture because game caches it, only overwrite
+                // bug memory leak, rt will be replaced next time iris is updated, will be cleaned up on next unloadunusedassets
+                material.SetTexture(propertyID, rt);
+            }
         }
     }
 }
