@@ -14,7 +14,6 @@ using System.Reflection;
 using System.Reflection.Emit;
 using AIChara;
 using HarmonyLib;
-using KKAPI.Utilities;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -38,21 +37,17 @@ namespace KoiSkinOverlayX
             if (dest == null) throw new System.ArgumentNullException(nameof(dest));
             if (mat == null) throw new System.ArgumentNullException(nameof(mat));
 
-            var overlay = instance.trfParent?.GetComponent<KoiSkinOverlayController>();
-            if (overlay != null)
+            var controller = instance.trfParent?.GetComponent<KoiSkinOverlayController>();
+            if (controller != null)
             {
-                if (overlay.ChaControl.customTexCtrlFace?.createCustomTex?.Contains(instance) == true)
+                if (controller.ChaControl.customTexCtrlFace?.createCustomTex?.Contains(instance) == true)
                 {
-                    OverlayBlitImpl(source, dest, mat, pass, overlay, TexType.FaceUnder);
-                    var overlays = overlay.GetOverlayTextures(TexType.FaceOver).ToList();
-                    if (overlays.Count > 0) KoiSkinOverlayController.ApplyOverlays(dest, overlays);
+                    OverlayBlitImpl(source, dest, mat, pass, controller, TexType.FaceUnder, TexType.FaceOver);
                     return;
                 }
-                if (overlay.ChaControl.customTexCtrlBody?.createCustomTex?.Contains(instance) == true)
+                if (controller.ChaControl.customTexCtrlBody?.createCustomTex?.Contains(instance) == true)
                 {
-                    OverlayBlitImpl(source, dest, mat, pass, overlay, TexType.BodyUnder);
-                    var overlays = overlay.GetOverlayTextures(TexType.BodyOver).ToList();
-                    if (overlays.Count > 0) KoiSkinOverlayController.ApplyOverlays(dest, overlays);
+                    OverlayBlitImpl(source, dest, mat, pass, controller, TexType.BodyUnder, TexType.BodyOver);
                     return;
                 }
             }
@@ -61,14 +56,39 @@ namespace KoiSkinOverlayX
             Graphics.Blit(source, dest, mat, pass);
         }
 
-        private static void OverlayBlitImpl(Texture source, RenderTexture dest, Material mat, int pass, KoiSkinOverlayController overlayController, TexType overlayType)
+        private static void OverlayBlitImpl(Texture source, RenderTexture dest, Material mat, int pass, KoiSkinOverlayController controller, TexType underlayType, TexType overlayType)
         {
-            var overlays = overlayController.GetOverlayTextures(overlayType).ToList();
-            if (overlays.Count > 0)
+            var underlays = controller.GetOverlayTextures(underlayType).ToList();
+            var overlays = controller.GetOverlayTextures(overlayType).ToList();
+            var anyUnderlays = underlays.Count > 0;
+            var anyOverlays = overlays.Count > 0;
+
+            // Increase/decrease output texture size if needed to accomodate large overlays
+            if (KoiSkinOverlayMgr.SizeLimit.Value != KoiSkinOverlayMgr.TextureSizeLimit.Original && (anyUnderlays || anyOverlays))
             {
+                var outSize = KoiSkinOverlayMgr.GetOutputSize(type: underlayType,
+                                                              original: dest,
+                                                              maxWidth: underlays.Concat(overlays).Max(x => x.width),
+                                                              maxHeight: underlays.Concat(overlays).Max(x => x.height));
+                if (dest.width != outSize.Width)
+                {
+                    KoiSkinOverlayMgr.Logger.LogDebug($"Changing dest texture size from {dest.width}x{dest.height} to {outSize}");
+                    dest.Release();
+                    dest.width = outSize.Width;
+                    dest.height = outSize.Height;
+                    dest.Create();
+                    Graphics.SetRenderTarget(dest);
+                    GL.Clear(false, true, Color.clear);
+                    Graphics.SetRenderTarget(null);
+                }
+            }
+
+            if (anyUnderlays)
+            {
+                //todo get size, set RT size as needed, might need a gl clear if size did change
                 var trt = RenderTexture.GetTemporary(source.width, source.height, dest.depth, dest.format);
                 Graphics.Blit(source, trt);
-                KoiSkinOverlayController.ApplyOverlays(trt, overlays);
+                KoiSkinOverlayController.ApplyOverlays(trt, underlays);
                 Graphics.Blit(trt, dest, mat, pass);
                 RenderTexture.ReleaseTemporary(trt);
             }
@@ -77,6 +97,9 @@ namespace KoiSkinOverlayX
                 // Fall back to original code
                 Graphics.Blit(source, dest, mat, pass);
             }
+
+            if (anyOverlays) 
+                KoiSkinOverlayController.ApplyOverlays(dest, overlays);
         }
 
         [HarmonyTranspiler, HarmonyPatch(typeof(CustomTextureCreate), nameof(CustomTextureCreate.RebuildTextureAndSetMaterial))]
@@ -156,20 +179,8 @@ namespace KoiSkinOverlayX
             if (underlays.Count > 0)
             {
                 var orig = material.GetTexture(propertyID);
-                int width, height;
-                if (orig != null)
-                {
-                    width = orig.width;
-                    height = orig.height;
-                }
-                else
-                {
-                    var recommendedTexSize = Util.GetRecommendedTexSize(texType);
-                    width = recommendedTexSize.Width;
-                    height = recommendedTexSize.Height;
-                }
-
-                var rt = Util.CreateRT(width, height);
+                var size = KoiSkinOverlayMgr.GetOutputSize(texType, orig, underlays.Max(x => x.width), underlays.Max(x => x.height));
+                var rt = Util.CreateRT(size);
                 KoiSkinOverlayController.ApplyOverlays(rt, underlays);
                 // Never destroy the original texture because game caches it, only overwrite
                 // bug memory leak, rt will be replaced next time iris is updated, will be cleaned up on next unloadunusedassets
@@ -205,8 +216,8 @@ namespace KoiSkinOverlayX
                     Object.Destroy(ourMat.mainTexture);
                 }
 
-                var size = Util.GetRecommendedTexSize(texType);
-                var rt = Util.CreateRT(size.Width, size.Height);
+                var size = KoiSkinOverlayMgr.GetOutputSize(texType, null, overlays.Max(x => x.width), overlays.Max(x => x.height));
+                var rt = Util.CreateRT(size);
                 KoiSkinOverlayController.ApplyOverlays(rt, overlays);
                 ourMat.mainTexture = rt;
             }
