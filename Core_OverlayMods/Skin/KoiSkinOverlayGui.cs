@@ -406,12 +406,13 @@ namespace KoiSkinOverlayX
                     var tex = Util.TextureFromBytes(_bytesToLoad, TextureFormat.ARGB32);
 
                     var recommendedSize = Util.GetRecommendedTexSize(_typeToLoad);
-                    if (tex.width != recommendedSize.Width || tex.height != recommendedSize.Height)
-                        Logger.LogMessage($"WARNING - Unusual texture resolution! It's recommended to use {recommendedSize} for {_typeToLoad}.");
-                    else
+                    if ((tex.width == recommendedSize.Width && tex.height == recommendedSize.Height) ||
+                        (tex.width == recommendedSize.Width * 2 && tex.height == recommendedSize.Height * 2))
                         Logger.LogMessage("Texture imported successfully");
+                    else
+                        Logger.LogMessage($"WARNING - Unusual texture resolution! It's recommended to use {recommendedSize} for {_typeToLoad}.");
 
-                    SetTexAndUpdate(tex.EncodeToPNG(), _typeToLoad);  //todo see if original is smaller size?
+                    SetTexAndUpdate(tex.EncodeToPNG(), _typeToLoad);
                 }
                 catch (Exception ex)
                 {
