@@ -564,21 +564,38 @@ namespace KoiClothesOverlayX
 
         private void CleanupTextureList()
         {
+#if KK || KKS
+            CleanupTextureList(_allOverlayTextures, ChaControl.chaFile.coordinate.Length);
+#else
             CleanupTextureList(_allOverlayTextures);
+#endif
         }
 
-        private static void CleanupTextureList(Dictionary<CoordinateType, Dictionary<string, ClothesTexData>> allOverlayTextures)
+        private static void CleanupTextureList(Dictionary<CoordinateType, Dictionary<string, ClothesTexData>> allOverlayTextures, int coordinateCount = 999)
         {
             if (allOverlayTextures == null) return;
 
-            foreach (var group in allOverlayTextures.Values)
+            foreach (var group in allOverlayTextures.ToList())
             {
-                foreach (var texture in group.Where(x => x.Value.IsEmpty()).ToList())
-                    group.Remove(texture.Key);
-            }
+#if KK || KKS
+                // Handle coords being added and removed
+                if ((int)group.Key >= coordinateCount)
+                {
+                    allOverlayTextures.Remove(group.Key);
+                }
+                else
+#endif
+                {
+                    foreach (var texture in group.Value.ToList())
+                    {
+                        if (texture.Value.IsEmpty()) 
+                            group.Value.Remove(texture.Key);
+                    }
 
-            foreach (var group in allOverlayTextures.Where(x => !x.Value.Any()).ToList())
-                allOverlayTextures.Remove(group.Key);
+                    if (group.Value.Count == 0)
+                        allOverlayTextures.Remove(group.Key);
+                }
+            }
         }
 
         private void DumpBaseTextureImpl(Renderer[][] rendererArrs)
