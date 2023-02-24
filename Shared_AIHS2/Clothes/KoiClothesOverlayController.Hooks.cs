@@ -13,6 +13,17 @@ namespace KoiClothesOverlayX
             public static void Init()
             {
                 Harmony.CreateAndPatchAll(typeof(Hooks), nameof(KoiClothesOverlayController));
+
+                // bug: Something related to overlay mod causes body masks to get messed up in studio on scene load even if chara doesn't use overlays.
+                //      It's hard to pinpoint what causes it, could be caused by another plugin. This is a band aid fix to the issue, seems to work fine.
+                KKAPI.Studio.SaveLoad.StudioSaveLoadApi.SceneLoad += (sender, args) =>
+                {
+                    foreach (var cl in UnityEngine.Object.FindObjectsOfType<KoiClothesOverlayController>())
+                    {
+                        cl.ChaControl.updateAlphaMask = true;
+                        cl.ChaControl.updateAlphaMask2 = true;
+                    }
+                };
             }
 
             #region Main tex overlays
