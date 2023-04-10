@@ -229,10 +229,14 @@ namespace KoiClothesOverlayX
                 // MainClothesNames is the same as ChaFileDefine.ClothesKind so index lines up
                 var copySlots = KoiClothesOverlayMgr.MainClothesNames.Where((x, i) => ___tglKind[i].isOn).ToList();
 
-                // SubClothesNames is the same as ChaFileDefine.ClothesSubKind so index lines up
+                // Top clothes are on
                 if (___tglKind[0].isOn)
                 {
-                    // If Top is on, check which parts of it should be copied
+                    // Copy body/bra masks
+                    copySlots.AddRange(Enum.GetNames(typeof(MaskKind)));
+
+                    // Check which sub parts of top should be copied
+                    // SubClothesNames is the same as ChaFileDefine.ClothesSubKind so index lines up
                     // bug? These toggles don't seem to be doing anything in the game, if top is selected then everything is always copied regardless of these toggles
                     // copySlots.AddRange(KoiClothesOverlayMgr.SubClothesNames.Where((x, i) => ___tglSubKind[i].isOn));
                     copySlots.AddRange(KoiClothesOverlayMgr.SubClothesNames);
