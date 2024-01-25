@@ -604,18 +604,13 @@ namespace KoiClothesOverlayX
             try
             {
                 var renderer = GetApplicableRenderers(rendererArrs).FirstOrDefault();
-                var renderTexture = (RenderTexture)renderer?.material?.mainTexture;
+                var texture = renderer?.material?.mainTexture;
 
-                if (renderTexture == null)
+                if (texture == null)
                     throw new Exception("There are no renderers or textures to dump");
 
-                RenderTexture.active = renderTexture;
-
-                var tex = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.ARGB32, false);
-                tex.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
-
+                var tex = texture.ToTexture2D();
                 var png = tex.EncodeToPNG();
-
                 Destroy(tex);
 
                 _dumpCallback(png);
