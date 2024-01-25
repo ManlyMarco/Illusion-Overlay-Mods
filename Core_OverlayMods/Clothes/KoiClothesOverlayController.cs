@@ -609,6 +609,7 @@ namespace KoiClothesOverlayX
                 if (texture == null)
                     throw new Exception("There are no renderers or textures to dump");
 
+                // Fix being unable to save some texture formats with EncodeToPNG
                 var tex = texture.ToTexture2D();
                 var png = tex.EncodeToPNG();
                 Destroy(tex);
