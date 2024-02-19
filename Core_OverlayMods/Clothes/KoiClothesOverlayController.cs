@@ -37,6 +37,7 @@ namespace KoiClothesOverlayX
 
         private Action<byte[]> _dumpCallback;
         private string _dumpClothesId;
+        private int _delayRefreshAllTexturesCo = 0; //Number of frames to delay RefreshAllTextures calls from coroutines.
 
 #if !EC
         public bool EnableInStudio { get; set; } = true;
@@ -419,7 +420,7 @@ namespace KoiClothesOverlayX
                 _allOverlayTextures = new Dictionary<CoordinateType, Dictionary<string, ClothesTexData>>();
 
             if (anyPrevious || _allOverlayTextures.Any())
-                StartCoroutine(RefreshAllTexturesCo());
+                KickRefreshAllTexturesCo();
         }
 
         private static void SetOverlayExtData(Dictionary<CoordinateType, Dictionary<string, ClothesTexData>> allOverlayTextures, PluginData data)
@@ -495,12 +496,22 @@ namespace KoiClothesOverlayX
                 }
             }
 
-            StartCoroutine(RefreshAllTexturesCo());
+            KickRefreshAllTexturesCo();
+        }
+
+        private void KickRefreshAllTexturesCo()
+        {
+            //If it is being delayed, the call will not be made.
+            if (_delayRefreshAllTexturesCo <= 0)
+                StartCoroutine(RefreshAllTexturesCo());
+
+            _delayRefreshAllTexturesCo = 3;
         }
 
         private IEnumerator RefreshAllTexturesCo()
         {
-            yield return null;
+            while( --_delayRefreshAllTexturesCo > 0 )
+                yield return null;
             RefreshAllTextures();
         }
 
