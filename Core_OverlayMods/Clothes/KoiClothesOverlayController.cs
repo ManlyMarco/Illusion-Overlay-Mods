@@ -510,7 +510,8 @@ namespace KoiClothesOverlayX
 
         private IEnumerator RefreshAllTexturesCo()
         {
-            while( --_delayRefreshAllTexturesCo > 0 )
+            yield return null;
+            while ( --_delayRefreshAllTexturesCo > 0 )
                 yield return null;
             RefreshAllTextures();
         }
