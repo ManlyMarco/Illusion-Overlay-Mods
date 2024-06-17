@@ -2,7 +2,7 @@
 {
     internal static class Metadata
     {
-        public const string Version = "6.1.4";
+        public const string Version = "6.1.5";
         public const string GUID_KSOX = "KSOX";
         public const string GUID_KCOX = "KCOX";
     }
