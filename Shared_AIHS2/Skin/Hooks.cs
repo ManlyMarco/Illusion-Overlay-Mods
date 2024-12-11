@@ -40,12 +40,12 @@ namespace KoiSkinOverlayX
             var controller = instance.trfParent?.GetComponent<KoiSkinOverlayController>();
             if (controller != null)
             {
-                if (controller.ChaControl.customTexCtrlFace?.createCustomTex?.Contains(instance) == true)
+                if (controller.ChaControl.customTexCtrlFace?.createCustomTex?.FirstorDefault() == instance)
                 {
                     OverlayBlitImpl(source, dest, mat, pass, controller, TexType.FaceUnder, TexType.FaceOver);
                     return;
                 }
-                if (controller.ChaControl.customTexCtrlBody?.createCustomTex?.Contains(instance) == true)
+                if (controller.ChaControl.customTexCtrlBody?.createCustomTex?.FirstorDefault() == instance)
                 {
                     OverlayBlitImpl(source, dest, mat, pass, controller, TexType.BodyUnder, TexType.BodyOver);
                     return;
