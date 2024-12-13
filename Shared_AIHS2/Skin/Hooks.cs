@@ -40,8 +40,8 @@ namespace KoiSkinOverlayX
             var controller = instance.trfParent?.GetComponent<KoiSkinOverlayController>();
             if (controller != null)
             {
-				// The albedo CustomTextureCreate will always be the first element in a CustomTextureControl's createCustomTex array
-				if (controller.ChaControl.customTexCtrlFace?.createCustomTex[0] == instance)
+                    // The albedo CustomTextureCreate will always be the first element in a CustomTextureControl's createCustomTex array
+                    if (controller.ChaControl.customTexCtrlFace?.createCustomTex[0] == instance)
                 {
                     OverlayBlitImpl(source, dest, mat, pass, controller, TexType.FaceUnder, TexType.FaceOver);
                     return;
