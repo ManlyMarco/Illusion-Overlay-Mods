@@ -231,23 +231,32 @@ namespace KoiClothesOverlayX
                     for (int i = 0; i < 3; i++)
                     {
                         var tex = controller.GetOverlayTex(clothesId, false)?.Texture;
-                        KoiSkinOverlayMgr.Logger.LogInfo(clothesId);
                         KoiSkinOverlayMgr.Logger.LogInfo(tex == null);
                         if (tex != null)
                         {
                             if (main && __instance.ctCreateClothes[parts, i] != null)
                             {
                                 __instance.ctCreateClothes[parts, i].SetTexture(ChaShader._ColorMask, tex);
-                                KoiSkinOverlayMgr.Logger.LogInfo($"Kind: {parts} - Main: {main} - {i}");
+
+                                __instance.GetCustomClothesComponent(parts).useColorN01 = true;
+                                __instance.GetCustomClothesComponent(parts).useColorN02 = true;
+                                __instance.GetCustomClothesComponent(parts).useColorN03 = true;
                             }
                             else if (__instance.ctCreateClothesSub[parts, i] != null)
                             {
                                 __instance.ctCreateClothesSub[parts, i].SetTexture(ChaShader._ColorMask, tex);
-                                KoiSkinOverlayMgr.Logger.LogInfo($"Kind: {parts} - Main: {main} - {i}");
+
+                                foreach (var clothesComponent in __instance.cusClothesSubCmp)
+                                {
+                                    if (clothesComponent != null)
+                                    {
+                                        clothesComponent.useColorN01 = true;
+                                        clothesComponent.useColorN02 = true;
+                                        clothesComponent.useColorN03 = true;
+                                    }
+                                }
                             }
-                            __instance.GetCustomClothesComponent(parts).useColorN01 = true;
-                            __instance.GetCustomClothesComponent(parts).useColorN02 = true;
-                            __instance.GetCustomClothesComponent(parts).useColorN03 = true;
+                            KoiClothesOverlayGui.RefreshMenuColors(parts);
                         }
                     }
                 }

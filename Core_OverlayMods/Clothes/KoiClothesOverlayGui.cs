@@ -108,6 +108,21 @@ namespace KoiClothesOverlayX
             _instance.StartCoroutine(RefreshInterfaceCo(category));
         }
 
+        internal static void RefreshMenuColors(int parts)
+        {
+            if (!MakerAPI.InsideMaker) return;
+
+#if KK || KKS || EC
+            var topObject = GameObject.Find("CustomScene/CustomRoot/FrontUIGroup/CustomUIGroup/CvsMenuTree");
+            if (topObject != null)
+            {
+                var components = topObject.GetComponentsInChildren<ChaCustom.CvsClothes>();
+                foreach (var component in components)
+                    component.ChangeUseColorVisible();
+            }
+#endif
+        }
+
         private static IEnumerator RefreshInterfaceCo(string category)
         {
             _texChangeWatcher?.Dispose();
