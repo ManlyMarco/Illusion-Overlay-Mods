@@ -74,7 +74,7 @@ namespace KoiClothesOverlayX
             return dict;
         }
 
-        public void DumpBaseTexture(string clothesId, Action<byte[]> callback)
+        public void DumpBaseTexture(string clothesId, Action<byte[]> callback, int? kind = null)
         {
 #if KK || KKS || EC
             if (IsMaskKind(clothesId))
@@ -90,6 +90,29 @@ namespace KoiClothesOverlayX
                     var t = tex.ToTexture2D();
                     var bytes = t.EncodeToPNG();
                     Destroy(t);
+                    callback(bytes);
+                }
+                catch (Exception e)
+                {
+                    KoiSkinOverlayMgr.Logger.LogMessage("Dumping texture failed - " + e.Message);
+                    KoiSkinOverlayMgr.Logger.LogDebug(e);
+                }
+            }
+            else if (kind != null)
+            {
+                try
+                {
+                    var listInfo = ChaControl.infoClothes[(int)kind];
+                    var manifest = listInfo.GetInfo(ChaListDefine.KeyType.MainManifest);
+                    var texString = listInfo.GetInfo(ChaListDefine.KeyType.ColorMaskTex);
+                    var ab = listInfo.GetInfo(ChaListDefine.KeyType.ColorMaskAB);
+                    ab = ab == "0" ? listInfo.GetInfo(ChaListDefine.KeyType.MainAB) : ab;
+                    var tex = CommonLib.LoadAsset<Texture2D>(ab, texString, false, manifest);
+
+                    var t = tex.ToTexture2D();
+                    var bytes = t.EncodeToPNG();
+                    Destroy(t);
+                    Destroy(tex);
                     callback(bytes);
                 }
                 catch (Exception e)

@@ -135,10 +135,14 @@ namespace KoiClothesOverlayX
 
             // Either the 3 subs will be visible or the one main. 1st separator is made by the API
             SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[0], "Overlay textures (Piece 1)");
+            SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[0], "Color mask (Piece 1)", true, 0, 0);
             SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[1], "Overlay textures (Piece 2)", true);
+            SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[1], "Color mask (Piece 2)", true, 0, 1);
             SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[2], "Overlay textures (Piece 3)", true);
+            SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[2], "Color mask (Piece 3)", true, 0, 2);
 
             SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.MainClothesNames[0]);
+            SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.MainClothesNames[0], "Color mask", true, 0);
 
             SetupTexControls(e, makerCategory, owner, MaskKind.BodyMask.ToString(), "Body alpha mask", true);
             SetupTexControls(e, makerCategory, owner, MaskKind.InnerMask.ToString(), "Inner clothes alpha mask", true);
@@ -167,9 +171,15 @@ namespace KoiClothesOverlayX
                 var pair = cats[index];
                 var cat = MakerConstants.GetBuiltInCategory("03_ClothesTop", pair.Key);
                 SetupTexControls(e, cat, owner, pair.Value);
-            }
+#if KK
+                SetupTexControls(e, cat, owner, pair.Value, "Color mask", true, index + 1);
 #else
-            var cat = new MakerCategory(MakerConstants.Clothes.CategoryName, "Clothes Overlays");
+                SetupTexControls(e, cat, owner, pair.Value, "Color mask", true, index == 6 ? index + 2 : index + 1);
+#endif
+            }
+
+#else
+                var cat = new MakerCategory(MakerConstants.Clothes.CategoryName, "Clothes Overlays");
             e.AddSubCategory(cat);
             var cats = new[]
             {
@@ -195,22 +205,23 @@ namespace KoiClothesOverlayX
 #endif
         }
 
-        private void SetupTexControls(RegisterCustomControlsEvent e, MakerCategory makerCategory, BaseUnityPlugin owner, string clothesId, string title = "Overlay textures", bool addSeparator = false)
+        private void SetupTexControls(RegisterCustomControlsEvent e, MakerCategory makerCategory, BaseUnityPlugin owner, string clothesId, string title = "Overlay textures", bool addSeparator = false, int? kindId = null, int? subPartId = null)
         {
             var isMask = KoiClothesOverlayController.IsMaskKind(clothesId); // todo false in ai hs
             var texType = isMask ? "override texture" : "overlay texture";
+            texType = kindId == null ? "override texture" : texType;
 
             var controlSeparator = addSeparator ? e.AddControl(new MakerSeparator(makerCategory, owner)) : null;
 
             var controlTitle = e.AddControl(new MakerText(title, makerCategory, owner));
 
             var controlGen = e.AddControl(new MakerButton("Dump original texture", makerCategory, owner));
-            controlGen.OnClick.AddListener(() => GetOverlayController().DumpBaseTexture(clothesId, b => KoiSkinOverlayGui.WriteAndOpenPng(b, clothesId + "_Original")));
+            controlGen.OnClick.AddListener(() => GetOverlayController().DumpBaseTexture(clothesId, b => KoiSkinOverlayGui.WriteAndOpenPng(b, clothesId + "_Original"), kindId));
 
             var controlImage = e.AddControl(new MakerImage(null, makerCategory, owner) { Height = 150, Width = 150 });
 
             MakerToggle controlOverride = null;
-            if (!isMask)
+            if (!isMask && kindId == null)
             {
                 controlOverride = e.AddControl(new MakerToggle(makerCategory, "Hide base texture", owner));
                 controlOverride.ValueChanged.Subscribe(
