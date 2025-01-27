@@ -402,6 +402,7 @@ namespace KoiClothesOverlayX
 
         public void RefreshTexture(string texType)
         {
+            var isColormask = IsColormask(texType);
             texType = GetRealClothesId(texType);
             if (IsMaskKind(texType))
             {
@@ -414,6 +415,8 @@ namespace KoiClothesOverlayX
                 var i = Array.FindIndex(ChaControl.objClothes, x => x != null && x.name == texType);
                 if (i >= 0)
                 {
+                    if (isColormask)
+                        ChaControl.InitBaseCustomTextureClothes(true, i);
                     ChaControl.ChangeCustomClothes(true, i, true, false, false, false, false);
                     return;
                 }
@@ -421,6 +424,8 @@ namespace KoiClothesOverlayX
                 i = Array.FindIndex(ChaControl.objParts, x => x != null && x.name == texType);
                 if (i >= 0)
                 {
+                    if (isColormask)
+                        ChaControl.InitBaseCustomTextureClothes(false, i);
                     ChaControl.ChangeCustomClothes(false, i, true, false, false, false, false);
                     return;
                 }
