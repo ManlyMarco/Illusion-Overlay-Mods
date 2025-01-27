@@ -223,7 +223,6 @@ namespace KoiClothesOverlayX
 
         private void SetupTexControls(RegisterCustomControlsEvent e, MakerCategory makerCategory, BaseUnityPlugin owner, string clothesId, string title = "Overlay textures", bool addSeparator = false, string colormaskId = null)
         {
-            KoiSkinOverlayMgr.Logger.LogInfo($"{clothesId} - {colormaskId} - {title}");
             var isMask = KoiClothesOverlayController.IsMaskKind(clothesId); // todo false in ai hs
             var texType = isMask ? "override texture" : "overlay texture";
             texType = colormaskId != null ? "override texture" : texType;

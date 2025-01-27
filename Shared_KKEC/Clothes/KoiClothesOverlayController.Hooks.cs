@@ -238,6 +238,7 @@ namespace KoiClothesOverlayX
                             {
                                 __instance.ctCreateClothes[parts, i].SetTexture(ChaShader._ColorMask, tex);
 
+                                // Since a custom color mask is now used, enable all color fields to actually make full use of it.
                                 __instance.GetCustomClothesComponent(parts).useColorN01 = true;
                                 __instance.GetCustomClothesComponent(parts).useColorN02 = true;
                                 __instance.GetCustomClothesComponent(parts).useColorN03 = true;
@@ -256,6 +257,7 @@ namespace KoiClothesOverlayX
                                     }
                                 }
                             }
+                            // Reflect changed UseColors 
                             KoiClothesOverlayGui.RefreshMenuColors(parts);
                         }
                     }
