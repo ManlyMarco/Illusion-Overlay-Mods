@@ -219,7 +219,8 @@ namespace KoiClothesOverlayX
 
             #region Colormasks
             [HarmonyPostfix]
-            [HarmonyPatch(typeof(ChaControl), "InitBaseCustomTextureClothes")]
+            [HarmonyWrapSafe]
+            [HarmonyPatch(typeof(ChaControl), nameof(ChaControl.InitBaseCustomTextureClothes))]
             public static void ColormaskHook(ChaControl __instance, bool main, int parts)
             {
                 var clothesId = GetClothesIdFromKind(main, parts);
@@ -231,10 +232,9 @@ namespace KoiClothesOverlayX
                     for (int i = 0; i < 3; i++)
                     {
                         var tex = controller.GetOverlayTex(clothesId, false)?.Texture;
-                        KoiSkinOverlayMgr.Logger.LogInfo(tex == null);
                         if (tex != null)
                         {
-                            if (main && __instance.ctCreateClothes[parts, i] != null)
+                            if (main && parts < __instance.ctCreateClothes.GetLength(0) && i < __instance.ctCreateClothes.GetLength(1) && __instance.ctCreateClothes[parts, i] != null)
                             {
                                 __instance.ctCreateClothes[parts, i].SetTexture(ChaShader._ColorMask, tex);
 
@@ -242,7 +242,7 @@ namespace KoiClothesOverlayX
                                 __instance.GetCustomClothesComponent(parts).useColorN02 = true;
                                 __instance.GetCustomClothesComponent(parts).useColorN03 = true;
                             }
-                            else if (__instance.ctCreateClothesSub[parts, i] != null)
+                            else if (parts < __instance.ctCreateClothesSub.GetLength(0) && i < __instance.ctCreateClothesSub.GetLength(1) && __instance.ctCreateClothesSub[parts, i] != null)
                             {
                                 __instance.ctCreateClothesSub[parts, i].SetTexture(ChaShader._ColorMask, tex);
 
