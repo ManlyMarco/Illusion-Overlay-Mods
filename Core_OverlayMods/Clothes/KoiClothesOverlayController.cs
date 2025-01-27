@@ -10,6 +10,8 @@ using MessagePack;
 using UnityEngine;
 using ExtensibleSaveFormat;
 using KKAPI.Utilities;
+using System.Text.RegularExpressions;
+
 #if KK || KKS
 using CoordinateType = ChaFileDefine.CoordinateType;
 using KKAPI.Studio;
@@ -74,7 +76,7 @@ namespace KoiClothesOverlayX
             return dict;
         }
 
-        public void DumpBaseTexture(string clothesId, Action<byte[]> callback, int? kind = null)
+        public void DumpBaseTexture(string clothesId, Action<byte[]> callback)
         {
 #if KK || KKS || EC
             if (IsMaskKind(clothesId))
@@ -98,21 +100,15 @@ namespace KoiClothesOverlayX
                     KoiSkinOverlayMgr.Logger.LogDebug(e);
                 }
             }
-            else if (kind != null)
+            else if (IsColormask(clothesId))
             {
                 try
                 {
-                    var listInfo = ChaControl.infoClothes[(int)kind];
-                    var manifest = listInfo.GetInfo(ChaListDefine.KeyType.MainManifest);
-                    var texString = listInfo.GetInfo(ChaListDefine.KeyType.ColorMaskTex);
-                    var ab = listInfo.GetInfo(ChaListDefine.KeyType.ColorMaskAB);
-                    ab = ab == "0" ? listInfo.GetInfo(ChaListDefine.KeyType.MainAB) : ab;
-                    var tex = CommonLib.LoadAsset<Texture2D>(ab, texString, false, manifest);
+                    var tex = GetOriginalColormask(clothesId);
 
                     var t = tex.ToTexture2D();
                     var bytes = t.EncodeToPNG();
                     Destroy(t);
-                    Destroy(tex);
                     callback(bytes);
                 }
                 catch (Exception e)
@@ -141,6 +137,67 @@ namespace KoiClothesOverlayX
             return false;
 #endif
         }
+
+        public static string GetColormaskId(string clothesId, int kindId, int subKindId = -1)
+        {
+            return $"{clothesId}_Colormask_{kindId}_{subKindId}";
+        }
+
+        public static bool IsColormask(string clothesId)
+        {
+            return clothesId.Contains("_Colormask_");
+        }
+
+        public static int[] GetKindIdsFromColormask(string clothesId)
+        {
+            if (!IsColormask(clothesId))
+                return null;
+
+            var match = Regex.Match(clothesId, @"_Colormask_(\d)_(-?\d)");
+            Int32.TryParse(match.Groups[1].Value, out var kindId);
+            Int32.TryParse(match.Groups[2].Value, out var subKindId);
+
+            return new[] { kindId, subKindId };
+        }
+
+        public static string GetRealClothesId(string clothesId)
+        {
+            if (IsColormask(clothesId))
+                return Regex.Match(clothesId, @"(.*)_Colormask_\d_-?\d").Groups[0].Value;
+            return clothesId;
+        }
+
+        public static string GetClothesIdFromKind(bool main, int kind)
+        {
+            if (main)
+                switch (kind)
+                {
+                    case 0: return "ct_clothesTop";
+                    case 1: return "ct_clothesBot";
+                    case 2: return "ct_bra";
+                    case 3: return "ct_shorts";
+                    case 4: return "ct_gloves";
+                    case 5: return "ct_panst";
+                    case 6: return "ct_socks";
+#if KK
+                    case 7: return "ct_shoes_inner";
+                    case 8: return "ct_shoes_outer";
+#elif EC
+                    case 8: return "ct_shoes";
+#elif KKS
+                    case 8: return "ct_shoes_outer";
+#endif
+                }
+            else
+                switch (kind)
+                {
+                    case 0: return "ct_top_parts_A";
+                    case 1: return "ct_top_parts_B";
+                    case 2: return "ct_top_parts_C";
+                }
+            return null;
+        }
+
 #if KK || KKS || EC
         public ChaClothesComponent GetCustomClothesComponent(string clothesObjectName)
         {
@@ -150,6 +207,11 @@ namespace KoiClothesOverlayX
         internal Texture GetOriginalMask(MaskKind kind)
         {
             return Hooks.GetMask(this, kind);
+        }
+
+        internal Texture GetOriginalColormask(string clothesId)
+        {
+            return Hooks.GetColormask(this, clothesId);
         }
 #else
         public CmpClothes GetCustomClothesComponent(string clothesObjectName)
@@ -340,6 +402,7 @@ namespace KoiClothesOverlayX
 
         public void RefreshTexture(string texType)
         {
+            texType = GetRealClothesId(texType);
             if (IsMaskKind(texType))
             {
                 RefreshAllTextures(true);

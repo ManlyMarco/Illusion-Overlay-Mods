@@ -6,6 +6,7 @@ using ExtensibleSaveFormat;
 using HarmonyLib;
 using KKAPI.Chara;
 using KKAPI.Maker;
+using KKAPI.Utilities;
 using KoiSkinOverlayX;
 using TMPro;
 using UnityEngine;
@@ -214,6 +215,53 @@ namespace KoiClothesOverlayX
                 }
             }
 
+            #endregion
+
+            #region Colormasks
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(ChaControl), "InitBaseCustomTextureClothes")]
+            public static void ColormaskHook(ChaControl __instance, bool main, int parts)
+            {
+                var clothesId = GetClothesIdFromKind(main, parts);
+                clothesId = main ? GetColormaskId(clothesId, parts) : GetColormaskId(clothesId, 0, parts);
+
+                var registration = CharacterApi.GetRegisteredBehaviour(typeof(KoiClothesOverlayController));
+                if (registration == null) throw new ArgumentNullException(nameof(registration));
+                foreach (var controller in registration.Instances.Cast<KoiClothesOverlayController>()) {
+                    for (int i = 0; i < 3; i++)
+                    {
+                        var tex = controller.GetOverlayTex(clothesId, false)?.Texture;
+                        KoiSkinOverlayMgr.Logger.LogInfo(clothesId);
+                        KoiSkinOverlayMgr.Logger.LogInfo(tex == null);
+                        if (tex != null)
+                        {
+                            if (main && __instance.ctCreateClothes[parts, i] != null)
+                            {
+                                __instance.ctCreateClothes[parts, i].SetTexture(ChaShader._ColorMask, tex);
+                                KoiSkinOverlayMgr.Logger.LogInfo($"Kind: {parts} - Main: {main} - {i}");
+                            }
+                            else if (__instance.ctCreateClothesSub[parts, i] != null)
+                            {
+                                __instance.ctCreateClothesSub[parts, i].SetTexture(ChaShader._ColorMask, tex);
+                                KoiSkinOverlayMgr.Logger.LogInfo($"Kind: {parts} - Main: {main} - {i}");
+                            }
+                            __instance.GetCustomClothesComponent(parts).useColorN01 = true;
+                            __instance.GetCustomClothesComponent(parts).useColorN02 = true;
+                            __instance.GetCustomClothesComponent(parts).useColorN03 = true;
+                        }
+                    }
+                }
+            }
+
+            public static Texture GetColormask(KoiClothesOverlayController controller, string clothesId)
+            {
+                var listInfo = controller.ChaControl.infoClothes[GetKindIdsFromColormask(clothesId)[0]];
+                var manifest = listInfo.GetInfo(ChaListDefine.KeyType.MainManifest);
+                var texString = listInfo.GetInfo(ChaListDefine.KeyType.ColorMaskTex);
+                var ab = listInfo.GetInfo(ChaListDefine.KeyType.ColorMaskAB);
+                ab = ab == "0" ? listInfo.GetInfo(ChaListDefine.KeyType.MainAB) : ab;
+                return CommonLib.LoadAsset<Texture2D>(ab, texString, false, manifest);
+            }
             #endregion
 
 #if KK || KKS
