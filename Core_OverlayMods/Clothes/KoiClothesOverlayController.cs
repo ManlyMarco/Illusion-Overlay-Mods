@@ -163,7 +163,7 @@ namespace KoiClothesOverlayX
         public static string GetRealClothesId(string clothesId)
         {
             if (IsColormask(clothesId))
-                return Regex.Match(clothesId, @"(.*)_Colormask_\d_-?\d").Groups[0].Value;
+                return Regex.Match(clothesId, @"(.*)_Colormask_\d_-?\d").Groups[1].Value;
             return clothesId;
         }
 
