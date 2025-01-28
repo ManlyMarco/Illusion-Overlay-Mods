@@ -225,7 +225,7 @@ namespace KoiClothesOverlayX
             {
                 var updated = false;
                 var clothesId = GetClothesIdFromKind(main, parts);
-                clothesId = main ? GetColormaskId(clothesId, parts) : GetColormaskId(clothesId, 0, parts);
+                clothesId = main ? MakeColormaskId(clothesId, parts) : MakeColormaskId(clothesId, 0, parts);
 
                 var registration = CharacterApi.GetRegisteredBehaviour(typeof(KoiClothesOverlayController));
                 if (registration == null) throw new ArgumentNullException(nameof(registration));
@@ -253,9 +253,10 @@ namespace KoiClothesOverlayX
                     if (main)
                     {
                         // Since a custom color mask is now used, enable all color fields to actually make full use of it.
-                        __instance.GetCustomClothesComponent(parts).useColorN01 = true;
-                        __instance.GetCustomClothesComponent(parts).useColorN02 = true;
-                        __instance.GetCustomClothesComponent(parts).useColorN03 = true;
+                        var clothesComponent = __instance.GetCustomClothesComponent(parts);
+                        clothesComponent.useColorN01 = true;
+                        clothesComponent.useColorN02 = true;
+                        clothesComponent.useColorN03 = true;
                     }
                     else
                     {

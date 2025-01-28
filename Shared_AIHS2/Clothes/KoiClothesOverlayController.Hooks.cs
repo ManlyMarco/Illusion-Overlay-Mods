@@ -41,7 +41,7 @@ namespace KoiClothesOverlayX
                 // Clean up no longer used textures after some clothes slots get disabled
                 if (MakerAPI.InsideMaker && controller.CurrentOverlayTextures != null)
                 {
-                    var toRemoveList = controller.CurrentOverlayTextures.Where(x => !x.Value.IsEmpty() && controller.GetCustomClothesComponent(GetRealClothesId(x.Key)) == null).ToList();
+                    var toRemoveList = controller.CurrentOverlayTextures.Where(x => !x.Value.IsEmpty() && controller.GetCustomClothesComponent(GetRealId(x.Key)) == null).ToList();
 
                     if (toRemoveList.Count > 0)
                     {
@@ -76,7 +76,7 @@ namespace KoiClothesOverlayX
             {
                 var updated = false;
                 var clothesId = GetClothesIdFromKind(true, parts);
-                clothesId = GetColormaskId(clothesId, parts);
+                clothesId = MakeColormaskId(clothesId, parts);
 
                 var registration = CharacterApi.GetRegisteredBehaviour(typeof(KoiClothesOverlayController));
                 if (registration == null) throw new ArgumentNullException(nameof(registration));
@@ -103,9 +103,10 @@ namespace KoiClothesOverlayX
                 if (updated)
                 {
                     // Since a custom color mask is now used, enable all color fields to actually make full use of it.
-                    __instance.GetCustomClothesComponent(parts).useColorN01 = true;
-                    __instance.GetCustomClothesComponent(parts).useColorN02 = true;
-                    __instance.GetCustomClothesComponent(parts).useColorN03 = true;
+                    var clothesComponent = __instance.GetCustomClothesComponent(parts);
+                    clothesComponent.useColorN01 = true;
+                    clothesComponent.useColorN02 = true;
+                    clothesComponent.useColorN03 = true;
                     // Reflect changed UseColors 
                     KoiClothesOverlayGui.RefreshMenuColors(parts);
                 }

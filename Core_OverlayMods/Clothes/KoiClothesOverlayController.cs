@@ -140,7 +140,7 @@ namespace KoiClothesOverlayX
 #endif
         }
 
-        public static string GetColormaskId(string clothesId, int kindId, int subKindId = -1)
+        public static string MakeColormaskId(string clothesId, int kindId, int subKindId = -1)
         {
             return $"{clothesId}_Colormask_{kindId}_{subKindId}";
         }
@@ -162,10 +162,14 @@ namespace KoiClothesOverlayX
             return new[] { kindId, subKindId };
         }
 
-        public static string GetRealClothesId(string clothesId)
+        public static string GetRealId(string clothesId)
         {
             if (IsColormask(clothesId))
-                return Regex.Match(clothesId, @"(.*)_Colormask_\d_-?\d").Groups[1].Value;
+            {
+                var match = Regex.Match(clothesId, @"(.*)_Colormask_\d_-?\d");
+                if (match.Groups.Count == 2)
+                    return match.Groups[1].Value;
+            }
             return clothesId;
         }
 
@@ -409,7 +413,7 @@ namespace KoiClothesOverlayX
         public void RefreshTexture(string texType)
         {
             var isColormask = IsColormask(texType);
-            texType = GetRealClothesId(texType);
+            texType = GetRealId(texType);
             if (IsMaskKind(texType))
             {
                 RefreshAllTextures(true);
@@ -452,7 +456,7 @@ namespace KoiClothesOverlayX
         public void RefreshTexture(string texType)
         {
             var isColormask = IsColormask(texType);
-            texType = GetRealClothesId(texType);
+            texType = GetRealId(texType);
             if (texType != null && KoikatuAPI.GetCurrentGameMode() != GameMode.Studio)
             {
                 var i = Array.FindIndex(ChaControl.objClothes, x => x != null && x.name == texType);
