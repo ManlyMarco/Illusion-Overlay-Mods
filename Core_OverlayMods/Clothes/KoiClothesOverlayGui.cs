@@ -12,6 +12,8 @@ using KKAPI.Utilities;
 using KoiSkinOverlayX;
 using UniRx;
 using UnityEngine;
+using ChaCustom;
+
 #if !EC
 using KKAPI.Studio;
 using KKAPI.Studio.UI;
@@ -113,10 +115,10 @@ namespace KoiClothesOverlayX
             if (!MakerAPI.InsideMaker) return;
 
 #if KK || KKS || EC
-            var topObject = GameObject.Find("CustomScene/CustomRoot/FrontUIGroup/CustomUIGroup/CvsMenuTree");
-            if (topObject != null)
+            var makerBase = MakerAPI.GetMakerBase();
+            if (makerBase != null)
             {
-                var components = topObject.GetComponentsInChildren<ChaCustom.CvsClothes>();
+                var components = makerBase.GetComponentInChildren<CustomChangeMainMenu>(true).ccClothesMenu.cvsClothes;
                 foreach (var component in components)
                     component.ChangeUseColorVisible();
             }
