@@ -221,7 +221,7 @@ namespace KoiClothesOverlayX
             [HarmonyPostfix]
             [HarmonyWrapSafe]
             [HarmonyPatch(typeof(ChaControl), nameof(ChaControl.InitBaseCustomTextureClothes))]
-            public static void ColormaskHook(ChaControl __instance, bool main, int parts)
+            public static void InitBaseCustomTextureClothesPostHook(ChaControl __instance, bool main, int parts)
             {
                 var updated = false;
                 var clothesId = GetClothesIdFromKind(main, parts);
