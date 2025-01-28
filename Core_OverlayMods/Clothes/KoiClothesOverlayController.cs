@@ -189,8 +189,6 @@ namespace KoiClothesOverlayX
 #if KK
                     case 7: return "ct_shoes_inner";
                     case 8: return "ct_shoes_outer";
-#elif EC
-                    case 8: return "ct_shoes";
 #elif KKS
                     case 8: return "ct_shoes_outer";
 #else
