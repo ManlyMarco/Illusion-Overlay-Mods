@@ -101,6 +101,9 @@ namespace KoiClothesOverlayX
                 }
             }
             else if (IsColormask(clothesId))
+#else
+            if (IsColormask(clothesId))
+#endif
             {
                 try
                 {
@@ -118,7 +121,6 @@ namespace KoiClothesOverlayX
                 }
             }
             else
-#endif
             {
                 _dumpCallback = callback;
                 _dumpClothesId = clothesId;
@@ -174,8 +176,13 @@ namespace KoiClothesOverlayX
                 {
                     case 0: return "ct_clothesTop";
                     case 1: return "ct_clothesBot";
+#if KK || KKS || EC
                     case 2: return "ct_bra";
                     case 3: return "ct_shorts";
+#else
+                    case 2: return "ct_inner_t";
+                    case 3: return "ct_inner_b";
+#endif
                     case 4: return "ct_gloves";
                     case 5: return "ct_panst";
                     case 6: return "ct_socks";
@@ -186,6 +193,8 @@ namespace KoiClothesOverlayX
                     case 8: return "ct_shoes";
 #elif KKS
                     case 8: return "ct_shoes_outer";
+#else
+                    case 7: return "ct_shoes";
 #endif
                 }
             else
@@ -208,17 +217,16 @@ namespace KoiClothesOverlayX
         {
             return Hooks.GetMask(this, kind);
         }
-
-        internal Texture GetOriginalColormask(string clothesId)
-        {
-            return Hooks.GetColormask(this, clothesId);
-        }
 #else
         public CmpClothes GetCustomClothesComponent(string clothesObjectName)
         {
             return ChaControl.cmpClothes.FirstOrDefault(x => x != null && x.gameObject.name == clothesObjectName);
         }
 #endif
+        internal Texture GetOriginalColormask(string clothesId)
+        {
+            return Hooks.GetColormask(this, clothesId);
+        }
 
         public ClothesTexData GetOverlayTex(string clothesId, bool createNew)
         {
@@ -445,11 +453,15 @@ namespace KoiClothesOverlayX
 
         public void RefreshTexture(string texType)
         {
+            var isColormask = IsColormask(texType);
+            texType = GetRealClothesId(texType);
             if (texType != null && KoikatuAPI.GetCurrentGameMode() != GameMode.Studio)
             {
                 var i = Array.FindIndex(ChaControl.objClothes, x => x != null && x.name == texType);
                 if (i >= 0)
                 {
+                    if (isColormask)
+                        ChaControl.InitBaseCustomTextureClothes(i);
                     ChaControl.ChangeCustomClothes(i, true, false, false, false);
                     return;
                 }

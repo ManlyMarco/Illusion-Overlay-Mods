@@ -195,7 +195,7 @@ namespace KoiClothesOverlayX
             }
 
 #else
-                var cat = new MakerCategory(MakerConstants.Clothes.CategoryName, "Clothes Overlays");
+            var cat = new MakerCategory(MakerConstants.Clothes.CategoryName, "Clothes Overlays");
             e.AddSubCategory(cat);
             var cats = new[]
             {
@@ -213,6 +213,7 @@ namespace KoiClothesOverlayX
             {
                 var pair = cats[index];
                 SetupTexControls(e, cat, owner, pair.Value, pair.Key, index != 0);
+                SetupTexControls(e, cat, owner, pair.Value, "Color mask", true, KoiClothesOverlayController.GetColormaskId(pair.Value, index));
             }
 #endif
 
@@ -418,7 +419,7 @@ namespace KoiClothesOverlayX
                     var tex = Util.TextureFromBytes(_bytesToLoad, textureFormat);
 
                     var controller = GetOverlayController();
-                    var origTex = controller.GetApplicableRenderers(_typeToLoad).First().material.mainTexture;
+                    var origTex = KoiClothesOverlayController.IsColormask(_typeToLoad) ? controller.GetOriginalColormask(_typeToLoad) : controller.GetApplicableRenderers(_typeToLoad).First().material.mainTexture;
 
                     var isWrongRes = origTex != null && tex.width != origTex.width || tex.height != origTex.height;
 #endif
