@@ -223,6 +223,7 @@ namespace KoiClothesOverlayX
             [HarmonyPatch(typeof(ChaControl), nameof(ChaControl.InitBaseCustomTextureClothes))]
             public static void ColormaskHook(ChaControl __instance, bool main, int parts)
             {
+                var updated = false;
                 var clothesId = GetClothesIdFromKind(main, parts);
                 clothesId = main ? GetColormaskId(clothesId, parts) : GetColormaskId(clothesId, 0, parts);
 
@@ -236,31 +237,38 @@ namespace KoiClothesOverlayX
                         {
                             if (main && parts < __instance.ctCreateClothes.GetLength(0) && i < __instance.ctCreateClothes.GetLength(1) && __instance.ctCreateClothes[parts, i] != null)
                             {
+                                updated = true;
                                 __instance.ctCreateClothes[parts, i].SetTexture(ChaShader._ColorMask, tex);
-
-                                // Since a custom color mask is now used, enable all color fields to actually make full use of it.
-                                __instance.GetCustomClothesComponent(parts).useColorN01 = true;
-                                __instance.GetCustomClothesComponent(parts).useColorN02 = true;
-                                __instance.GetCustomClothesComponent(parts).useColorN03 = true;
                             }
                             else if (parts < __instance.ctCreateClothesSub.GetLength(0) && i < __instance.ctCreateClothesSub.GetLength(1) && __instance.ctCreateClothesSub[parts, i] != null)
                             {
+                                updated = true;
                                 __instance.ctCreateClothesSub[parts, i].SetTexture(ChaShader._ColorMask, tex);
-
-                                foreach (var clothesComponent in __instance.cusClothesSubCmp)
-                                {
-                                    if (clothesComponent != null)
-                                    {
-                                        clothesComponent.useColorN01 = true;
-                                        clothesComponent.useColorN02 = true;
-                                        clothesComponent.useColorN03 = true;
-                                    }
-                                }
                             }
-                            // Reflect changed UseColors 
-                            KoiClothesOverlayGui.RefreshMenuColors(parts);
                         }
                     }
+                }
+                if (updated)
+                {
+                    if (main)
+                    {
+                        // Since a custom color mask is now used, enable all color fields to actually make full use of it.
+                        __instance.GetCustomClothesComponent(parts).useColorN01 = true;
+                        __instance.GetCustomClothesComponent(parts).useColorN02 = true;
+                        __instance.GetCustomClothesComponent(parts).useColorN03 = true;
+                    }
+                    else
+                    {
+                        foreach (var clothesComponent in __instance.cusClothesSubCmp)
+                            if (clothesComponent != null)
+                            {
+                                clothesComponent.useColorN01 = true;
+                                clothesComponent.useColorN02 = true;
+                                clothesComponent.useColorN03 = true;
+                            }
+                    }
+                    // Reflect changed UseColors 
+                    KoiClothesOverlayGui.RefreshMenuColors(parts);
                 }
             }
 
