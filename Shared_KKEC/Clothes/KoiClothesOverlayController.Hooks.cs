@@ -266,11 +266,27 @@ namespace KoiClothesOverlayX
 
             public static Texture GetColormask(KoiClothesOverlayController controller, string clothesId)
             {
-                var listInfo = controller.ChaControl.infoClothes[GetKindIdsFromColormask(clothesId)[0]];
+                var part = GetKindIdsFromColormask(clothesId)[0];
+                var subPart = GetKindIdsFromColormask(clothesId)[1];
+                var listInfo = subPart < 0 ? controller.ChaControl.infoClothes[part] : controller.ChaControl.infoParts[subPart];
                 var manifest = listInfo.GetInfo(ChaListDefine.KeyType.MainManifest);
-                var texString = listInfo.GetInfo(ChaListDefine.KeyType.ColorMaskTex);
-                var ab = listInfo.GetInfo(ChaListDefine.KeyType.ColorMaskAB);
-                ab = ab == "0" ? listInfo.GetInfo(ChaListDefine.KeyType.MainAB) : ab;
+
+                var mainAb = listInfo.GetInfo(ChaListDefine.KeyType.MainAB);
+                var ab = listInfo.GetInfo(ChaListDefine.KeyType.ColorMask03AB);
+                var texString = listInfo.GetInfo(ChaListDefine.KeyType.ColorMask03Tex);
+
+                if (texString == "0")
+                {
+                    ab = listInfo.GetInfo(ChaListDefine.KeyType.ColorMask02AB);
+                    texString = listInfo.GetInfo(ChaListDefine.KeyType.ColorMask02Tex);
+                }
+                if (texString == "0")
+                {
+                    ab = listInfo.GetInfo(ChaListDefine.KeyType.ColorMaskAB);
+                    texString = listInfo.GetInfo(ChaListDefine.KeyType.ColorMaskTex);
+                }
+                ab = ab == "0" ? mainAb : ab;
+
                 return CommonLib.LoadAsset<Texture2D>(ab, texString, false, manifest);
             }
             #endregion
