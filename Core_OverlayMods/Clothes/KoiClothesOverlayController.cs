@@ -421,11 +421,12 @@ namespace KoiClothesOverlayX
                     return;
                 }
 
+                if (isColormask)
+                    for (i = 0; i < ChaControl.objParts.Length; i++)
+                        ChaControl.InitBaseCustomTextureClothes(false, i);
                 i = Array.FindIndex(ChaControl.objParts, x => x != null && x.name == texType);
                 if (i >= 0)
                 {
-                    if (isColormask)
-                        ChaControl.InitBaseCustomTextureClothes(false, i);
                     ChaControl.ChangeCustomClothes(false, i, true, false, false, false, false);
                     return;
                 }
