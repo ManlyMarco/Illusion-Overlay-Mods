@@ -275,28 +275,30 @@ namespace KoiClothesOverlayX
 
             public static Texture GetColormask(KoiClothesOverlayController controller, string clothesId)
             {
-                var part = GetKindIdsFromColormask(clothesId)[0];
-                var subPart = GetKindIdsFromColormask(clothesId)[1];
-                var listInfo = subPart < 0 ? controller.ChaControl.infoClothes[part] : controller.ChaControl.infoParts[subPart];
-                var manifest = listInfo.GetInfo(ChaListDefine.KeyType.MainManifest);
-
-                var mainAb = listInfo.GetInfo(ChaListDefine.KeyType.MainAB);
-                var ab = listInfo.GetInfo(ChaListDefine.KeyType.ColorMask03AB);
-                var texString = listInfo.GetInfo(ChaListDefine.KeyType.ColorMask03Tex);
-
-                if (texString == "0")
+                if (GetKindIdsFromColormask(clothesId, out int? part, out int? subPart))
                 {
-                    ab = listInfo.GetInfo(ChaListDefine.KeyType.ColorMask02AB);
-                    texString = listInfo.GetInfo(ChaListDefine.KeyType.ColorMask02Tex);
-                }
-                if (texString == "0")
-                {
-                    ab = listInfo.GetInfo(ChaListDefine.KeyType.ColorMaskAB);
-                    texString = listInfo.GetInfo(ChaListDefine.KeyType.ColorMaskTex);
-                }
-                ab = ab == "0" ? mainAb : ab;
+                    var listInfo = subPart == null ? controller.ChaControl.infoClothes[(int)part] : controller.ChaControl.infoParts[(int)subPart];
+                    var manifest = listInfo.GetInfo(ChaListDefine.KeyType.MainManifest);
 
-                return CommonLib.LoadAsset<Texture2D>(ab, texString, false, manifest);
+                    var mainAb = listInfo.GetInfo(ChaListDefine.KeyType.MainAB);
+                    var ab = listInfo.GetInfo(ChaListDefine.KeyType.ColorMask03AB);
+                    var texString = listInfo.GetInfo(ChaListDefine.KeyType.ColorMask03Tex);
+
+                    if (texString == "0")
+                    {
+                        ab = listInfo.GetInfo(ChaListDefine.KeyType.ColorMask02AB);
+                        texString = listInfo.GetInfo(ChaListDefine.KeyType.ColorMask02Tex);
+                    }
+                    if (texString == "0")
+                    {
+                        ab = listInfo.GetInfo(ChaListDefine.KeyType.ColorMaskAB);
+                        texString = listInfo.GetInfo(ChaListDefine.KeyType.ColorMaskTex);
+                    }
+                    ab = ab == "0" ? mainAb : ab;
+
+                    return CommonLib.LoadAsset<Texture2D>(ab, texString, false, manifest);
+                }
+                throw new Exception($"Failed to get colormask with id:{clothesId}");
             }
             #endregion
 

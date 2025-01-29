@@ -114,19 +114,22 @@ namespace KoiClothesOverlayX
 
             public static Texture GetColormask(KoiClothesOverlayController controller, string clothesId)
             {
-                var part = GetKindIdsFromColormask(clothesId)[0];
-                var listInfo = controller.ChaControl.infoClothes[part];
-                var manifest = listInfo.GetInfo(ChaListDefine.KeyType.MainManifest);
+                if(GetKindIdsFromColormask(clothesId, out int? kind, out int? subKind))
+                {
+                    var listInfo = controller.ChaControl.infoClothes[(int)kind];
+                    var manifest = listInfo.GetInfo(ChaListDefine.KeyType.MainManifest);
 
-                var mainAb = listInfo.GetInfo(ChaListDefine.KeyType.MainAB);
-                var texString = listInfo.GetInfo(ChaListDefine.KeyType.ColorMask03Tex);
+                    var mainAb = listInfo.GetInfo(ChaListDefine.KeyType.MainAB);
+                    var texString = listInfo.GetInfo(ChaListDefine.KeyType.ColorMask03Tex);
 
-                if (texString == "0")
-                    texString = listInfo.GetInfo(ChaListDefine.KeyType.ColorMask02Tex);
-                if (texString == "0")
-                    texString = listInfo.GetInfo(ChaListDefine.KeyType.ColorMaskTex);
+                    if (texString == "0")
+                        texString = listInfo.GetInfo(ChaListDefine.KeyType.ColorMask02Tex);
+                    if (texString == "0")
+                        texString = listInfo.GetInfo(ChaListDefine.KeyType.ColorMaskTex);
 
-                return CommonLib.LoadAsset<Texture2D>(mainAb, texString, false, manifest);
+                    return CommonLib.LoadAsset<Texture2D>(mainAb, texString, false, manifest);
+                }
+                throw new Exception($"Failed to get colormask with id:{clothesId}");
             }
         }
     }

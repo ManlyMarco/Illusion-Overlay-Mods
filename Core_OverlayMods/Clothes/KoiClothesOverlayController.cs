@@ -10,7 +10,6 @@ using MessagePack;
 using UnityEngine;
 using ExtensibleSaveFormat;
 using KKAPI.Utilities;
-using System.Text.RegularExpressions;
 
 #if KK || KKS
 using CoordinateType = ChaFileDefine.CoordinateType;
@@ -140,36 +139,36 @@ namespace KoiClothesOverlayX
 #endif
         }
 
-        public static string MakeColormaskId(string clothesId, int kindId, int subKindId = -1)
+        public static string MakeColormaskId(string clothesId, int kindId, int? subKindId = null)
         {
-            return $"{clothesId}_Colormask_{kindId}_{subKindId}";
+
+            return $"Colormask_{kindId}_{subKindId}_{clothesId}";
         }
 
         public static bool IsColormask(string clothesId)
         {
-            return clothesId.Contains("_Colormask_");
+            return clothesId.StartsWith("Colormask_");
         }
 
-        public static int[] GetKindIdsFromColormask(string clothesId)
+        public static bool GetKindIdsFromColormask(string clothesId, out int? kindId, out int? subKindId)
         {
-            if (!IsColormask(clothesId))
-                return null;
+            kindId = null;
+            subKindId = null;
 
-            var match = Regex.Match(clothesId, @"_Colormask_(\d)_(-?\d)");
-            Int32.TryParse(match.Groups[1].Value, out var kindId);
-            Int32.TryParse(match.Groups[2].Value, out var subKindId);
-
-            return new[] { kindId, subKindId };
+            if (IsColormask(clothesId) && Int32.TryParse(clothesId.Substring(10, 1), out int _kindId))
+            {
+                kindId = _kindId;
+                if (Int32.TryParse(clothesId.Substring(12, 1), out int _subKindId))
+                    subKindId = _subKindId;
+                return true;
+            }
+            return false;
         }
 
         public static string GetRealId(string clothesId)
         {
             if (IsColormask(clothesId))
-            {
-                var match = Regex.Match(clothesId, @"(.*)_Colormask_\d_-?\d");
-                if (match.Groups.Count == 2)
-                    return match.Groups[1].Value;
-            }
+                return clothesId.Substring(12, 1) == "_" ? clothesId.Substring(13) : clothesId.Substring(14);
             return clothesId;
         }
 
