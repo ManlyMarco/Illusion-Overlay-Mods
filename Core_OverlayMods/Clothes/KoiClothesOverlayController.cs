@@ -142,7 +142,7 @@ namespace KoiClothesOverlayX
         public static string MakeColormaskId(string clothesId, int kindId, int? subKindId = null)
         {
 
-            return $"Colormask_{kindId}_{subKindId}_{clothesId}";
+            return $"Colormask_{clothesId}";
         }
 
         public static bool IsColormask(string clothesId)
@@ -155,11 +155,65 @@ namespace KoiClothesOverlayX
             kindId = null;
             subKindId = null;
 
-            if (IsColormask(clothesId) && Int32.TryParse(clothesId.Substring(10, 1), out int _kindId))
+            if (IsColormask(clothesId))
             {
-                kindId = _kindId;
-                if (Int32.TryParse(clothesId.Substring(12, 1), out int _subKindId))
-                    subKindId = _subKindId;
+                switch (GetRealId(clothesId))
+                {
+                    case "ct_top_parts_A":
+                        kindId = 0;
+                        subKindId = 0;
+                        break;
+                    case "ct_top_parts_B":
+                        kindId = 0;
+                        subKindId = 1;
+                        break;
+                    case "ct_top_parts_C":
+                        kindId = 0;
+                        subKindId = 2;
+                        break;
+                    case "ct_clothesTop":
+                        kindId = 0;
+                        break;
+                    case "ct_clothesBot":
+                        kindId = 1;
+                        break;
+#if KK || KKS || EC
+                    case "ct_bra":
+                        kindId = 2;
+                        break;
+                    case "ct_shorts":
+                        kindId = 3;
+                        break;
+#else
+                    case "ct_inner_t":
+                        kindId = 2;
+                        break;
+                    case "ct_inner_b":
+                        kindId = 3;
+                        break;
+#endif
+                    case "ct_gloves":
+                        kindId = 4;
+                        break;
+                    case "ct_panst":
+                        kindId = 5;
+                        break;
+                    case "ct_socks":
+                        kindId = 6;
+                        break;
+#if KK || KKS
+                    case "ct_shoes_inner":
+                        kindId = 7;
+                        break;
+                    case "ct_shoes_outer":
+                        kindId = 8;
+                        break;
+#else
+                    case "ct_shoes":
+                        kindId = 7;
+                        break;
+#endif
+                }
                 return true;
             }
             return false;
@@ -168,7 +222,7 @@ namespace KoiClothesOverlayX
         public static string GetRealId(string clothesId)
         {
             if (IsColormask(clothesId))
-                return clothesId.Substring(12, 1) == "_" ? clothesId.Substring(13) : clothesId.Substring(14);
+                return clothesId.Substring(10);
             return clothesId;
         }
 
@@ -189,10 +243,8 @@ namespace KoiClothesOverlayX
                     case 4: return "ct_gloves";
                     case 5: return "ct_panst";
                     case 6: return "ct_socks";
-#if KK
+#if KK || KKS
                     case 7: return "ct_shoes_inner";
-                    case 8: return "ct_shoes_outer";
-#elif KKS
                     case 8: return "ct_shoes_outer";
 #else
                     case 7: return "ct_shoes";
@@ -693,7 +745,7 @@ namespace KoiClothesOverlayX
                 {
                     foreach (var texture in group.Value.ToList())
                     {
-                        if (texture.Value.IsEmpty()) 
+                        if (texture.Value.IsEmpty())
                             group.Value.Remove(texture.Key);
                     }
 
