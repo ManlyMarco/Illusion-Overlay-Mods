@@ -119,9 +119,9 @@ namespace KoiClothesOverlayX
                 {
                     List<KeyValuePair<string, ClothesTexData>> toRemoveList = null;
                     if (main && kind == 0)
-                        toRemoveList = controller.CurrentOverlayTextures.Where(x => KoiClothesOverlayMgr.SubClothesNames.Contains(GetRealId(x.Key)) && x.Value.IsEmpty()).ToList();
+                        toRemoveList = controller.CurrentOverlayTextures.Where(x => KoiClothesOverlayMgr.SubClothesNames.Contains(GetRealId(x.Key)) && !x.Value.IsEmpty()).ToList();
                     else if (!main)
-                        toRemoveList = controller.CurrentOverlayTextures.Where(x => KoiClothesOverlayMgr.MainClothesNames[0] == GetRealId(x.Key) && x.Value.IsEmpty()).ToList();
+                        toRemoveList = controller.CurrentOverlayTextures.Where(x => KoiClothesOverlayMgr.MainClothesNames[0] == GetRealId(x.Key) && !x.Value.IsEmpty()).ToList();
 
                     if (toRemoveList != null && toRemoveList.Count > 0)
                     {
