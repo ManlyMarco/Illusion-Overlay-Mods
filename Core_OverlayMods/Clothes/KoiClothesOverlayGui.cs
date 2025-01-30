@@ -151,14 +151,14 @@ namespace KoiClothesOverlayX
 
             // Either the 3 subs will be visible or the one main. 1st separator is made by the API
             SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[0], "Overlay textures (Piece 1)");
-            SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[0], "Color mask (Piece 1)", true, KoiClothesOverlayController.MakeColormaskId(KoiClothesOverlayMgr.SubClothesNames[0], 0, 0));
+            SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[0], "Color mask (Piece 1)", true, KoiClothesOverlayController.MakeColormaskId(KoiClothesOverlayMgr.SubClothesNames[0]));
             SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[1], "Overlay textures (Piece 2)", true);
-            SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[1], "Color mask (Piece 2)", true, KoiClothesOverlayController.MakeColormaskId(KoiClothesOverlayMgr.SubClothesNames[1], 0, 1));
+            SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[1], "Color mask (Piece 2)", true, KoiClothesOverlayController.MakeColormaskId(KoiClothesOverlayMgr.SubClothesNames[1]));
             SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[2], "Overlay textures (Piece 3)", true);
-            SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[2], "Color mask (Piece 3)", true, KoiClothesOverlayController.MakeColormaskId(KoiClothesOverlayMgr.SubClothesNames[2], 0, 2));
+            SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[2], "Color mask (Piece 3)", true, KoiClothesOverlayController.MakeColormaskId(KoiClothesOverlayMgr.SubClothesNames[2]));
 
             SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.MainClothesNames[0]);
-            SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.MainClothesNames[0], "Color mask", true, KoiClothesOverlayController.MakeColormaskId(KoiClothesOverlayMgr.MainClothesNames[0], 0));
+            SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.MainClothesNames[0], "Color mask", true, KoiClothesOverlayController.MakeColormaskId(KoiClothesOverlayMgr.MainClothesNames[0]));
 
             SetupTexControls(e, makerCategory, owner, MaskKind.BodyMask.ToString(), "Body alpha mask", true);
             SetupTexControls(e, makerCategory, owner, MaskKind.InnerMask.ToString(), "Inner clothes alpha mask", true);
@@ -188,10 +188,10 @@ namespace KoiClothesOverlayX
                 var cat = MakerConstants.GetBuiltInCategory("03_ClothesTop", pair.Key);
                 SetupTexControls(e, cat, owner, pair.Value);
 #if KK
-                SetupTexControls(e, cat, owner, pair.Value, "Color mask", true, KoiClothesOverlayController.MakeColormaskId(pair.Value, index + 1));
+                SetupTexControls(e, cat, owner, pair.Value, "Color mask", true, KoiClothesOverlayController.MakeColormaskId(pair.Value));
 #else
                 var kind = index == 6 ? index + 2 : index + 1;
-                SetupTexControls(e, cat, owner, pair.Value, "Color mask", true, KoiClothesOverlayController.MakeColormaskId(pair.Value, kind));
+                SetupTexControls(e, cat, owner, pair.Value, "Color mask", true, KoiClothesOverlayController.MakeColormaskId(pair.Value));
 #endif
             }
 
@@ -214,7 +214,7 @@ namespace KoiClothesOverlayX
             {
                 var pair = cats[index];
                 SetupTexControls(e, cat, owner, pair.Value, pair.Key, index != 0);
-                SetupTexControls(e, cat, owner, pair.Value, "Color mask", true, KoiClothesOverlayController.MakeColormaskId(pair.Value, index));
+                SetupTexControls(e, cat, owner, pair.Value, "Color mask", true, KoiClothesOverlayController.MakeColormaskId(pair.Value));
             }
 #endif
 

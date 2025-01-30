@@ -76,7 +76,7 @@ namespace KoiClothesOverlayX
             {
                 var updated = false;
                 var clothesId = GetClothesIdFromKind(true, parts);
-                clothesId = MakeColormaskId(clothesId, parts);
+                clothesId = MakeColormaskId(clothesId);
 
                 var registration = CharacterApi.GetRegisteredBehaviour(typeof(KoiClothesOverlayController));
                 if (registration == null) throw new ArgumentNullException(nameof(registration));

@@ -139,7 +139,7 @@ namespace KoiClothesOverlayX
 #endif
         }
 
-        public static string MakeColormaskId(string clothesId, int kindId, int? subKindId = null)
+        public static string MakeColormaskId(string clothesId)
         {
 
             return $"Colormask_{clothesId}";
@@ -696,6 +696,7 @@ namespace KoiClothesOverlayX
 
                 overlay.Dispose();
                 CurrentOverlayTextures.Remove(clothesName);
+                CurrentOverlayTextures.Remove(MakeColormaskId(clothesName));
                 return;
             }
 
