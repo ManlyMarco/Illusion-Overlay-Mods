@@ -328,7 +328,7 @@ namespace KoiClothesOverlayX
                     controlExport.Visible.OnNext(visible);
                     controlSeparator?.Visible.OnNext(visible);
 
-                    _textureChanged.OnNext(new KeyValuePair<string, Texture2D>(realClothesId, ctrl?.GetOverlayTex(realClothesId, false)?.Texture));
+                    _textureChanged.OnNext(new KeyValuePair<string, Texture2D>(clothesId, ctrl?.GetOverlayTex(clothesId, false)?.Texture));
                 }
             );
         }
