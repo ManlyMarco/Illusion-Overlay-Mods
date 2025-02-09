@@ -227,27 +227,26 @@ namespace KoiClothesOverlayX
                 var clothesId = GetClothesIdFromKind(main, parts);
                 clothesId = main ? MakeColormaskId(clothesId) : MakeColormaskId(clothesId);
 
-                var registration = CharacterApi.GetRegisteredBehaviour(typeof(KoiClothesOverlayController));
-                if (registration == null) throw new ArgumentNullException(nameof(registration));
-                foreach (var controller in registration.Instances.Cast<KoiClothesOverlayController>()) {
-                    for (int i = 0; i < 3; i++)
+                var controller = __instance.GetComponent<KoiClothesOverlayController>();
+
+                for (int i = 0; i < 3; i++)
+                {
+                    var tex = controller.GetOverlayTex(clothesId, false)?.Texture;
+                    if (tex != null)
                     {
-                        var tex = controller.GetOverlayTex(clothesId, false)?.Texture;
-                        if (tex != null)
+                        if (main && parts < __instance.ctCreateClothes.GetLength(0) && i < __instance.ctCreateClothes.GetLength(1) && __instance.ctCreateClothes[parts, i] != null)
                         {
-                            if (main && parts < __instance.ctCreateClothes.GetLength(0) && i < __instance.ctCreateClothes.GetLength(1) && __instance.ctCreateClothes[parts, i] != null)
-                            {
-                                updated = true;
-                                __instance.ctCreateClothes[parts, i].SetTexture(ChaShader._ColorMask, tex);
-                            }
-                            else if (parts < __instance.ctCreateClothesSub.GetLength(0) && i < __instance.ctCreateClothesSub.GetLength(1) && __instance.ctCreateClothesSub[parts, i] != null)
-                            {
-                                updated = true;
-                                __instance.ctCreateClothesSub[parts, i].SetTexture(ChaShader._ColorMask, tex);
-                            }
+                            updated = true;
+                            __instance.ctCreateClothes[parts, i].SetTexture(ChaShader._ColorMask, tex);
+                        }
+                        else if (parts < __instance.ctCreateClothesSub.GetLength(0) && i < __instance.ctCreateClothesSub.GetLength(1) && __instance.ctCreateClothesSub[parts, i] != null)
+                        {
+                            updated = true;
+                            __instance.ctCreateClothesSub[parts, i].SetTexture(ChaShader._ColorMask, tex);
                         }
                     }
                 }
+
                 if (updated)
                 {
                     if (main)
@@ -269,7 +268,7 @@ namespace KoiClothesOverlayX
                             }
                     }
                     // Reflect changed UseColors 
-                    KoiClothesOverlayGui.RefreshMenuColors(parts);
+                    KoiClothesOverlayGui.RefreshMenuColors();
                 }
             }
 

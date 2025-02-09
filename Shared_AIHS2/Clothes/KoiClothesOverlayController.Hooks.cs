@@ -108,7 +108,7 @@ namespace KoiClothesOverlayX
                     clothesComponent.useColorN02 = true;
                     clothesComponent.useColorN03 = true;
                     // Reflect changed UseColors 
-                    KoiClothesOverlayGui.RefreshMenuColors(parts);
+                    KoiClothesOverlayGui.RefreshMenuColors();
                 }
             }
 

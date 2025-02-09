@@ -109,11 +109,11 @@ namespace KoiClothesOverlayX
             _instance.StartCoroutine(RefreshInterfaceCo(category));
         }
 
-        internal static void RefreshMenuColors(int parts)
+        internal static void RefreshMenuColors()
         {
+#if KK || KKS || EC
             if (!MakerAPI.InsideMaker) return;
 
-#if KK || KKS || EC
             var makerBase = MakerAPI.GetMakerBase();
             if (makerBase != null)
             {

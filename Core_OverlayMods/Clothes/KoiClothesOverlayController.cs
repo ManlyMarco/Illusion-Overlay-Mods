@@ -35,6 +35,7 @@ namespace KoiClothesOverlayX
     public partial class KoiClothesOverlayController : CharaCustomFunctionController
     {
         private const string OverlayDataKey = "Overlays";
+        private const string ColorMaskPrefix = "Colormask_";
 
         private Action<byte[]> _dumpCallback;
         private string _dumpClothesId;
@@ -142,12 +143,12 @@ namespace KoiClothesOverlayX
         public static string MakeColormaskId(string clothesId)
         {
 
-            return $"Colormask_{clothesId}";
+            return ColorMaskPrefix + clothesId;
         }
 
         public static bool IsColormask(string clothesId)
         {
-            return clothesId.StartsWith("Colormask_");
+            return clothesId.StartsWith(ColorMaskPrefix);
         }
 
         public static bool GetKindIdsFromColormask(string clothesId, out int? kindId, out int? subKindId)
@@ -162,59 +163,61 @@ namespace KoiClothesOverlayX
                     case "ct_top_parts_A":
                         kindId = 0;
                         subKindId = 0;
-                        break;
+                        return true;
                     case "ct_top_parts_B":
                         kindId = 0;
                         subKindId = 1;
-                        break;
+                        return true;
                     case "ct_top_parts_C":
                         kindId = 0;
                         subKindId = 2;
-                        break;
+                        return true;
                     case "ct_clothesTop":
                         kindId = 0;
-                        break;
+                        return true;
                     case "ct_clothesBot":
                         kindId = 1;
-                        break;
+                        return true;
 #if KK || KKS || EC
                     case "ct_bra":
                         kindId = 2;
-                        break;
+                        return true;
                     case "ct_shorts":
                         kindId = 3;
-                        break;
+                        return true;
 #else
                     case "ct_inner_t":
                         kindId = 2;
-                        break;
+                        return true;
                     case "ct_inner_b":
                         kindId = 3;
-                        break;
+                        return true;
 #endif
                     case "ct_gloves":
                         kindId = 4;
-                        break;
+                        return true;
                     case "ct_panst":
                         kindId = 5;
-                        break;
+                        return true;
                     case "ct_socks":
                         kindId = 6;
-                        break;
+                        return true;
 #if KK || KKS
                     case "ct_shoes_inner":
                         kindId = 7;
-                        break;
+                        return true;
                     case "ct_shoes_outer":
                         kindId = 8;
-                        break;
+                        return true;
 #else
                     case "ct_shoes":
                         kindId = 7;
                         break;
 #endif
+                    default:
+                        KoiSkinOverlayMgr.Logger.LogError("Unknown clothing type");
+                        return false;
                 }
-                return true;
             }
             return false;
         }
@@ -222,7 +225,7 @@ namespace KoiClothesOverlayX
         public static string GetRealId(string clothesId)
         {
             if (IsColormask(clothesId))
-                return clothesId.Substring(10);
+                return clothesId.Substring(ColorMaskPrefix.Length);
             return clothesId;
         }
 
