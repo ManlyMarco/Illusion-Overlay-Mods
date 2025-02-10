@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +10,7 @@ using MessagePack;
 using UnityEngine;
 using ExtensibleSaveFormat;
 using KKAPI.Utilities;
+
 #if KK || KKS
 using CoordinateType = ChaFileDefine.CoordinateType;
 using KKAPI.Studio;
@@ -34,6 +35,7 @@ namespace KoiClothesOverlayX
     public partial class KoiClothesOverlayController : CharaCustomFunctionController
     {
         private const string OverlayDataKey = "Overlays";
+        private const string ColorMaskPrefix = "Colormask_";
 
         private Action<byte[]> _dumpCallback;
         private string _dumpClothesId;
@@ -98,8 +100,27 @@ namespace KoiClothesOverlayX
                     KoiSkinOverlayMgr.Logger.LogDebug(e);
                 }
             }
-            else
+            else if (IsColormask(clothesId))
+#else
+            if (IsColormask(clothesId))
 #endif
+            {
+                try
+                {
+                    var tex = GetOriginalColormask(clothesId);
+
+                    var t = tex.ToTexture2D();
+                    var bytes = t.EncodeToPNG();
+                    Destroy(t);
+                    callback(bytes);
+                }
+                catch (Exception e)
+                {
+                    KoiSkinOverlayMgr.Logger.LogMessage("Dumping texture failed - " + e.Message);
+                    KoiSkinOverlayMgr.Logger.LogDebug(e);
+                }
+            }
+            else
             {
                 _dumpCallback = callback;
                 _dumpClothesId = clothesId;
@@ -118,6 +139,127 @@ namespace KoiClothesOverlayX
             return false;
 #endif
         }
+
+        public static string MakeColormaskId(string clothesId)
+        {
+            return ColorMaskPrefix + clothesId;
+        }
+
+        public static bool IsColormask(string clothesId)
+        {
+            return clothesId.StartsWith(ColorMaskPrefix);
+        }
+
+        public static bool GetKindIdsFromColormask(string clothesId, out int? kindId, out int? subKindId)
+        {
+            kindId = null;
+            subKindId = null;
+
+            if (!IsColormask(clothesId)) return false;
+
+            switch (GetRealId(clothesId))
+            {
+                case "ct_top_parts_A":
+                    kindId = 0;
+                    subKindId = 0;
+                    return true;
+                case "ct_top_parts_B":
+                    kindId = 0;
+                    subKindId = 1;
+                    return true;
+                case "ct_top_parts_C":
+                    kindId = 0;
+                    subKindId = 2;
+                    return true;
+                case "ct_clothesTop":
+                    kindId = 0;
+                    return true;
+                case "ct_clothesBot":
+                    kindId = 1;
+                    return true;
+#if KK || KKS || EC
+                case "ct_bra":
+                    kindId = 2;
+                    return true;
+                case "ct_shorts":
+                    kindId = 3;
+                    return true;
+#else
+                case "ct_inner_t":
+                    kindId = 2;
+                    return true;
+                case "ct_inner_b":
+                    kindId = 3;
+                    return true;
+#endif
+                case "ct_gloves":
+                    kindId = 4;
+                    return true;
+                case "ct_panst":
+                    kindId = 5;
+                    return true;
+                case "ct_socks":
+                    kindId = 6;
+                    return true;
+#if KK || KKS
+                case "ct_shoes_inner":
+                    kindId = 7;
+                    return true;
+                case "ct_shoes_outer":
+                    kindId = 8;
+                    return true;
+#else
+                case "ct_shoes":
+                    kindId = 7;
+                    return true;
+#endif
+                default:
+                    KoiSkinOverlayMgr.Logger.LogError("Unknown clothing type");
+                    return false;
+            }
+        }
+
+        public static string GetRealId(string clothesId)
+        {
+            if (IsColormask(clothesId))
+                return clothesId.Substring(ColorMaskPrefix.Length);
+            return clothesId;
+        }
+
+        public static string GetClothesIdFromKind(bool main, int kind)
+        {
+            if (main)
+                switch (kind)
+                {
+                    case 0: return "ct_clothesTop";
+                    case 1: return "ct_clothesBot";
+#if KK || KKS || EC
+                    case 2: return "ct_bra";
+                    case 3: return "ct_shorts";
+#else
+                    case 2: return "ct_inner_t";
+                    case 3: return "ct_inner_b";
+#endif
+                    case 4: return "ct_gloves";
+                    case 5: return "ct_panst";
+                    case 6: return "ct_socks";
+#if KK || KKS
+                    case 7: return "ct_shoes_inner";
+                    case 8: return "ct_shoes_outer";
+#else
+                    case 7: return "ct_shoes";
+#endif
+                }
+            else
+                switch (kind)
+                {
+                    case 0: return "ct_top_parts_A";
+                    case 1: return "ct_top_parts_B";
+                    case 2: return "ct_top_parts_C";
+                }
+            return null;
+        }
+
 #if KK || KKS || EC
         public ChaClothesComponent GetCustomClothesComponent(string clothesObjectName)
         {
@@ -134,6 +276,10 @@ namespace KoiClothesOverlayX
             return ChaControl.cmpClothes.FirstOrDefault(x => x != null && x.gameObject.name == clothesObjectName);
         }
 #endif
+        internal Texture GetOriginalColormask(string clothesId)
+        {
+            return Hooks.GetColormask(this, clothesId);
+        }
 
         public ClothesTexData GetOverlayTex(string clothesId, bool createNew)
         {
@@ -317,6 +463,8 @@ namespace KoiClothesOverlayX
 
         public void RefreshTexture(string texType)
         {
+            var isColormask = IsColormask(texType);
+            texType = GetRealId(texType);
             if (IsMaskKind(texType))
             {
                 RefreshAllTextures(true);
@@ -328,10 +476,15 @@ namespace KoiClothesOverlayX
                 var i = Array.FindIndex(ChaControl.objClothes, x => x != null && x.name == texType);
                 if (i >= 0)
                 {
+                    if (isColormask)
+                        ChaControl.InitBaseCustomTextureClothes(true, i);
                     ChaControl.ChangeCustomClothes(true, i, true, false, false, false, false);
                     return;
                 }
 
+                if (isColormask)
+                    for (i = 0; i < ChaControl.objParts.Length; i++)
+                        ChaControl.InitBaseCustomTextureClothes(false, i);
                 i = Array.FindIndex(ChaControl.objParts, x => x != null && x.name == texType);
                 if (i >= 0)
                 {
@@ -353,11 +506,15 @@ namespace KoiClothesOverlayX
 
         public void RefreshTexture(string texType)
         {
+            var isColormask = IsColormask(texType);
+            texType = GetRealId(texType);
             if (texType != null && KoikatuAPI.GetCurrentGameMode() != GameMode.Studio)
             {
                 var i = Array.FindIndex(ChaControl.objClothes, x => x != null && x.name == texType);
                 if (i >= 0)
                 {
+                    if (isColormask)
+                        ChaControl.InitBaseCustomTextureClothes(i);
                     ChaControl.ChangeCustomClothes(i, true, false, false, false);
                     return;
                 }
@@ -539,6 +696,7 @@ namespace KoiClothesOverlayX
 
                 overlay.Dispose();
                 CurrentOverlayTextures.Remove(clothesName);
+                CurrentOverlayTextures.Remove(MakeColormaskId(clothesName));
                 return;
             }
 
@@ -588,7 +746,7 @@ namespace KoiClothesOverlayX
                 {
                     foreach (var texture in group.Value.ToList())
                     {
-                        if (texture.Value.IsEmpty()) 
+                        if (texture.Value.IsEmpty())
                             group.Value.Remove(texture.Key);
                     }
 
