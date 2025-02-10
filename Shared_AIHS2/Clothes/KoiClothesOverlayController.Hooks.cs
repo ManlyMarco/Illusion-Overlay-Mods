@@ -78,28 +78,26 @@ namespace KoiClothesOverlayX
                 var clothesId = GetClothesIdFromKind(true, parts);
                 clothesId = MakeColormaskId(clothesId);
 
-                var registration = CharacterApi.GetRegisteredBehaviour(typeof(KoiClothesOverlayController));
-                if (registration == null) throw new ArgumentNullException(nameof(registration));
-                foreach (var controller in registration.Instances.Cast<KoiClothesOverlayController>())
+                var controller = __instance.GetComponent<KoiClothesOverlayController>();
+
+                for (int i = 0; i < 3; i++)
                 {
-                    for (int i = 0; i < 3; i++)
+                    var tex = controller.GetOverlayTex(clothesId, false)?.Texture;
+                    if (tex != null)
                     {
-                        var tex = controller.GetOverlayTex(clothesId, false)?.Texture;
-                        if (tex != null)
+                        if (parts < __instance.ctCreateClothes.GetLength(0) && i < __instance.ctCreateClothes.GetLength(1) && __instance.ctCreateClothes[parts, i] != null)
                         {
-                            if (parts < __instance.ctCreateClothes.GetLength(0) && i < __instance.ctCreateClothes.GetLength(1) && __instance.ctCreateClothes[parts, i] != null)
-                            {
-                                updated = true;
-                                __instance.ctCreateClothes[parts, i].SetTexture(ChaShader.ColorMask, tex);
-                            }
-                            if (parts < __instance.ctCreateClothesGloss.GetLength(0) && i < __instance.ctCreateClothesGloss.GetLength(1) && __instance.ctCreateClothesGloss[parts, i] != null)
-                            {
-                                updated = true;
-                                __instance.ctCreateClothesGloss[parts, i].SetTexture(ChaShader.ColorMask, tex);
-                            }
+                            updated = true;
+                            __instance.ctCreateClothes[parts, i].SetTexture(ChaShader.ColorMask, tex);
+                        }
+                        if (parts < __instance.ctCreateClothesGloss.GetLength(0) && i < __instance.ctCreateClothesGloss.GetLength(1) && __instance.ctCreateClothesGloss[parts, i] != null)
+                        {
+                            updated = true;
+                            __instance.ctCreateClothesGloss[parts, i].SetTexture(ChaShader.ColorMask, tex);
                         }
                     }
                 }
+
                 if (updated)
                 {
                     // Since a custom color mask is now used, enable all color fields to actually make full use of it.
