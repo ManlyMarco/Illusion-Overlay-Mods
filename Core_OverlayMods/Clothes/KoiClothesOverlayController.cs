@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -142,7 +142,6 @@ namespace KoiClothesOverlayX
 
         public static string MakeColormaskId(string clothesId)
         {
-
             return ColorMaskPrefix + clothesId;
         }
 
@@ -156,70 +155,68 @@ namespace KoiClothesOverlayX
             kindId = null;
             subKindId = null;
 
-            if (IsColormask(clothesId))
+            if (!IsColormask(clothesId)) return false;
+
+            switch (GetRealId(clothesId))
             {
-                switch (GetRealId(clothesId))
-                {
-                    case "ct_top_parts_A":
-                        kindId = 0;
-                        subKindId = 0;
-                        return true;
-                    case "ct_top_parts_B":
-                        kindId = 0;
-                        subKindId = 1;
-                        return true;
-                    case "ct_top_parts_C":
-                        kindId = 0;
-                        subKindId = 2;
-                        return true;
-                    case "ct_clothesTop":
-                        kindId = 0;
-                        return true;
-                    case "ct_clothesBot":
-                        kindId = 1;
-                        return true;
+                case "ct_top_parts_A":
+                    kindId = 0;
+                    subKindId = 0;
+                    return true;
+                case "ct_top_parts_B":
+                    kindId = 0;
+                    subKindId = 1;
+                    return true;
+                case "ct_top_parts_C":
+                    kindId = 0;
+                    subKindId = 2;
+                    return true;
+                case "ct_clothesTop":
+                    kindId = 0;
+                    return true;
+                case "ct_clothesBot":
+                    kindId = 1;
+                    return true;
 #if KK || KKS || EC
-                    case "ct_bra":
-                        kindId = 2;
-                        return true;
-                    case "ct_shorts":
-                        kindId = 3;
-                        return true;
+                case "ct_bra":
+                    kindId = 2;
+                    return true;
+                case "ct_shorts":
+                    kindId = 3;
+                    return true;
 #else
-                    case "ct_inner_t":
-                        kindId = 2;
-                        return true;
-                    case "ct_inner_b":
-                        kindId = 3;
-                        return true;
+                case "ct_inner_t":
+                    kindId = 2;
+                    return true;
+                case "ct_inner_b":
+                    kindId = 3;
+                    return true;
 #endif
-                    case "ct_gloves":
-                        kindId = 4;
-                        return true;
-                    case "ct_panst":
-                        kindId = 5;
-                        return true;
-                    case "ct_socks":
-                        kindId = 6;
-                        return true;
+                case "ct_gloves":
+                    kindId = 4;
+                    return true;
+                case "ct_panst":
+                    kindId = 5;
+                    return true;
+                case "ct_socks":
+                    kindId = 6;
+                    return true;
 #if KK || KKS
-                    case "ct_shoes_inner":
-                        kindId = 7;
-                        return true;
-                    case "ct_shoes_outer":
-                        kindId = 8;
-                        return true;
+                case "ct_shoes_inner":
+                    kindId = 7;
+                    return true;
+                case "ct_shoes_outer":
+                    kindId = 8;
+                    return true;
 #else
-                    case "ct_shoes":
-                        kindId = 7;
-                        return true;
+                case "ct_shoes":
+                    kindId = 7;
+                    return true;
 #endif
-                    default:
-                        KoiSkinOverlayMgr.Logger.LogError("Unknown clothing type");
-                        return false;
-                }
+                default:
+                    KoiSkinOverlayMgr.Logger.LogError("Unknown clothing type");
+                    return false;
             }
-            return false;
         }
 
         public static string GetRealId(string clothesId)
