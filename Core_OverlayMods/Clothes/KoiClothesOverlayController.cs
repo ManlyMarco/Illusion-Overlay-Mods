@@ -212,7 +212,7 @@ namespace KoiClothesOverlayX
 #else
                     case "ct_shoes":
                         kindId = 7;
-                        break;
+                        return true;
 #endif
                     default:
                         KoiSkinOverlayMgr.Logger.LogError("Unknown clothing type");
