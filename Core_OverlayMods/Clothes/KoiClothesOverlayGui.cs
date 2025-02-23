@@ -150,13 +150,17 @@ namespace KoiClothesOverlayX
             var makerCategory = MakerConstants.GetBuiltInCategory("03_ClothesTop", "tglTop");
 
             // Either the 3 subs will be visible or the one main. 1st separator is made by the API
+            AddSizeOverrideDropdown(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[0]);
             SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[0], "Overlay textures (Piece 1)");
             SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[0], "Color mask (Piece 1)", true, KoiClothesOverlayController.MakeColormaskId(KoiClothesOverlayMgr.SubClothesNames[0]));
+            AddSizeOverrideDropdown(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[1]);
             SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[1], "Overlay textures (Piece 2)", true);
             SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[1], "Color mask (Piece 2)", true, KoiClothesOverlayController.MakeColormaskId(KoiClothesOverlayMgr.SubClothesNames[1]));
+            AddSizeOverrideDropdown(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[2]);
             SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[2], "Overlay textures (Piece 3)", true);
             SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[2], "Color mask (Piece 3)", true, KoiClothesOverlayController.MakeColormaskId(KoiClothesOverlayMgr.SubClothesNames[2]));
 
+            AddSizeOverrideDropdown(e, makerCategory, owner, KoiClothesOverlayMgr.MainClothesNames[0]);
             SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.MainClothesNames[0]);
             SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.MainClothesNames[0], "Color mask", true, KoiClothesOverlayController.MakeColormaskId(KoiClothesOverlayMgr.MainClothesNames[0]));
 
@@ -186,6 +190,9 @@ namespace KoiClothesOverlayX
             {
                 var pair = cats[index];
                 var cat = MakerConstants.GetBuiltInCategory("03_ClothesTop", pair.Key);
+
+                AddSizeOverrideDropdown(e, cat, owner, pair.Value);
+
                 SetupTexControls(e, cat, owner, pair.Value);
 #if KK
                 SetupTexControls(e, cat, owner, pair.Value, "Color mask", true, KoiClothesOverlayController.MakeColormaskId(pair.Value));
@@ -213,6 +220,7 @@ namespace KoiClothesOverlayX
             for (var index = 0; index < cats.Length; index++)
             {
                 var pair = cats[index];
+                AddSizeOverrideDropdown(e, cat, owner, pair.Value);
                 SetupTexControls(e, cat, owner, pair.Value, pair.Key, index != 0);
                 SetupTexControls(e, cat, owner, pair.Value, "Color mask", true, KoiClothesOverlayController.MakeColormaskId(pair.Value));
             }
@@ -221,6 +229,39 @@ namespace KoiClothesOverlayX
 #if KK || KKS
             GetOverlayController().CurrentCoordinate.Subscribe(type => RefreshInterface());
 #endif
+        }
+
+        private void AddSizeOverrideDropdown(RegisterCustomControlsEvent e, MakerCategory makerCategory, BaseUnityPlugin owner, string clothesId)
+        {
+            var resizeDropdown = e.AddControl(new MakerDropdown("Max Texture Size Override", new string[] { "original", "512", "1024", "2048", "4096", "8192" }, makerCategory, 0, owner));
+            resizeDropdown.ValueChanged.Subscribe(_index =>
+            {
+                KoiSkinOverlayMgr.Logger.LogInfo(_index);
+                var c = GetOverlayController();
+                if (c != null)
+                {
+                    var newSize = _index == 0 ? 0 : (int)(Math.Pow(2f, _index - 1) * 512);
+                    var size = c.GetTextureSizeOverride(clothesId, newSize, true);
+                    if (size != newSize)
+                        c.RefreshTexture(KoiClothesOverlayController.MakeColormaskId(clothesId));
+                }
+            });
+
+            // Refresh logic -----------------------
+
+            _refreshInterface.Subscribe(
+                cat =>
+                {
+                    if (cat != null && cat != clothesId) return;
+
+                    var ctrl = GetOverlayController();
+                    var renderer = ctrl?.GetApplicableRenderers(clothesId)?.FirstOrDefault();
+                    var visible = renderer?.material?.mainTexture != null && KoiSkinOverlayMgr.SizeLimit.Value != KoiSkinOverlayMgr.TextureSizeLimit.Original;
+
+                    resizeDropdown.SetValue(Array.FindIndex(resizeDropdown.Options, x => x == ctrl.GetTextureSizeOverride(clothesId, 0, false).ToString()), false);
+                    resizeDropdown.Visible.OnNext(visible);
+                }
+            );
         }
 
         private void SetupTexControls(RegisterCustomControlsEvent e, MakerCategory makerCategory, BaseUnityPlugin owner, string clothesId, string title = "Overlay textures", bool addSeparator = false, string colormaskId = null)

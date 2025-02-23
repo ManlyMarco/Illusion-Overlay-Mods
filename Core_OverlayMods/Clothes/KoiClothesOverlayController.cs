@@ -60,6 +60,22 @@ namespace KoiClothesOverlayX
                 return GetOverlayTextures(coordinateType);
             }
         }
+        private Dictionary<CoordinateType, Dictionary<string, int>> _allTextureSizeOverrides;
+        internal Dictionary<string, int> CurrentTextureSizeOverrides
+        {
+            get
+            {
+#if KK || KKS
+                // Need to do this instead of polling the CurrentCoordinate prop because it's updated too late
+                var coordinateType = (CoordinateType)ChaControl.fileStatus.coordinateType;
+#elif EC
+                var coordinateType = CoordinateType.School01;
+#else
+                var coordinateType = CoordinateType.Unknown;
+#endif
+                return GetClothingSizeOverrides(coordinateType);
+            }
+        }
 
         private Dictionary<string, ClothesTexData> GetOverlayTextures(CoordinateType coordinateType)
         {
@@ -71,6 +87,21 @@ namespace KoiClothesOverlayX
             {
                 dict = new Dictionary<string, ClothesTexData>();
                 _allOverlayTextures.Add(coordinateType, dict);
+            }
+
+            return dict;
+        }
+
+        private Dictionary<string, int> GetClothingSizeOverrides(CoordinateType coordinateType)
+        {
+            if (_allTextureSizeOverrides == null) return null;
+
+            _allTextureSizeOverrides.TryGetValue(coordinateType, out var dict);
+
+            if (dict == null)
+            {
+                dict = new Dictionary<string, int>();
+                _allTextureSizeOverrides.Add(coordinateType, dict);
             }
 
             return dict;
@@ -294,6 +325,21 @@ namespace KoiClothesOverlayX
                 return tex;
             }
             return null;
+        }
+
+        public int GetTextureSizeOverride(string clothesId, int newSize, bool createNew)
+        {
+            if (CurrentTextureSizeOverrides != null)
+            {
+                if (createNew)
+                {
+                    CurrentTextureSizeOverrides[clothesId] = newSize;
+                    return newSize;
+                }
+                else if (CurrentTextureSizeOverrides.TryGetValue(clothesId, out var size))
+                    return size;
+            }
+            return 0;
         }
 
         public IEnumerable<Renderer> GetApplicableRenderers(string clothesId)
@@ -574,6 +620,8 @@ namespace KoiClothesOverlayX
 
             if (_allOverlayTextures == null)
                 _allOverlayTextures = new Dictionary<CoordinateType, Dictionary<string, ClothesTexData>>();
+            if (_allTextureSizeOverrides == null)
+                _allTextureSizeOverrides = new Dictionary<CoordinateType, Dictionary<string, int>>();
 
             if (anyPrevious || _allOverlayTextures.Any())
                 StartCoroutine(RefreshAllTexturesCo());
