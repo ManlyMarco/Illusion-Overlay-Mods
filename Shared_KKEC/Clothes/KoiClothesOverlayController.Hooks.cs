@@ -28,6 +28,7 @@ namespace KoiClothesOverlayX
                     if (importedData.TryGetValue(KoiClothesOverlayMgr.GUID, out var pluginData) && pluginData != null)
                     {
                         var dic = ReadOverlayExtData(pluginData);
+                        var dicResize = ReadTextureSizeOverrideExtData(pluginData);
 
                         // Only keep 1st coord
                         foreach (var coordKey in dic.Keys.ToList())
@@ -38,13 +39,20 @@ namespace KoiClothesOverlayX
                                 UnityEngine.Debug.Log("Removing coord " + coordKey);
 #endif
                                 dic.Remove(coordKey);
+                                dicResize.Remove(coordKey);
                             }
                             else
                             {
                                 var group = dic[coordKey];
+                                var groupResize = dicResize[coordKey];
                                 if (group == null)
                                 {
                                     dic.Remove(coordKey);
+                                    continue;
+                                }
+                                if (groupResize == null)
+                                {
+                                    dicResize.Remove(coordKey);
                                     continue;
                                 }
 #if EC
@@ -57,15 +65,19 @@ namespace KoiClothesOverlayX
 #endif
                                 // Neither EC or KKS use inner shoes
                                 group.Remove("ct_shoes_inner");
+                                groupResize.Remove("ct_shoes_inner");
                             }
                         }
 
                         CleanupTextureList(dic);
+                        CleanupTextureList(dicResize);
 
-                        if (dic.Count == 0)
-                            importedData.Remove(KoiClothesOverlayMgr.GUID);
-                        else
+                        if (dic.Count > 0)
                             SetOverlayExtData(dic, pluginData);
+                        if (dicResize.Count > 0)
+                            SetTextureSizeOverrideExtData(dicResize, pluginData);
+                        if (dic.Count == 0 && dicResize.Count == 0)
+                            importedData.Remove(KoiClothesOverlayMgr.GUID);
                     }
                 };
 #elif KKS
@@ -74,8 +86,10 @@ namespace KoiClothesOverlayX
                     if (data.TryGetValue(KoiClothesOverlayMgr.GUID, out var pluginData) && pluginData != null)
                     {
                         var dic = ReadOverlayExtData(pluginData);
+                        var dicResize = ReadTextureSizeOverrideExtData(pluginData);
                         // Map coords into a new dictionary based on the mapping
                         var outDic = new Dictionary<ChaFileDefine.CoordinateType, Dictionary<string, ClothesTexData>>(dic.Count);
+                        var outDicResize = new Dictionary<ChaFileDefine.CoordinateType, Dictionary<string, int>>(dicResize.Count);
                         foreach (var map in mapping)
                         {
                             // Discard unused
@@ -88,15 +102,25 @@ namespace KoiClothesOverlayX
                                 value.Remove("ct_shoes_inner");
                                 outDic[(ChaFileDefine.CoordinateType) map.Value.Value] = value;
                             }
+                            dicResize.TryGetValue((ChaFileDefine.CoordinateType)map.Key, out var valueResize);
+                            if (value != null)
+                            {
+                                // KKS doesn't have inner shoes
+                                valueResize.Remove("ct_shoes_inner");
+                                outDicResize[(ChaFileDefine.CoordinateType)map.Value.Value] = valueResize;
+                            }
                         }
 
                         CleanupTextureList(outDic);
+                        CleanupTextureList(outDicResize);
 
                         // Overwrite with the new dictionary
-                        if (outDic.Count == 0)
-                            data.Remove(KoiClothesOverlayMgr.GUID);
-                        else
+                        if (outDic.Count > 0)
                             SetOverlayExtData(outDic, pluginData);
+                        if (outDicResize.Count > 0)
+                            SetTextureSizeOverrideExtData(outDicResize, pluginData);
+                        if(outDic.Count == 0 && outDicResize.Count == 0)
+                            data.Remove(KoiClothesOverlayMgr.GUID);
                     }
                 };
 #endif

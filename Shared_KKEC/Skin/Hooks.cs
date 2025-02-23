@@ -109,7 +109,7 @@ namespace KoiSkinOverlayX
         {
             var tex = controller.GetOverlayTex(clothesId, false);
             var texColor = controller.GetOverlayTex(KoiClothesOverlayController.MakeColormaskId(clothesId), false);
-            var newSize = controller.GetTextureSizeOverride(clothesId, 0, false);
+            var newSize = controller.GetTextureSizeOverride(clothesId);
 
             // Increase/decrease output texture size if needed to accomodate large overlays
             if (KoiSkinOverlayMgr.SizeLimit.Value != KoiSkinOverlayMgr.TextureSizeLimit.Original)

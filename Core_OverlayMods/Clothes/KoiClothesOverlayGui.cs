@@ -240,8 +240,8 @@ namespace KoiClothesOverlayX
                 if (c != null)
                 {
                     var newSize = _index == 0 ? 0 : (int)(Math.Pow(2f, _index - 1) * 512);
-                    var currentSize = c.GetTextureSizeOverride(clothesId, newSize, false);
-                    newSize = c.GetTextureSizeOverride(clothesId, newSize, true);
+                    var currentSize = c.GetTextureSizeOverride(clothesId);
+                    newSize = c.SetTextureSizeOverride(clothesId, newSize);
                     if (newSize != currentSize)
                         c.RefreshTexture(KoiClothesOverlayController.MakeColormaskId(clothesId));
                 }
@@ -258,7 +258,7 @@ namespace KoiClothesOverlayX
                     var renderer = ctrl?.GetApplicableRenderers(clothesId)?.FirstOrDefault();
                     var visible = renderer?.material?.mainTexture != null && KoiSkinOverlayMgr.SizeLimit.Value != KoiSkinOverlayMgr.TextureSizeLimit.Original;
 
-                    resizeDropdown.SetValue(Array.FindIndex(resizeDropdown.Options, x => x == ctrl.GetTextureSizeOverride(clothesId, 0, false).ToString()), false);
+                    resizeDropdown.SetValue(Array.FindIndex(resizeDropdown.Options, x => x == ctrl.GetTextureSizeOverride(clothesId).ToString()), false);
                     resizeDropdown.Visible.OnNext(visible);
                 }
             );

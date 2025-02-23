@@ -328,17 +328,23 @@ namespace KoiClothesOverlayX
             return null;
         }
 
-        public int GetTextureSizeOverride(string clothesId, int newSize, bool createNew)
+        public int GetTextureSizeOverride(string clothesId)
+        {
+            if (CurrentTextureSizeOverrides != null && CurrentTextureSizeOverrides.TryGetValue(clothesId, out var size))
+                return size;
+            return 0;
+        }
+        public int SetTextureSizeOverride(string clothesId, int newSize)
         {
             if (CurrentTextureSizeOverrides != null)
             {
-                if (createNew)
+                if (newSize > 0)
                 {
                     CurrentTextureSizeOverrides[clothesId] = newSize;
                     return newSize;
                 }
-                else if (CurrentTextureSizeOverrides.TryGetValue(clothesId, out var size))
-                    return size;
+                else if (CurrentTextureSizeOverrides.ContainsKey(clothesId))
+                    CurrentTextureSizeOverrides.Remove(clothesId);
             }
             return 0;
         }
@@ -842,8 +848,10 @@ namespace KoiClothesOverlayX
         {
 #if KK || KKS
             CleanupTextureList(_allOverlayTextures, ChaControl.chaFile.coordinate.Length);
+            CleanupTextureList(_allTextureSizeOverrides, ChaControl.chaFile.coordinate.Length);
 #else
             CleanupTextureList(_allOverlayTextures);
+            CleanupTextureList(_allTextureSizeOverrides);
 #endif
         }
 
@@ -865,6 +873,33 @@ namespace KoiClothesOverlayX
                     foreach (var texture in group.Value.ToList())
                     {
                         if (texture.Value.IsEmpty())
+                            group.Value.Remove(texture.Key);
+                    }
+
+                    if (group.Value.Count == 0)
+                        allOverlayTextures.Remove(group.Key);
+                }
+            }
+        }
+
+        private static void CleanupTextureList(Dictionary<CoordinateType, Dictionary<string, int>> allOverlayTextures, int coordinateCount = 999)
+        {
+            if (allOverlayTextures == null) return;
+
+            foreach (var group in allOverlayTextures.ToList())
+            {
+#if KK || KKS
+                // Handle coords being added and removed
+                if ((int)group.Key >= coordinateCount)
+                {
+                    allOverlayTextures.Remove(group.Key);
+                }
+                else
+#endif
+                {
+                    foreach (var texture in group.Value.ToList())
+                    {
+                        if (texture.Value == 0)
                             group.Value.Remove(texture.Key);
                     }
 
