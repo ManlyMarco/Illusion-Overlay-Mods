@@ -250,7 +250,16 @@ namespace KoiClothesOverlayX
                 if (updated)
                 {
                     // Make sure any patterns are applied again
-                    __instance.ChangeCustomClothes(main, parts, true, true, true, true, true);
+                    if (__instance.nowCoordinate.clothes.parts[parts].colorInfo.Any(x => x.pattern > 0))
+                        __instance.ChangeCustomClothes(
+                                main,
+                                parts,
+                                false,
+                                __instance.nowCoordinate.clothes.parts[parts].colorInfo[0].pattern > 0,
+                                __instance.nowCoordinate.clothes.parts[parts].colorInfo[1].pattern > 0,
+                                __instance.nowCoordinate.clothes.parts[parts].colorInfo[2].pattern > 0,
+                                __instance.nowCoordinate.clothes.parts[parts].colorInfo[3].pattern > 0
+                            );
                     if (main)
                     {
                         // Since a custom color mask is now used, enable all color fields to actually make full use of it.
