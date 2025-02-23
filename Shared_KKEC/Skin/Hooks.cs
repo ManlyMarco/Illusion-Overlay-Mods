@@ -74,10 +74,7 @@ namespace KoiSkinOverlayX
                 }
             }
             var controllerClothes = instance.trfParent?.GetComponent<KoiClothesOverlayController>();
-            if (
-                controllerClothes != null
-                && KoiSkinOverlayMgr.SizeLimit.Value != KoiSkinOverlayMgr.TextureSizeLimit.Original
-            )
+            if (controllerClothes != null && KoiSkinOverlayMgr.SizeLimit.Value != KoiSkinOverlayMgr.TextureSizeLimit.Original)
             {
                 string clothesId = null;
 
