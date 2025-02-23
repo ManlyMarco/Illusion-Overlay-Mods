@@ -525,7 +525,15 @@ namespace KoiClothesOverlayX
                 {
                     if (isColormask)
                         ChaControl.InitBaseCustomTextureClothes(true, i);
-                    ChaControl.ChangeCustomClothes(true, i, true, true, true, true, true);
+                    ChaControl.ChangeCustomClothes(
+                        true,
+                        i,
+                        true,
+                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[0].pattern > 0,
+                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[1].pattern > 0,
+                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[2].pattern > 0,
+                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[3].pattern > 0
+                    );
                     return;
                 }
 
@@ -535,7 +543,15 @@ namespace KoiClothesOverlayX
                 i = Array.FindIndex(ChaControl.objParts, x => x != null && x.name == texType);
                 if (i >= 0)
                 {
-                    ChaControl.ChangeCustomClothes(false, i, true, true, true, true, true);
+                    ChaControl.ChangeCustomClothes(
+                        false,
+                        i,
+                        true,
+                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[0].pattern > 0,
+                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[1].pattern > 0,
+                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[2].pattern > 0,
+                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[3].pattern > 0
+                    );
                     return;
                 }
             }
@@ -562,7 +578,13 @@ namespace KoiClothesOverlayX
                 {
                     if (isColormask)
                         ChaControl.InitBaseCustomTextureClothes(i);
-                    ChaControl.ChangeCustomClothes(i, true, false, false, false);
+                    ChaControl.ChangeCustomClothes(
+                        i,
+                        true,
+                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[0].pattern > 0,
+                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[1].pattern > 0,
+                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[2].pattern > 0
+                    );
                     return;
                 }
             }
