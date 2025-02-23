@@ -35,6 +35,7 @@ namespace KoiClothesOverlayX
     public partial class KoiClothesOverlayController : CharaCustomFunctionController
     {
         private const string OverlayDataKey = "Overlays";
+        private const string SizeOverrideDataKey = "TextureSizeOverride";
         private const string ColorMaskPrefix = "Colormask_";
 
         private Action<byte[]> _dumpCallback;
@@ -589,6 +590,7 @@ namespace KoiClothesOverlayX
             CleanupTextureList();
 
             SetOverlayExtData(_allOverlayTextures, data);
+            SetTextureSizeOverrideExtData(_allTextureSizeOverrides, data);
 
 #if !EC
             if (!EnableInStudio) data.data[nameof(EnableInStudio)] = EnableInStudio;
@@ -613,6 +615,7 @@ namespace KoiClothesOverlayX
             if (pd != null)
             {
                 _allOverlayTextures = ReadOverlayExtData(pd);
+                _allTextureSizeOverrides = ReadTextureSizeOverrideExtData(pd);
 #if !EC
                 EnableInStudio = !pd.data.TryGetValue(nameof(EnableInStudio), out var val1) || !(val1 is bool) || (bool)val1;
 #endif
@@ -623,7 +626,7 @@ namespace KoiClothesOverlayX
             if (_allTextureSizeOverrides == null)
                 _allTextureSizeOverrides = new Dictionary<CoordinateType, Dictionary<string, int>>();
 
-            if (anyPrevious || _allOverlayTextures.Any())
+            if (anyPrevious || _allOverlayTextures.Any() || _allTextureSizeOverrides.Any())
                 StartCoroutine(RefreshAllTexturesCo());
         }
 
@@ -633,6 +636,14 @@ namespace KoiClothesOverlayX
                 data.data[OverlayDataKey] = MessagePackSerializer.Serialize(allOverlayTextures);
             else
                 data.data.Remove(OverlayDataKey);
+        }
+        private static void SetTextureSizeOverrideExtData(Dictionary<CoordinateType, Dictionary<string, int>> allTextureSizeOverrides, PluginData data)
+        {
+            
+            if (allTextureSizeOverrides.Count > 0)
+                data.data[SizeOverrideDataKey] = MessagePackSerializer.Serialize(allTextureSizeOverrides);
+            else
+                data.data.Remove(SizeOverrideDataKey);
         }
 
         private static Dictionary<CoordinateType, Dictionary<string, ClothesTexData>> ReadOverlayExtData(PluginData pd)
@@ -666,16 +677,44 @@ namespace KoiClothesOverlayX
             }
         }
 
+        private static Dictionary<CoordinateType, Dictionary<string, int>> ReadTextureSizeOverrideExtData(PluginData pd)
+        {
+            if (pd.data.TryGetValue(SizeOverrideDataKey, out var sizeOverrideData))
+            {
+                if (sizeOverrideData is byte[] bytes)
+                    return ReadTextureSizeOverrideExtData(bytes);
+            }
+
+            return null;
+        }
+        private static Dictionary<CoordinateType, Dictionary<string, int>> ReadTextureSizeOverrideExtData(byte[] bytes)
+        {
+            try
+            {
+                return MessagePackSerializer.Deserialize<Dictionary<CoordinateType, Dictionary<string, int>>>(bytes);
+            }
+            catch (Exception ex)
+            {
+                if (MakerAPI.InsideMaker)
+                    KoiSkinOverlayMgr.Logger.LogMessage("WARNING: Failed to load clothes overlay data");
+                else
+                    KoiSkinOverlayMgr.Logger.LogDebug("WARNING: Failed to load clothes overlay data");
+                KoiSkinOverlayMgr.Logger.LogError(ex);
+
+                return null;
+            }
+        }
+
         protected override void OnCoordinateBeingSaved(ChaFileCoordinate coordinate)
         {
             PluginData data = null;
 
             CleanupTextureList();
+            data = new PluginData { version = 1 };
             if (CurrentOverlayTextures != null && CurrentOverlayTextures.Count != 0)
-            {
-                data = new PluginData { version = 1 };
                 data.data.Add(OverlayDataKey, MessagePackSerializer.Serialize(CurrentOverlayTextures));
-            }
+            if (CurrentTextureSizeOverrides != null &&  CurrentTextureSizeOverrides.Count != 0)
+                data.data.Add(SizeOverrideDataKey, MessagePackSerializer.Serialize(CurrentTextureSizeOverrides));
 
             SetCoordinateExtendedData(coordinate, data);
         }
@@ -697,6 +736,15 @@ namespace KoiClothesOverlayX
                 {
                     foreach (var texData in dict)
                         currentOverlayTextures.Add(texData.Key, texData.Value);
+                }
+            }
+            if (data != null && data.data.TryGetValue(SizeOverrideDataKey, out bytes) && bytes is byte[] byteArr2)
+            {
+                var dict = MessagePackSerializer.Deserialize<Dictionary<string, int>>(byteArr2);
+                if (dict != null)
+                {
+                    foreach (var overrideData in dict)
+                        CurrentTextureSizeOverrides.Add(overrideData.Key, overrideData.Value);
                 }
             }
 
