@@ -100,6 +100,8 @@ namespace KoiClothesOverlayX
 
                 if (updated)
                 {
+                    // Make sure any patterns are applied again
+                    __instance.ChangeCustomClothes(parts, true, true, true, true);
                     // Since a custom color mask is now used, enable all color fields to actually make full use of it.
                     var clothesComponent = __instance.GetCustomClothesComponent(parts);
                     clothesComponent.useColorN01 = true;
