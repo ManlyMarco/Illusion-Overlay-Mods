@@ -236,13 +236,13 @@ namespace KoiClothesOverlayX
             var resizeDropdown = e.AddControl(new MakerDropdown("Max Texture Size Override", new string[] { "original", "512", "1024", "2048", "4096", "8192" }, makerCategory, 0, owner));
             resizeDropdown.ValueChanged.Subscribe(_index =>
             {
-                KoiSkinOverlayMgr.Logger.LogInfo(_index);
                 var c = GetOverlayController();
                 if (c != null)
                 {
                     var newSize = _index == 0 ? 0 : (int)(Math.Pow(2f, _index - 1) * 512);
-                    var size = c.GetTextureSizeOverride(clothesId, newSize, true);
-                    if (size != newSize)
+                    var currentSize = c.GetTextureSizeOverride(clothesId, newSize, false);
+                    newSize = c.GetTextureSizeOverride(clothesId, newSize, true);
+                    if (newSize != currentSize)
                         c.RefreshTexture(KoiClothesOverlayController.MakeColormaskId(clothesId));
                 }
             });
