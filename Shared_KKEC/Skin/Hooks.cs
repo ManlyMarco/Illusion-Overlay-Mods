@@ -14,6 +14,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
+using KoiClothesOverlayX;
 using UnityEngine;
 
 namespace KoiSkinOverlayX
@@ -72,8 +73,49 @@ namespace KoiSkinOverlayX
                     return;
                 }
             }
+            var controllerClothes = instance.trfParent?.GetComponent<KoiClothesOverlayController>();
+            if (
+                controllerClothes != null
+                && KoiSkinOverlayMgr.SizeLimit.Value != KoiSkinOverlayMgr.TextureSizeLimit.Original
+                && (
+                    (controllerClothes.ChaControl.ctCreateClothes?.Cast<CustomTextureCreate>().Any(x => x == instance) ?? false)
+                    || (controllerClothes.ChaControl.ctCreateClothesSub?.Cast<CustomTextureCreate>().Any(x => x == instance) ?? false)
+                )
+            )
+            {
+                OverlayBlitImpl(source, dest, mat, pass, controllerClothes);
+                return;
+            }
 
             // Fall back to original code
+            Graphics.Blit(source, dest, mat, pass);
+        }
+
+        private static void OverlayBlitImpl(Texture source, RenderTexture dest, Material mat, int pass, KoiClothesOverlayController controller)
+        {
+            var overlays = controller.CurrentOverlayTextures.Where(x => x.Value.Texture != null);
+            var anyOverlays = overlays.Count() > 0;
+
+            // Increase/decrease output texture size if needed to accomodate large overlays
+            if (KoiSkinOverlayMgr.SizeLimit.Value != KoiSkinOverlayMgr.TextureSizeLimit.Original && anyOverlays)
+            {
+                var outSize = KoiSkinOverlayMgr.GetOutputSize(type: TexType.Unknown,
+                                                              original: dest,
+                                                              maxWidth: overlays.Max(x => x.Value.Texture.width),
+                                                              maxHeight: overlays.Max(x => x.Value.Texture.height));
+                if (dest.width != outSize.Width)
+                {
+                    KoiSkinOverlayMgr.Logger.LogDebug($"Changing dest texture size from {dest.width}x{dest.height} to {outSize}");
+                    dest.Release();
+                    dest.width = outSize.Width;
+                    dest.height = outSize.Height;
+                    dest.Create();
+                    Graphics.SetRenderTarget(dest);
+                    GL.Clear(false, true, Color.clear);
+                    Graphics.SetRenderTarget(null);
+                }
+            }
+
             Graphics.Blit(source, dest, mat, pass);
         }
 

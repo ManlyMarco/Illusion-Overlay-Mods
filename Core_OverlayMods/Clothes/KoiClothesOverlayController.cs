@@ -45,7 +45,7 @@ namespace KoiClothesOverlayX
 #endif
 
         private Dictionary<CoordinateType, Dictionary<string, ClothesTexData>> _allOverlayTextures;
-        private Dictionary<string, ClothesTexData> CurrentOverlayTextures
+        internal Dictionary<string, ClothesTexData> CurrentOverlayTextures
         {
             get
             {
@@ -478,7 +478,7 @@ namespace KoiClothesOverlayX
                 {
                     if (isColormask)
                         ChaControl.InitBaseCustomTextureClothes(true, i);
-                    ChaControl.ChangeCustomClothes(true, i, true, false, false, false, false);
+                    ChaControl.ChangeCustomClothes(true, i, true, true, true, true, true);
                     return;
                 }
 
@@ -488,7 +488,7 @@ namespace KoiClothesOverlayX
                 i = Array.FindIndex(ChaControl.objParts, x => x != null && x.name == texType);
                 if (i >= 0)
                 {
-                    ChaControl.ChangeCustomClothes(false, i, true, false, false, false, false);
+                    ChaControl.ChangeCustomClothes(false, i, true, true, true, true, true);
                     return;
                 }
             }
