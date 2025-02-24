@@ -14,6 +14,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
+using KoiClothesOverlayX;
 using UnityEngine;
 
 namespace KoiSkinOverlayX
@@ -72,8 +73,64 @@ namespace KoiSkinOverlayX
                     return;
                 }
             }
+            var controllerClothes = instance.trfParent?.GetComponent<KoiClothesOverlayController>();
+            if (controllerClothes != null && KoiSkinOverlayMgr.SizeLimit.Value != KoiSkinOverlayMgr.TextureSizeLimit.Original)
+            {
+                string clothesId = null;
+
+                if (controller.ChaControl?.ctCreateClothes != null)
+                    for (int kind = 0; kind < controller.ChaControl.ctCreateClothes.GetLength(0); kind++)
+                        if (Enumerable.Range(0, controller.ChaControl.ctCreateClothes.GetLength(1)).Any(x => controller.ChaControl.ctCreateClothes[kind, x] == instance))
+                        {
+                            clothesId = KoiClothesOverlayMgr.MainClothesNames[kind];
+                            break;
+                        }
+
+                if (clothesId == null && controller.ChaControl?.ctCreateClothesSub != null)
+                    for (int kind = 0; kind < controller.ChaControl.ctCreateClothesSub.GetLength(0); kind++)
+                        if (Enumerable.Range(0, controller.ChaControl.ctCreateClothesSub.GetLength(1)).Any(x => controller.ChaControl.ctCreateClothesSub[kind, x] == instance)) {
+
+                            clothesId = KoiClothesOverlayMgr.SubClothesNames[kind];
+                            break;
+                        }
+
+            if (clothesId != null)
+                {
+                    OverlayBlitImpl(source, dest, mat, pass, controllerClothes, clothesId);
+                    return;
+                }
+            }
 
             // Fall back to original code
+            Graphics.Blit(source, dest, mat, pass);
+        }
+
+        private static void OverlayBlitImpl(Texture source, RenderTexture dest, Material mat, int pass, KoiClothesOverlayController controller, string clothesId)
+        {
+            var tex = controller.GetOverlayTex(clothesId, false);
+            var texColor = controller.GetOverlayTex(KoiClothesOverlayController.MakeColormaskId(clothesId), false);
+            var newSize = controller.GetTextureSizeOverride(clothesId);
+
+            // Increase/decrease output texture size if needed to accomodate large overlays
+            if (KoiSkinOverlayMgr.SizeLimit.Value != KoiSkinOverlayMgr.TextureSizeLimit.Original)
+            {
+                var outSize = KoiSkinOverlayMgr.GetOutputSize(type: TexType.Unknown,
+                                                              original: dest,
+                                                              maxWidth: Mathf.Max(texColor?.Texture?.width ?? 0, Mathf.Max(tex?.Texture?.width ?? 0, newSize)),
+                                                              maxHeight: Mathf.Max(texColor?.Texture?.width ?? 0, Mathf.Max(tex?.Texture?.height ?? 0, newSize)));
+                if (dest.width != outSize.Width)
+                {
+                    KoiSkinOverlayMgr.Logger.LogDebug($"Changing dest texture size from {dest.width}x{dest.height} to {outSize}");
+                    dest.Release();
+                    dest.width = outSize.Width;
+                    dest.height = outSize.Height;
+                    dest.Create();
+                    Graphics.SetRenderTarget(dest);
+                    GL.Clear(false, true, Color.clear);
+                    Graphics.SetRenderTarget(null);
+                }
+            }
+
             Graphics.Blit(source, dest, mat, pass);
         }
 
