@@ -524,13 +524,16 @@ namespace KoiClothesOverlayX
                 return;
             }
 
-            if (texType != null && !Util.InsideStudio())
+            if (texType != null)
             {
                 var i = Array.FindIndex(ChaControl.objClothes, x => x != null && x.name == texType);
                 if (i >= 0)
                 {
-                    if (isColormask)
+                    // Needed in studio to trigger anything at all
+                    // Needed for color masks to reinitialize them 
+                    if (Util.InsideStudio() || isColormask)
                         ChaControl.InitBaseCustomTextureClothes(true, i);
+
                     ChaControl.ChangeCustomClothes(
                         true,
                         i,
@@ -543,12 +546,12 @@ namespace KoiClothesOverlayX
                     return;
                 }
 
-                if (isColormask)
-                    for (i = 0; i < ChaControl.objParts.Length; i++)
-                        ChaControl.InitBaseCustomTextureClothes(false, i);
                 i = Array.FindIndex(ChaControl.objParts, x => x != null && x.name == texType);
                 if (i >= 0)
                 {
+                    if (Util.InsideStudio() || isColormask)
+                        ChaControl.InitBaseCustomTextureClothes(false, i);
+
                     ChaControl.ChangeCustomClothes(
                         false,
                         i,
