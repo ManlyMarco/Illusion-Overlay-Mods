@@ -30,5 +30,10 @@
         /// There's no up/down separation because it's effectively the same texture in KK. Also, there is no up/down separation in HS2 at all.
         /// </summary>
         EyelineUnder = 30,
-    }
+
+		BodyOverGloss = 41,
+		FaceOverGloss = 42,
+		BodyUnderGloss = 43,
+		FaceUnderGloss = 44,
+	}
 }

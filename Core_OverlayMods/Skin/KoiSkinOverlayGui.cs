@@ -173,6 +173,23 @@ namespace KoiSkinOverlayX
             e.AddControl(new MakerSeparator(makerCategory, owner));
 
             SetupTexControls(e, makerCategory, owner, TexType.BodyUnder, "Body underlay texture (Under tattoos, blushes, etc.)");
+
+            e.AddControl(new MakerSeparator(makerCategory, owner));
+
+            // Metallic/gloss textures
+            SetupTexControls(e, makerCategory, owner, TexType.FaceOverGloss, "Face gloss overlay texture (On top of almost everything)");
+
+            e.AddControl(new MakerSeparator(makerCategory, owner));
+
+            SetupTexControls(e, makerCategory, owner, TexType.BodyOverGloss, "Body gloss overlay texture (On top of almost everything)");
+
+            e.AddControl(new MakerSeparator(makerCategory, owner));
+
+            SetupTexControls(e, makerCategory, owner, TexType.FaceUnderGloss, "Face gloss underlay texture (Under tattoos, blushes, etc.)");
+
+            e.AddControl(new MakerSeparator(makerCategory, owner));
+
+            SetupTexControls(e, makerCategory, owner, TexType.BodyUnderGloss, "Body gloss underlay texture (Under tattoos, blushes, etc.)");
         }
 
         private void SetupEyeInterface(RegisterSubCategoriesEvent e, KoiSkinOverlayMgr owner)

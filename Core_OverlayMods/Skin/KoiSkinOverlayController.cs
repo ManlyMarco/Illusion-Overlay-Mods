@@ -228,8 +228,8 @@ namespace KoiSkinOverlayX
         {
 #if !EC
             if (!KKAPI.Studio.StudioAPI.InsideStudio) return true;
-            return EnableInStudioSkin && overlayType <= TexType.FaceUnder ||
-                   EnableInStudioIris && overlayType > TexType.FaceUnder;
+            return (EnableInStudioSkin && (overlayType <= TexType.FaceUnder || overlayType >= TexType.BodyOverGloss)) ||
+                   (EnableInStudioIris && overlayType > TexType.FaceUnder && overlayType <= TexType.EyelineUnder);
 #else
             return true;
 #endif
@@ -328,11 +328,15 @@ namespace KoiSkinOverlayX
             {
                 case TexType.BodyOver:
                 case TexType.BodyUnder:
+                case TexType.BodyOverGloss:
+                case TexType.BodyUnderGloss:
                     cc.AddUpdateCMBodyTexFlags(true, true, true, true);
                     cc.CreateBodyTexture();
                     break;
                 case TexType.FaceOver:
                 case TexType.FaceUnder:
+                case TexType.FaceOverGloss:
+                case TexType.FaceUnderGloss:
                     cc.AddUpdateCMFaceTexFlags(true, true, true, true, true, true, true);
                     cc.CreateFaceTexture();
                     break;

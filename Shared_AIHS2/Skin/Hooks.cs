@@ -51,6 +51,18 @@ namespace KoiSkinOverlayX
                     OverlayBlitImpl(source, dest, mat, pass, controller, TexType.BodyUnder, TexType.BodyOver);
                     return;
                 }
+
+                // The metallic/gloss CustomTextureCreate will always be the second element in a CustomTextureControl's createCustomTex array
+                if (controller.ChaControl.customTexCtrlFace?.createCustomTex[1] == instance)
+                {
+                    OverlayBlitImpl(source, dest, mat, pass, controller, TexType.FaceUnderGloss, TexType.FaceOverGloss);
+                    return;
+                }
+                if (controller.ChaControl.customTexCtrlBody?.createCustomTex[1] == instance)
+                {
+                    OverlayBlitImpl(source, dest, mat, pass, controller, TexType.BodyUnderGloss, TexType.BodyOverGloss);
+                    return;
+                }
             }
 
             // Fall back to original code
