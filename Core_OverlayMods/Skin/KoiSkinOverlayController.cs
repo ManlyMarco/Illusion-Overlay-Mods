@@ -231,13 +231,13 @@ namespace KoiSkinOverlayX
             return (EnableInStudioSkin && (overlayType <= TexType.FaceUnder || overlayType >= TexType.BodyDetailOver)) ||
                    (EnableInStudioIris && overlayType > TexType.FaceUnder && overlayType <= TexType.EyelineUnder);
 #elif !EC
-			if (!KKAPI.Studio.StudioAPI.InsideStudio) return true;
-			return EnableInStudioSkin && overlayType <= TexType.FaceUnder ||
-				   EnableInStudioIris && overlayType > TexType.FaceUnder;
+            if (!KKAPI.Studio.StudioAPI.InsideStudio) return true;
+            return EnableInStudioSkin && overlayType <= TexType.FaceUnder ||
+                   EnableInStudioIris && overlayType > TexType.FaceUnder;
 #else
             return true;
 #endif
-		}
+        }
 
         internal static void ApplyOverlays(RenderTexture targetTexture, IEnumerable<Texture2D> overlays)
         {

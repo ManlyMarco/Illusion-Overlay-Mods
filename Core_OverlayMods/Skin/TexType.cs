@@ -47,10 +47,10 @@
         /// </summary>
         BodyDetailUnder = 43,
 
-		/// <summary>
-		/// Underlay for DetailMainTex (metallic/gloss) map; applies before tattoos, lips, eye shadow and blush
-		/// </summary>
-		FaceDetailUnder = 44,
+        /// <summary>
+        /// Underlay for DetailMainTex (metallic/gloss) map; applies before tattoos, lips, eye shadow and blush
+        /// </summary>
+        FaceDetailUnder = 44,
 #endif
     }
 }

@@ -175,8 +175,8 @@ namespace KoiSkinOverlayX
             SetupTexControls(e, makerCategory, owner, TexType.BodyUnder, "Body underlay texture (Under tattoos, blushes, etc.)");
 
 #if AI || HS2
-			// Controls for DetailMainTex
-			e.AddControl(new MakerSeparator(makerCategory, owner));
+            // Controls for DetailMainTex
+            e.AddControl(new MakerSeparator(makerCategory, owner));
 
             SetupTexControls(e, makerCategory, owner, TexType.FaceDetailOver, "Face detail overlay texture (On top of almost everything)");
 
