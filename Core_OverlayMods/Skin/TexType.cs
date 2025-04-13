@@ -30,5 +30,27 @@
         /// There's no up/down separation because it's effectively the same texture in KK. Also, there is no up/down separation in HS2 at all.
         /// </summary>
         EyelineUnder = 30,
+
+#if AI || HS2
+        /// <summary>
+        /// Overlay for DetailMainTex (metallic/gloss) map; applies on top of tattoos
+        /// </summary>
+        BodyDetailOver = 41,
+
+        /// <summary>
+        /// Overlay for DetailMainTex (metallic/gloss) map; applies on top of tattoos, lips, eye shadow and blush
+        /// </summary>
+        FaceDetailOver = 42,
+
+        /// <summary>
+        /// Underlay for DetailMainTex (metallic/gloss) map; applies before tattoos
+        /// </summary>
+        BodyDetailUnder = 43,
+
+        /// <summary>
+        /// Underlay for DetailMainTex (metallic/gloss) map; applies before tattoos, lips, eye shadow and blush
+        /// </summary>
+        FaceDetailUnder = 44,
+#endif
     }
 }

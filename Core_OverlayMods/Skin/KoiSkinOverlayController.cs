@@ -226,7 +226,11 @@ namespace KoiSkinOverlayX
 
         private bool IsShown(TexType overlayType)
         {
-#if !EC
+#if AI || HS2
+            if (!KKAPI.Studio.StudioAPI.InsideStudio) return true;
+            return (EnableInStudioSkin && (overlayType <= TexType.FaceUnder || overlayType >= TexType.BodyDetailOver)) ||
+                   (EnableInStudioIris && overlayType > TexType.FaceUnder && overlayType <= TexType.EyelineUnder);
+#elif !EC
             if (!KKAPI.Studio.StudioAPI.InsideStudio) return true;
             return EnableInStudioSkin && overlayType <= TexType.FaceUnder ||
                    EnableInStudioIris && overlayType > TexType.FaceUnder;
@@ -328,11 +332,15 @@ namespace KoiSkinOverlayX
             {
                 case TexType.BodyOver:
                 case TexType.BodyUnder:
+                case TexType.BodyDetailOver:
+                case TexType.BodyDetailUnder:
                     cc.AddUpdateCMBodyTexFlags(true, true, true, true);
                     cc.CreateBodyTexture();
                     break;
                 case TexType.FaceOver:
                 case TexType.FaceUnder:
+                case TexType.FaceDetailOver:
+                case TexType.FaceDetailUnder:
                     cc.AddUpdateCMFaceTexFlags(true, true, true, true, true, true, true);
                     cc.CreateFaceTexture();
                     break;
