@@ -31,24 +31,26 @@
         /// </summary>
         EyelineUnder = 30,
 
+#if AI || HS2
         /// <summary>
         /// Overlay for DetailMainTex (metallic/gloss) map; applies on top of tattoos
         /// </summary>
-        BodyOverGloss = 41,
+        BodyDetailOver = 41,
 
         /// <summary>
         /// Overlay for DetailMainTex (metallic/gloss) map; applies on top of tattoos, lips, eye shadow and blush
         /// </summary>
-        FaceOverGloss = 42,
+        FaceDetailOver = 42,
 
         /// <summary>
         /// Underlay for DetailMainTex (metallic/gloss) map; applies before tattoos
         /// </summary>
-        BodyUnderGloss = 43,
+        BodyDetailUnder = 43,
 
 		/// <summary>
 		/// Underlay for DetailMainTex (metallic/gloss) map; applies before tattoos, lips, eye shadow and blush
 		/// </summary>
-		FaceUnderGloss = 44,
+		FaceDetailUnder = 44,
+#endif
     }
 }

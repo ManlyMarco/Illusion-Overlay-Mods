@@ -103,10 +103,10 @@ namespace KoiSkinOverlayX
                 case TexType.BodyUnder:
                 case TexType.FaceOver:
                 case TexType.FaceUnder:
-                case TexType.BodyOverGloss:
-                case TexType.BodyUnderGloss:
-                case TexType.FaceOverGloss:
-                case TexType.FaceUnderGloss:
+                case TexType.BodyDetailOver:
+                case TexType.BodyDetailUnder:
+                case TexType.FaceDetailOver:
+                case TexType.FaceDetailUnder:
                     return new TexSize(4096);
                 case TexType.EyeUnder:
                 case TexType.EyeOver:
