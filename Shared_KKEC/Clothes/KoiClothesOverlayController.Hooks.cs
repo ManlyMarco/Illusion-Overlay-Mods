@@ -410,7 +410,7 @@ namespace KoiClothesOverlayX
                         else if (pattern == 0) return null;
                     }
                 }
-                throw new Exception($"Failed to get colormask with id:{clothesId}");
+                throw new Exception($"Failed to get pattern with id:{clothesId}");
             }
 
 #if KK || KKS
