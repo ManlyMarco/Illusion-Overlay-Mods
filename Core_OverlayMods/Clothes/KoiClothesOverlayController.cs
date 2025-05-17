@@ -111,76 +111,36 @@ namespace KoiClothesOverlayX
 
         public void DumpBaseTexture(string clothesId, Action<byte[]> callback)
         {
+            try
+            {
+                Texture tex = null;
+                if (IsColormask(clothesId)) tex = GetOriginalColormask(clothesId);
+                else if (IsPattern(clothesId)) tex = GetOriginalPattern(clothesId);
 #if KK || KKS || EC
-            if (IsMaskKind(clothesId))
-            {
-                try
-                {
-                    var tex = GetOriginalMask((MaskKind)Enum.Parse(typeof(MaskKind), clothesId));
-
-                    if (tex == null)
-                        throw new Exception("There is no texture to dump");
-
-                    // Fix being unable to save some texture formats with EncodeToPNG
-                    var t = tex.ToTexture2D();
-                    var bytes = t.EncodeToPNG();
-                    Destroy(t);
-                    callback(bytes);
-                }
-                catch (Exception e)
-                {
-                    KoiSkinOverlayMgr.Logger.LogMessage("Dumping texture failed - " + e.Message);
-                    KoiSkinOverlayMgr.Logger.LogDebug(e);
-                }
-            }
-            else if (IsColormask(clothesId))
-#else
-            if (IsColormask(clothesId))
+                else if (IsMaskKind(clothesId)) tex = GetOriginalMask((MaskKind)Enum.Parse(typeof(MaskKind), clothesId));
 #endif
-            {
-                try
+                else
                 {
-                    var tex = GetOriginalColormask(clothesId);
+                    _dumpCallback = callback;
+                    _dumpClothesId = clothesId;
 
-                    var t = tex.ToTexture2D();
-                    var bytes = t.EncodeToPNG();
-                    Destroy(t);
-                    callback(bytes);
+                    // Force redraw to trigger the dump
+                    RefreshTexture(clothesId);
+                    return;
                 }
-                catch (Exception e)
-                {
-                    KoiSkinOverlayMgr.Logger.LogMessage("Dumping texture failed - " + e.Message);
-                    KoiSkinOverlayMgr.Logger.LogDebug(e);
-                }
+
+                if (tex == null)
+                    throw new Exception("There is no texture to dump");
+
+                var t = tex.ToTexture2D();
+                var bytes = t.EncodeToPNG();
+                Destroy(t);
+                callback(bytes);
             }
-            // TODO simplify with above
-            else if (IsPattern(clothesId))
+            catch (Exception e)
             {
-                try
-                {
-                    var tex = GetOriginalPattern(clothesId);
-
-                    if (tex == null)
-                        throw new Exception("There is no texture to dump");
-
-                    var t = tex.ToTexture2D();
-                    var bytes = t.EncodeToPNG();
-                    Destroy(t);
-                    callback(bytes);
-                }
-                catch (Exception e)
-                {
-                    KoiSkinOverlayMgr.Logger.LogMessage("Dumping texture failed - " + e.Message);
-                    KoiSkinOverlayMgr.Logger.LogDebug(e);
-                }
-            }
-            else
-            {
-                _dumpCallback = callback;
-                _dumpClothesId = clothesId;
-
-                // Force redraw to trigger the dump
-                RefreshTexture(clothesId);
+                KoiSkinOverlayMgr.Logger.LogMessage("Dumping texture failed - " + e.Message);
+                KoiSkinOverlayMgr.Logger.LogDebug(e);
             }
         }
 
