@@ -200,6 +200,8 @@ namespace KoiClothesOverlayX
                 var kind = index == 6 ? index + 2 : index + 1;
                 SetupTexControls(e, cat, owner, pair.Value, "Color mask", true, KoiClothesOverlayController.MakeColormaskId(pair.Value));
 #endif
+                for (int i = 0; i < 3; i++)
+                    SetupTexControls(e, cat, owner, pair.Value, $"Pattern {i + 1}", true, KoiClothesOverlayController.MakePatternId(pair.Value, i));
             }
 
 #else
@@ -264,15 +266,15 @@ namespace KoiClothesOverlayX
             );
         }
 
-        private void SetupTexControls(RegisterCustomControlsEvent e, MakerCategory makerCategory, BaseUnityPlugin owner, string clothesId, string title = "Overlay textures", bool addSeparator = false, string colormaskId = null)
+        private void SetupTexControls(RegisterCustomControlsEvent e, MakerCategory makerCategory, BaseUnityPlugin owner, string clothesId, string title = "Overlay textures", bool addSeparator = false, string otherId = null)
         {
             var isMask = KoiClothesOverlayController.IsMaskKind(clothesId); // todo false in ai hs
             var texType = isMask ? "override texture" : "overlay texture";
-            var isColorMask = colormaskId != null;
-            texType = isColorMask ? "override texture" : texType;
+            var isisOtherType = otherId != null;
+            texType = isisOtherType ? "override texture" : texType;
 
             var realClothesId = clothesId;
-            clothesId = !isColorMask ? clothesId : colormaskId;
+            clothesId = !isisOtherType ? clothesId : otherId;
 
             var controlSeparator = addSeparator ? e.AddControl(new MakerSeparator(makerCategory, owner)) : null;
 
@@ -284,7 +286,7 @@ namespace KoiClothesOverlayX
             var controlImage = e.AddControl(new MakerImage(null, makerCategory, owner) { Height = 150, Width = 150 });
 
             MakerToggle controlOverride = null;
-            if (!isMask && !isColorMask)
+            if (!isMask && !isisOtherType)
             {
                 controlOverride = e.AddControl(new MakerToggle(makerCategory, "Hide base texture", owner));
                 controlOverride.ValueChanged.Subscribe(
@@ -452,6 +454,7 @@ namespace KoiClothesOverlayX
                         origTex = controller.GetOriginalMask((MaskKind)Enum.Parse(typeof(MaskKind), _typeToLoad));
                     else if (KoiClothesOverlayController.IsColormask(_typeToLoad))
                         origTex = controller.GetOriginalColormask(_typeToLoad);
+                    else if (KoiClothesOverlayController.IsPattern(_typeToLoad)) { } // TODO
                     else
                         origTex = controller.GetApplicableRenderers(_typeToLoad).First().material.mainTexture;
 

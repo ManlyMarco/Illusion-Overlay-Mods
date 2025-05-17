@@ -336,6 +336,62 @@ namespace KoiClothesOverlayX
             }
             #endregion
 
+            [HarmonyPrefix]
+            [HarmonyPatch(typeof(CustomTextureCreate), nameof(CustomTextureCreate.SetTexture), new Type[] { typeof(int), typeof(Texture) })]
+            public static bool CustomTextureCreateSetTexturePrefix(CustomTextureCreate __instance, int propertyID)
+            {
+                int color = -1;
+                if (propertyID == ChaShader._PatternMask1)
+                    color = 0;
+                else if (propertyID == ChaShader._PatternMask2)
+                    color = 1;
+                else if (propertyID == ChaShader._PatternMask2)
+                    color = 2;
+
+                var controller = __instance.trfParent.GetComponent<KoiClothesOverlayController>();
+                if (
+                    controller == null
+                    || !__instance.CreateInitEnd
+                    || color < 0
+                ) return true;
+
+                int kind = -1;
+                var main = true;
+
+                for (int i = 0; i < 9; i++)
+                    for (int j = 0; j < 3; j++)
+                        if (controller.ChaControl.ctCreateClothes[i, j] == __instance)
+                        {
+                            kind = i;
+                            goto End;
+                        }
+
+                for (int i = 0; i < 3; i++)
+                {
+                    for (int j = 0; j < 3; j++)
+                        if (controller.ChaControl.ctCreateClothesSub[i, j] == __instance)
+                        {
+                            kind = 0;
+                            main = false;
+                            goto End;
+                        }
+                }
+                End:
+                if (kind < 0) return true;
+
+                var clothesId = GetClothesIdFromKind(main, kind);
+                clothesId = MakePatternId(clothesId, color);
+
+                var tex = controller.GetOverlayTex(clothesId, false)?.Texture;
+                if (tex != null)
+                {
+                    __instance.matCreate.SetTexture(propertyID, tex);
+                    return false;
+                }
+
+                return true;
+            }
+
 #if KK || KKS
             /// <summary>
             /// Handle copying clothes between coordinates

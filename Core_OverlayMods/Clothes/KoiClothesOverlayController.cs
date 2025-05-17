@@ -37,6 +37,7 @@ namespace KoiClothesOverlayX
         private const string OverlayDataKey = "Overlays";
         private const string SizeOverrideDataKey = "TextureSizeOverride";
         private const string ColorMaskPrefix = "Colormask_";
+        private const string PatternPrefix = "Pattern_";
 
         private Action<byte[]> _dumpCallback;
         private string _dumpClothesId;
@@ -177,9 +178,19 @@ namespace KoiClothesOverlayX
             return ColorMaskPrefix + clothesId;
         }
 
+        public static string MakePatternId(string clothesId, int color)
+        {
+            return $"{PatternPrefix}{color}_{clothesId}";
+        }
+
         public static bool IsColormask(string clothesId)
         {
             return clothesId.StartsWith(ColorMaskPrefix);
+        }
+
+        public static bool IsPattern(string clothesId)
+        {
+            return clothesId.StartsWith(PatternPrefix);
         }
 
         public static bool GetKindIdsFromColormask(string clothesId, out int? kindId, out int? subKindId)
@@ -251,10 +262,20 @@ namespace KoiClothesOverlayX
             }
         }
 
+        public static int GetColorFromPattern(string clothesId)
+        {
+            if (!IsPattern(clothesId)) return -1;
+            if(Int32.TryParse(clothesId.Substring(PatternPrefix.Length, 1), out var color))
+                return color;
+            return -1;
+        }
+
         public static string GetRealId(string clothesId)
         {
             if (IsColormask(clothesId))
                 return clothesId.Substring(ColorMaskPrefix.Length);
+            else if (IsPattern(clothesId))
+                return clothesId.Substring(PatternPrefix.Length + 2);
             return clothesId;
         }
 
@@ -517,6 +538,7 @@ namespace KoiClothesOverlayX
         public void RefreshTexture(string texType)
         {
             var isColormask = IsColormask(texType);
+            var color = GetColorFromPattern(texType);
             texType = GetRealId(texType);
             if (IsMaskKind(texType))
             {
@@ -538,10 +560,10 @@ namespace KoiClothesOverlayX
                         true,
                         i,
                         true,
-                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[0].pattern > 0,
-                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[1].pattern > 0,
-                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[2].pattern > 0,
-                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[3].pattern > 0
+                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[0].pattern > 0 || color == 0,
+                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[1].pattern > 0 || color == 1,
+                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[2].pattern > 0 || color == 2,
+                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[3].pattern > 0 || color == 3
                     );
                     return;
                 }
@@ -556,10 +578,10 @@ namespace KoiClothesOverlayX
                         false,
                         i,
                         true,
-                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[0].pattern > 0,
-                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[1].pattern > 0,
-                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[2].pattern > 0,
-                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[3].pattern > 0
+                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[0].pattern > 0 || color == 0,
+                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[1].pattern > 0 || color == 1,
+                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[2].pattern > 0 || color == 2,
+                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[3].pattern > 0 || color == 3
                     );
                     return;
                 }
