@@ -449,29 +449,28 @@ namespace KoiClothesOverlayX
 
                     // Always save to the card in lossless format
                     var textureFormat = isMask ? TextureFormat.RG16 : TextureFormat.ARGB32;
+#else
+                    var textureFormat = TextureFormat.ARGB32;
+#endif
                     var tex = Util.TextureFromBytes(_bytesToLoad, textureFormat);
 
                     var controller = GetOverlayController();
 
                     Texture origTex = null;
-                    if (isMask)
-                        origTex = controller.GetOriginalMask((MaskKind)Enum.Parse(typeof(MaskKind), _typeToLoad));
-                    else if (KoiClothesOverlayController.IsColormask(_typeToLoad))
+                    if (KoiClothesOverlayController.IsColormask(_typeToLoad))
                         origTex = controller.GetOriginalColormask(_typeToLoad);
                     else if (KoiClothesOverlayController.IsPattern(_typeToLoad)) 
                         origTex = controller.GetOriginalPattern(_typeToLoad);
+#if KK || KKS || EC
+                    else if (isMask)
+                        origTex = controller.GetOriginalMask((MaskKind)Enum.Parse(typeof(MaskKind), _typeToLoad));
+#endif
                     else
                         origTex = controller.GetApplicableRenderers(_typeToLoad).First().material.mainTexture;
 
+#if KK || KKS || EC
                     var isWrongRes = origTex != null && (isMask ? tex.width > origTex.width || tex.height > origTex.height : tex.width != origTex.width || tex.height != origTex.height);
 #else
-                    // Always save to the card in lossless format
-                    var textureFormat = TextureFormat.ARGB32;
-                    var tex = Util.TextureFromBytes(_bytesToLoad, textureFormat);
-
-                    var controller = GetOverlayController();
-                    var origTex = KoiClothesOverlayController.IsColormask(_typeToLoad) ? controller.GetOriginalColormask(_typeToLoad) : controller.GetApplicableRenderers(_typeToLoad).First().material.mainTexture;
-
                     var isWrongRes = origTex != null && tex.width != origTex.width || tex.height != origTex.height;
 #endif
                     if (isWrongRes)

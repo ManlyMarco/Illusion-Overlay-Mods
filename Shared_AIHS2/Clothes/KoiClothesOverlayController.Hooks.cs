@@ -138,6 +138,27 @@ namespace KoiClothesOverlayX
                 }
                 throw new Exception($"Failed to get colormask with id:{clothesId}");
             }
+
+            public static Texture GetPattern(KoiClothesOverlayController controller, string clothesId)
+            {
+                GetKindIdsFromClothesId(clothesId, out int? kindId, out int? subKindId);
+                var color = GetColorFromPattern(clothesId);
+                if (kindId != null && color >= 0)
+                {
+                    var pattern = controller.ChaControl.nowCoordinate.clothes.parts[(int)kindId].colorInfo[color].pattern;
+                    var listInfo = controller.ChaControl.lstCtrl.GetListInfo(ChaListDefine.CategoryNo.st_pattern, pattern);
+                    if (listInfo != null)
+                    {
+                        string bundle = listInfo.GetInfo(ChaListDefine.KeyType.MainTexAB);
+                        string asset = listInfo.GetInfo(ChaListDefine.KeyType.MainTex);
+
+                        if ("0" != bundle && "0" != asset)
+                            return CommonLib.LoadAsset<Texture2D>(bundle, asset);
+                        else if (pattern == 0) return null;
+                    }
+                }
+                throw new Exception($"Failed to get colormask with id:{clothesId}");
+            }
         }
     }
 }
