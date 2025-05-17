@@ -458,7 +458,8 @@ namespace KoiClothesOverlayX
                         origTex = controller.GetOriginalMask((MaskKind)Enum.Parse(typeof(MaskKind), _typeToLoad));
                     else if (KoiClothesOverlayController.IsColormask(_typeToLoad))
                         origTex = controller.GetOriginalColormask(_typeToLoad);
-                    else if (KoiClothesOverlayController.IsPattern(_typeToLoad)) { } // TODO
+                    else if (KoiClothesOverlayController.IsPattern(_typeToLoad)) 
+                        origTex = controller.GetOriginalPattern(_typeToLoad);
                     else
                         origTex = controller.GetApplicableRenderers(_typeToLoad).First().material.mainTexture;
 

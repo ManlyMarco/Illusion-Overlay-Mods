@@ -153,6 +153,27 @@ namespace KoiClothesOverlayX
                     KoiSkinOverlayMgr.Logger.LogDebug(e);
                 }
             }
+            // TODO simplify with above
+            else if (IsPattern(clothesId))
+            {
+                try
+                {
+                    var tex = GetOriginalPattern(clothesId);
+
+                    if (tex == null)
+                        throw new Exception("There is no texture to dump");
+
+                    var t = tex.ToTexture2D();
+                    var bytes = t.EncodeToPNG();
+                    Destroy(t);
+                    callback(bytes);
+                }
+                catch (Exception e)
+                {
+                    KoiSkinOverlayMgr.Logger.LogMessage("Dumping texture failed - " + e.Message);
+                    KoiSkinOverlayMgr.Logger.LogDebug(e);
+                }
+            }
             else
             {
                 _dumpCallback = callback;
@@ -193,12 +214,10 @@ namespace KoiClothesOverlayX
             return clothesId.StartsWith(PatternPrefix);
         }
 
-        public static bool GetKindIdsFromColormask(string clothesId, out int? kindId, out int? subKindId)
+        public static bool GetKindIdsFromClothesId(string clothesId, out int? kindId, out int? subKindId)
         {
             kindId = null;
             subKindId = null;
-
-            if (!IsColormask(clothesId)) return false;
 
             switch (GetRealId(clothesId))
             {
@@ -332,6 +351,11 @@ namespace KoiClothesOverlayX
         internal Texture GetOriginalColormask(string clothesId)
         {
             return Hooks.GetColormask(this, clothesId);
+        }
+
+        internal Texture GetOriginalPattern(string clothesId)
+        {
+            return Hooks.GetPattern(this, clothesId);
         }
 
         public ClothesTexData GetOverlayTex(string clothesId, bool createNew)
@@ -553,7 +577,7 @@ namespace KoiClothesOverlayX
                 {
                     // Needed in studio to trigger anything at all
                     // Needed for color masks to reinitialize them 
-                    if (Util.InsideStudio() || isColormask)
+                    if (Util.InsideStudio() || isColormask || color >= 0)
                         ChaControl.InitBaseCustomTextureClothes(true, i);
 
                     ChaControl.ChangeCustomClothes(
@@ -571,7 +595,7 @@ namespace KoiClothesOverlayX
                 i = Array.FindIndex(ChaControl.objParts, x => x != null && x.name == texType);
                 if (i >= 0)
                 {
-                    if (Util.InsideStudio() || isColormask)
+                    if (Util.InsideStudio() || isColormask || color >= 0)
                         ChaControl.InitBaseCustomTextureClothes(false, i);
 
                     ChaControl.ChangeCustomClothes(

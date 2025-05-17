@@ -121,7 +121,7 @@ namespace KoiClothesOverlayX
 
             public static Texture GetColormask(KoiClothesOverlayController controller, string clothesId)
             {
-                if(GetKindIdsFromColormask(clothesId, out int? kind, out int? subKind))
+                if(GetKindIdsFromClothesId(clothesId, out int? kind, out int? subKind))
                 {
                     var listInfo = controller.ChaControl.infoClothes[(int)kind];
                     var manifest = listInfo.GetInfo(ChaListDefine.KeyType.MainManifest);
