@@ -229,6 +229,8 @@ namespace KoiClothesOverlayX
                 AddSizeOverrideDropdown(e, cat, owner, pair.Value);
                 SetupTexControls(e, cat, owner, pair.Value, pair.Key, index != 0);
                 SetupTexControls(e, cat, owner, pair.Value, "Color mask", true, KoiClothesOverlayController.MakeColormaskId(pair.Value));
+                for (int i = 0; i < 3; i++)
+                    SetupTexControls(e, cat, owner, pair.Value, $"Pattern {i + 1}", true, KoiClothesOverlayController.MakePatternId(pair.Value, i));
             }
 #endif
 

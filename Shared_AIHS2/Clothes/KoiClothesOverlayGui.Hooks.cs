@@ -23,17 +23,21 @@ namespace KoiClothesOverlayX
                 RefreshInterface();
             }
 
-            [HarmonyPrefix]
-#if HS2
-            [HarmonyPatch("IllusionFixes.MakerOptimizations+VirtualizeMakerLists+VirtualListData, HS2_Fix_MakerOptimizations", "GetThumbSprite")]
-#elif AI
-            [HarmonyPatch("IllusionFixes.MakerOptimizations+VirtualizeMakerLists+VirtualListData, AI_Fix_MakerOptimizations", "GetThumbSprite")]
-#endif
-            private static bool GetThumbSpritePreHook(ref Sprite __result, CustomSelectInfo item)
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(CustomSelectScrollViewInfo), nameof(CustomSelectScrollViewInfo.SetData))]
+            private static void SetDataPreHook2(CustomSelectScrollViewInfo __instance, int _index, CustomSelectScrollController.ScrollData _data)
             {
-                if (item.category == (int)ChaListDefine.CategoryNo.st_pattern && item.id == KoiClothesOverlayController.CustomPatternID)
+                if (_data.info.category == (int)ChaListDefine.CategoryNo.st_pattern && _data.info.id == KoiClothesOverlayController.CustomPatternID)
+                    __instance.rows[_index].imgThumb.sprite = KoiClothesOverlayController.GetPatternThumbnail();
+            }
+
+            [HarmonyPrefix]
+            [HarmonyPatch(typeof(CustomClothesColorSet), nameof(CustomClothesColorSet.ChangePatternImage))]
+            private static bool ChangePatternImagePreHook(CustomClothesColorSet __instance)
+            {
+                if (__instance.nowClothes.parts[__instance.parts].colorInfo[__instance.idx].pattern == KoiClothesOverlayController.CustomPatternID)
                 {
-                    __result = KoiClothesOverlayController.GetPatternThumbnail();
+                    __instance.imgPattern.sprite = KoiClothesOverlayController.GetPatternThumbnail();
                     return false;
                 }
                 return true;

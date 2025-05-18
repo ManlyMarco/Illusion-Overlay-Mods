@@ -345,7 +345,7 @@ namespace KoiClothesOverlayX
                     color = 0;
                 else if (propertyID == ChaShader._PatternMask2)
                     color = 1;
-                else if (propertyID == ChaShader._PatternMask2)
+                else if (propertyID == ChaShader._PatternMask3)
                     color = 2;
 
                 var controller = __instance.trfParent.GetComponent<KoiClothesOverlayController>();
@@ -398,6 +398,9 @@ namespace KoiClothesOverlayX
                 var color = GetColorFromPattern(clothesId);
                 if (kindId != null && color >= 0)
                 {
+                    if (controller.ChaControl.nowCoordinate.clothes.parts[(int)kindId].colorInfo[color].pattern == CustomPatternID)
+                        return GetPatternPlaceholder();
+
                     var pattern = controller.ChaControl.nowCoordinate.clothes.parts[(int)kindId].colorInfo[color].pattern;
                     var listInfo = controller.ChaControl.lstCtrl.GetListInfo(ChaListDefine.CategoryNo.mt_pattern, pattern);
                     if (listInfo != null)
@@ -407,10 +410,8 @@ namespace KoiClothesOverlayX
 
                         if ("0" != bundle && "0" != asset)
                             return CommonLib.LoadAsset<Texture2D>(bundle, asset);
+                        else if (pattern == 0) return null;
                     }
-                    if (pattern == CustomPatternID)
-                        return GetPatternPlaceholder();
-                    else if (pattern == 0) return null;
                 }
                 throw new Exception($"Failed to get pattern with id:{clothesId}");
             }
