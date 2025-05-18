@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using AIChara;
 using HarmonyLib;
@@ -158,6 +159,28 @@ namespace KoiClothesOverlayX
                     }
                 }
                 throw new Exception($"Failed to get colormask with id:{clothesId}");
+            }
+
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(ChaListControl), nameof(ChaListControl.GetCategoryInfo))]
+            private static void GetCategoryInfoPostHook(ref Dictionary<int, ListInfoBase> __result, ChaListDefine.CategoryNo type)
+            {
+                if (type != ChaListDefine.CategoryNo.st_pattern) return;
+
+                var listInfo = new ListInfoBase();
+                listInfo.Set(
+                    0,
+                    (int)type,
+                    0,
+                    new List<string>() { ChaListDefine.KeyType.Name.ToString(), ChaListDefine.KeyType.ID.ToString() },
+                    new List<string>() { "Custom Overlay Pattern", CustomPatternID.ToString() });
+                __result.Add(CustomPatternID, listInfo);
+                // Ensure the None pattern is first, followed by our overlay pattern. Then just sort like normal
+                __result = __result
+                    .OrderBy(x => x.Key != 0)
+                    .ThenBy(x => x.Key != CustomPatternID)
+                    .ThenBy(x => x.Key)
+                    .ToDictionary(x => x.Key, x => x.Value);
             }
         }
     }

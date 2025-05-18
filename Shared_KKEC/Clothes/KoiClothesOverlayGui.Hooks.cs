@@ -1,5 +1,6 @@
 ﻿using ChaCustom;
 using HarmonyLib;
+using UnityEngine;
 
 namespace KoiClothesOverlayX
 {
@@ -71,6 +72,24 @@ namespace KoiClothesOverlayX
                 }
 
                 RefreshInterface();
+            }
+
+            [HarmonyPrefix]
+#if KKS
+            [HarmonyPatch("IllusionFixes.MakerOptimizations+VirtualizeMakerLists+VirtualListData, KKS_Fix_MakerOptimizations", "GetThumbSprite")]
+#elif KK
+            [HarmonyPatch("IllusionFixes.MakerOptimizations+VirtualizeMakerLists+VirtualListData, KK_Fix_MakerOptimizations", "GetThumbSprite")]
+#elif EC
+            [HarmonyPatch("IllusionFixes.MakerOptimizations+VirtualizeMakerLists+VirtualListData, EC_Fix_MakerOptimizations", "GetThumbSprite")]
+#endif
+            private static bool GetThumbSpritePreHook(ref Sprite __result, CustomSelectInfo item)
+            {
+                if (item.category == (int)ChaListDefine.CategoryNo.mt_pattern && item.index == KoiClothesOverlayController.CustomPatternID)
+                {
+                    __result = KoiClothesOverlayController.GetPatternThumbnail();
+                    return false;
+                }
+                return true;
             }
         }
     }

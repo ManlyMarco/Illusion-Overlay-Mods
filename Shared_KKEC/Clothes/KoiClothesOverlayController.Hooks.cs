@@ -382,8 +382,8 @@ namespace KoiClothesOverlayX
                 var clothesId = GetClothesIdFromKind(main, kind);
                 clothesId = MakePatternId(clothesId, color);
 
-                var tex = controller.GetOverlayTex(clothesId, false)?.Texture;
-                if (tex != null)
+                var tex = controller.GetOverlayTex(clothesId, false)?.Texture ?? GetPatternPlaceholder();
+                if (tex != null && controller.ChaControl.nowCoordinate.clothes.parts[kind].colorInfo[color].pattern == CustomPatternID)
                 {
                     __instance.matCreate.SetTexture(propertyID, tex);
                     return false;
@@ -407,8 +407,10 @@ namespace KoiClothesOverlayX
 
                         if ("0" != bundle && "0" != asset)
                             return CommonLib.LoadAsset<Texture2D>(bundle, asset);
-                        else if (pattern == 0) return null;
                     }
+                    if (pattern == CustomPatternID)
+                        return GetPatternPlaceholder();
+                    else if (pattern == 0) return null;
                 }
                 throw new Exception($"Failed to get pattern with id:{clothesId}");
             }
@@ -456,6 +458,28 @@ namespace KoiClothesOverlayX
                     controller.RefreshAllTextures();
             }
 #endif
+
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(ChaListControl), nameof(ChaListControl.GetCategoryInfo))]
+            //Inject a custom pattern you need to select to make custom patterns work
+            private static void GetCategoryInfoPostHook(ref Dictionary<int, ListInfoBase> __result, ChaListDefine.CategoryNo type)
+            {
+                if (type != ChaListDefine.CategoryNo.mt_pattern) return;
+
+                var listInfo = new ListInfoBase();
+                listInfo.Set(
+                    (int)type,
+                    0,
+                    new List<string>() { ChaListDefine.KeyType.Name.ToString(), ChaListDefine.KeyType.ID.ToString() },
+                    new List<string>() { "Custom Overlay Pattern", CustomPatternID.ToString() });
+                __result.Add(CustomPatternID, listInfo);
+                // Ensure the None pattern is first, followed by our overlay pattern. Then just sort like normal
+                __result = __result
+                    .OrderBy(x => x.Key != 0)
+                    .ThenBy(x => x.Key != CustomPatternID)
+                    .ThenBy(x => x.Key)
+                    .ToDictionary(x => x.Key, x => x.Value);
+            }
         }
     }
 }

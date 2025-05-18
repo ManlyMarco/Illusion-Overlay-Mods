@@ -459,7 +459,7 @@ namespace KoiClothesOverlayX
                     Texture origTex = null;
                     if (KoiClothesOverlayController.IsColormask(_typeToLoad))
                         origTex = controller.GetOriginalColormask(_typeToLoad);
-                    else if (KoiClothesOverlayController.IsPattern(_typeToLoad)) 
+                    else if (KoiClothesOverlayController.IsPattern(_typeToLoad))
                         origTex = controller.GetOriginalPattern(_typeToLoad);
 #if KK || KKS || EC
                     else if (isMask)
