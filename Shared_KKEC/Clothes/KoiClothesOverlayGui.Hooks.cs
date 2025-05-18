@@ -74,6 +74,22 @@ namespace KoiClothesOverlayX
                 RefreshInterface();
             }
 
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(CustomSelectListCtrl), nameof(CustomSelectListCtrl.Create))]
+            private static void Test(CustomSelectListCtrl __instance)
+            {
+                if (__instance.lstSelectInfo.Count > 0 && __instance.lstSelectInfo[0].category != (int)ChaListDefine.CategoryNo.mt_pattern)
+                    return;
+
+                var components = __instance.objContent.GetComponentsInChildren<CustomSelectInfoComponent>();
+                foreach (var component in components)
+                    if (component.info.index == KoiClothesOverlayController.CustomPatternID)
+                    {
+                        component.img.sprite = KoiClothesOverlayController.GetPatternThumbnail();
+                        return;
+                    }
+            }
+
             [HarmonyPrefix]
 #if KKS
             [HarmonyPatch("IllusionFixes.MakerOptimizations+VirtualizeMakerLists+VirtualListData, KKS_Fix_MakerOptimizations", "GetThumbSprite")]
