@@ -451,8 +451,8 @@ namespace KoiClothesOverlayX
                 foreach (var copySlot in copySlots)
                 {
                     destinationDic.Remove(copySlot);
-                    if (sourceDic.TryGetValue(copySlot, out var val))
-                        destinationDic[copySlot] = val;
+                    foreach (var data in sourceDic.Where(x => GetRealId(x.Key) == copySlot))
+                        destinationDic[data.Key] = data.Value;
                 }
 
                 if (copyDestination == controller.CurrentCoordinate.Value)
