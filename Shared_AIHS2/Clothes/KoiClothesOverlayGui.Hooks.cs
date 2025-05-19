@@ -25,9 +25,15 @@ namespace KoiClothesOverlayX
 
             [HarmonyPostfix]
             [HarmonyPatch(typeof(CustomSelectScrollViewInfo), nameof(CustomSelectScrollViewInfo.SetData))]
-            private static void SetDataPreHook2(CustomSelectScrollViewInfo __instance, int _index, CustomSelectScrollController.ScrollData _data)
+            private static void SetDataPreHook(CustomSelectScrollViewInfo __instance, int _index, CustomSelectScrollController.ScrollData _data)
             {
-                if (_data.info.category == (int)ChaListDefine.CategoryNo.st_pattern && _data.info.id == KoiClothesOverlayController.CustomPatternID)
+                if (
+                    _data?.info?.category == (int)ChaListDefine.CategoryNo.st_pattern
+                    && _data?.info?.id == KoiClothesOverlayController.CustomPatternID
+                    && __instance.rows != null
+                    && _index < __instance.rows.Length
+                    && __instance.rows[_index].imgThumb != null
+                )
                     __instance.rows[_index].imgThumb.sprite = KoiClothesOverlayController.GetPatternThumbnail();
             }
 
