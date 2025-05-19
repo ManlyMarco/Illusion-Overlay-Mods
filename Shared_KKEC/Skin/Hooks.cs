@@ -94,11 +94,11 @@ namespace KoiSkinOverlayX
                             break;
                         }
 
-            if (clothesId != null)
-                {
-                    OverlayBlitImpl(source, dest, mat, pass, controllerClothes, clothesId);
-                    return;
-                }
+                if (clothesId != null)
+                    {
+                        OverlayBlitImpl(source, dest, mat, pass, controllerClothes, clothesId);
+                        return;
+                    }
             }
 
             // Fall back to original code
