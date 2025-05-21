@@ -131,7 +131,14 @@ namespace KoiSkinOverlayX
                 }
             }
 
-            Graphics.Blit(source, dest, mat, pass);
+            if (tex != null && tex.Texture != null && tex.Override)
+            {
+                var trt = RenderTexture.GetTemporary(source.width, source.height, dest.depth, dest.format);
+                KoiSkinOverlayController.ApplyOverlay(trt, tex.Texture);
+                Graphics.Blit(trt, dest, mat, pass);
+                RenderTexture.ReleaseTemporary(trt);
+            }
+            else Graphics.Blit(source, dest, mat, pass);
         }
 
         private static void OverlayBlitImpl(Texture source, RenderTexture dest, Material mat, int pass, KoiSkinOverlayController controller, TexType underlayType, TexType overlayType)

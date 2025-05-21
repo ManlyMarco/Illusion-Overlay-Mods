@@ -811,7 +811,7 @@ namespace KoiClothesOverlayX
 #endif
 
             if (!CurrentOverlayTextures.TryGetValue(clothesName, out var overlay)) return;
-            if (overlay == null || overlay.IsEmpty()) return;
+            if (overlay == null || overlay.IsEmpty() || overlay.Override) return;
 
             var applicableRenderers = GetApplicableRenderers(rendererArrs).ToList();
             if (applicableRenderers.Count == 0)
@@ -834,13 +834,13 @@ namespace KoiClothesOverlayX
                 var mainTexture = mat.mainTexture as RenderTexture;
                 if (mainTexture == null) return;
 
-                if (overlay.Override)
-                {
-                    var rta = RenderTexture.active;
-                    RenderTexture.active = mainTexture;
-                    GL.Clear(false, true, Color.clear);
-                    RenderTexture.active = rta;
-                }
+                //if (overlay.Override)
+                //{
+                //    var rta = RenderTexture.active;
+                //    RenderTexture.active = mainTexture;
+                //    GL.Clear(false, true, Color.clear);
+                //    RenderTexture.active = rta;
+                //}
 
                 if (overlay.Texture != null)
                     KoiSkinOverlayController.ApplyOverlay(mainTexture, overlay.Texture);
