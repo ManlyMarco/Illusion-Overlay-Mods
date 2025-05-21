@@ -10,7 +10,20 @@ namespace KoiClothesOverlayX
         {
             public static void Init()
             {
-                Harmony.CreateAndPatchAll(typeof(Hooks), nameof(KoiClothesOverlayGui));
+                var hi = Harmony.CreateAndPatchAll(typeof(Hooks), nameof(KoiClothesOverlayGui));
+
+#if KKS
+                var type = System.Type.GetType("IllusionFixes.MakerOptimizations+VirtualizeMakerLists+VirtualListData, KKS_Fix_MakerOptimizations", throwOnError: false);
+#elif KK
+                var type = System.Type.GetType("IllusionFixes.MakerOptimizations+VirtualizeMakerLists+VirtualListData, KK_Fix_MakerOptimizations", throwOnError: false);
+#elif EC
+                var type = System.Type.GetType("IllusionFixes.MakerOptimizations+VirtualizeMakerLists+VirtualListData, EC_Fix_MakerOptimizations", throwOnError: false);
+#endif
+                if (type != null)
+                    hi.Patch(
+                        type.GetMethod("GetThumbSprite", AccessTools.all),
+                        new HarmonyMethod(typeof(Hooks).GetMethod("GetThumbSpritePreHook", AccessTools.all))
+                    );
             }
 
             [HarmonyPostfix]
@@ -90,14 +103,6 @@ namespace KoiClothesOverlayX
                     }
             }
 
-            [HarmonyPrefix]
-#if KKS
-            [HarmonyPatch("IllusionFixes.MakerOptimizations+VirtualizeMakerLists+VirtualListData, KKS_Fix_MakerOptimizations", "GetThumbSprite")]
-#elif KK
-            [HarmonyPatch("IllusionFixes.MakerOptimizations+VirtualizeMakerLists+VirtualListData, KK_Fix_MakerOptimizations", "GetThumbSprite")]
-#elif EC
-            [HarmonyPatch("IllusionFixes.MakerOptimizations+VirtualizeMakerLists+VirtualListData, EC_Fix_MakerOptimizations", "GetThumbSprite")]
-#endif
             private static bool GetThumbSpritePreHook(ref Sprite __result, CustomSelectInfo item)
             {
                 if (item.category == (int)ChaListDefine.CategoryNo.mt_pattern && item.index == KoiClothesOverlayController.CustomPatternID)
