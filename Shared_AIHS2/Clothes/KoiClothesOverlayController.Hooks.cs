@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using AIChara;
 using HarmonyLib;
@@ -119,9 +120,54 @@ namespace KoiClothesOverlayX
                 }
             }
 
+            [HarmonyPrefix]
+            [HarmonyPatch(typeof(CustomTextureCreate), nameof(CustomTextureCreate.SetTexture), new Type[] { typeof(int), typeof(Texture) })]
+            public static bool CustomTextureCreateSetTexturePrefix(CustomTextureCreate __instance, int propertyID)
+            {
+                int color = -1;
+                if (propertyID == ChaShader.PatternMask1)
+                    color = 0;
+                else if (propertyID == ChaShader.PatternMask2)
+                    color = 1;
+                else if (propertyID == ChaShader.PatternMask3)
+                    color = 2;
+
+                var controller = __instance.trfParent.GetComponent<KoiClothesOverlayController>();
+                if (
+                    controller == null
+                    || color < 0
+                ) return true;
+
+                int kind = -1;
+                var main = true;
+
+                for (int i = 0; i < controller.ChaControl.ctCreateClothes.GetLength(0); i++)
+                    for (int j = 0; j < controller.ChaControl.ctCreateClothes.GetLength(1); j++)
+                        if (controller.ChaControl.ctCreateClothes[i, j] == __instance)
+                        {
+                            kind = i;
+                            goto End;
+                        }
+            End:
+
+                if (kind < 0) return true;
+
+                var clothesId = GetClothesIdFromKind(main, kind);
+                clothesId = MakePatternId(clothesId, color);
+
+                var tex = controller.GetOverlayTex(clothesId, false)?.Texture ?? GetPatternPlaceholder();
+                if (tex != null && controller.ChaControl.nowCoordinate.clothes.parts[kind].colorInfo[color].pattern == CustomPatternID)
+                {
+                    __instance.matCreate.SetTexture(propertyID, tex);
+                    return false;
+                }
+
+                return true;
+            }
+
             public static Texture GetColormask(KoiClothesOverlayController controller, string clothesId)
             {
-                if(GetKindIdsFromColormask(clothesId, out int? kind, out int? subKind))
+                if(GetKindIdsFromClothesId(clothesId, out int? kind, out int? subKind))
                 {
                     var listInfo = controller.ChaControl.infoClothes[(int)kind];
                     var manifest = listInfo.GetInfo(ChaListDefine.KeyType.MainManifest);
@@ -137,6 +183,52 @@ namespace KoiClothesOverlayX
                     return CommonLib.LoadAsset<Texture2D>(mainAb, texString, false, manifest);
                 }
                 throw new Exception($"Failed to get colormask with id:{clothesId}");
+            }
+
+            public static Texture GetPattern(KoiClothesOverlayController controller, string clothesId)
+            {
+                GetKindIdsFromClothesId(clothesId, out int? kindId, out int? subKindId);
+                var color = GetColorFromPattern(clothesId);
+                if (kindId != null && color >= 0)
+                {
+                    if (controller.ChaControl.nowCoordinate.clothes.parts[(int)kindId].colorInfo[color].pattern == CustomPatternID)
+                        return GetPatternPlaceholder();
+
+                    var pattern = controller.ChaControl.nowCoordinate.clothes.parts[(int)kindId].colorInfo[color].pattern;
+                    var listInfo = controller.ChaControl.lstCtrl.GetListInfo(ChaListDefine.CategoryNo.st_pattern, pattern);
+                    if (listInfo != null)
+                    {
+                        string bundle = listInfo.GetInfo(ChaListDefine.KeyType.MainTexAB);
+                        string asset = listInfo.GetInfo(ChaListDefine.KeyType.MainTex);
+
+                        if ("0" != bundle && "0" != asset)
+                            return CommonLib.LoadAsset<Texture2D>(bundle, asset);
+                        else if (pattern == 0) return null;
+                    }
+                }
+                throw new Exception($"Failed to get colormask with id:{clothesId}");
+            }
+
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(ChaListControl), nameof(ChaListControl.GetCategoryInfo))]
+            private static void GetCategoryInfoPostHook(ref Dictionary<int, ListInfoBase> __result, ChaListDefine.CategoryNo type)
+            {
+                if (type != ChaListDefine.CategoryNo.st_pattern) return;
+
+                var listInfo = new ListInfoBase();
+                listInfo.Set(
+                    0,
+                    (int)type,
+                    0,
+                    new List<string>() { ChaListDefine.KeyType.Name.ToString(), ChaListDefine.KeyType.ID.ToString() },
+                    new List<string>() { "Custom Overlay Pattern", CustomPatternID.ToString() });
+                __result.Add(CustomPatternID, listInfo);
+                // Ensure the None pattern is first, followed by our overlay pattern. Then just sort like normal
+                __result = __result
+                    .OrderBy(x => x.Key != 0)
+                    .ThenBy(x => x.Key != CustomPatternID)
+                    .ThenBy(x => x.Key)
+                    .ToDictionary(x => x.Key, x => x.Value);
             }
         }
     }

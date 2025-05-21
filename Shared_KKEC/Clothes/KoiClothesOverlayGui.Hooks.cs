@@ -1,5 +1,6 @@
 ﻿using ChaCustom;
 using HarmonyLib;
+using UnityEngine;
 
 namespace KoiClothesOverlayX
 {
@@ -9,7 +10,20 @@ namespace KoiClothesOverlayX
         {
             public static void Init()
             {
-                Harmony.CreateAndPatchAll(typeof(Hooks), nameof(KoiClothesOverlayGui));
+                var hi = Harmony.CreateAndPatchAll(typeof(Hooks), nameof(KoiClothesOverlayGui));
+
+#if KKS
+                var type = System.Type.GetType("IllusionFixes.MakerOptimizations+VirtualizeMakerLists+VirtualListData, KKS_Fix_MakerOptimizations", throwOnError: false);
+#elif KK
+                var type = System.Type.GetType("IllusionFixes.MakerOptimizations+VirtualizeMakerLists+VirtualListData, KK_Fix_MakerOptimizations", throwOnError: false);
+#elif EC
+                var type = System.Type.GetType("IllusionFixes.MakerOptimizations+VirtualizeMakerLists+VirtualListData, EC_Fix_MakerOptimizations", throwOnError: false);
+#endif
+                if (type != null)
+                    hi.Patch(
+                        type.GetMethod("GetThumbSprite", AccessTools.all),
+                        new HarmonyMethod(typeof(Hooks).GetMethod("GetThumbSpritePreHook", AccessTools.all))
+                    );
             }
 
             [HarmonyPostfix]
@@ -71,6 +85,32 @@ namespace KoiClothesOverlayX
                 }
 
                 RefreshInterface();
+            }
+
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(CustomSelectListCtrl), nameof(CustomSelectListCtrl.Create))]
+            private static void Test(CustomSelectListCtrl __instance)
+            {
+                if (__instance.lstSelectInfo.Count > 0 && __instance.lstSelectInfo[0].category != (int)ChaListDefine.CategoryNo.mt_pattern)
+                    return;
+
+                var components = __instance.objContent.GetComponentsInChildren<CustomSelectInfoComponent>();
+                foreach (var component in components)
+                    if (component.info.index == KoiClothesOverlayController.CustomPatternID)
+                    {
+                        component.img.sprite = KoiClothesOverlayController.GetPatternThumbnail();
+                        return;
+                    }
+            }
+
+            private static bool GetThumbSpritePreHook(ref Sprite __result, CustomSelectInfo item)
+            {
+                if (item.category == (int)ChaListDefine.CategoryNo.mt_pattern && item.index == KoiClothesOverlayController.CustomPatternID)
+                {
+                    __result = KoiClothesOverlayController.GetPatternThumbnail();
+                    return false;
+                }
+                return true;
             }
         }
     }

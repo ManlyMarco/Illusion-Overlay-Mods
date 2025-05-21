@@ -309,7 +309,7 @@ namespace KoiClothesOverlayX
 
             public static Texture GetColormask(KoiClothesOverlayController controller, string clothesId)
             {
-                if (GetKindIdsFromColormask(clothesId, out int? part, out int? subPart))
+                if (GetKindIdsFromClothesId(clothesId, out int? part, out int? subPart))
                 {
                     var listInfo = subPart == null ? controller.ChaControl.infoClothes[(int)part] : controller.ChaControl.infoParts[(int)subPart];
                     var manifest = listInfo.GetInfo(ChaListDefine.KeyType.MainManifest);
@@ -335,6 +335,86 @@ namespace KoiClothesOverlayX
                 throw new Exception($"Failed to get colormask with id:{clothesId}");
             }
             #endregion
+
+            [HarmonyPrefix]
+            [HarmonyPatch(typeof(CustomTextureCreate), nameof(CustomTextureCreate.SetTexture), new Type[] { typeof(int), typeof(Texture) })]
+            public static bool CustomTextureCreateSetTexturePrefix(CustomTextureCreate __instance, int propertyID)
+            {
+                int color = -1;
+                if (propertyID == ChaShader._PatternMask1)
+                    color = 0;
+                else if (propertyID == ChaShader._PatternMask2)
+                    color = 1;
+                else if (propertyID == ChaShader._PatternMask3)
+                    color = 2;
+
+                var controller = __instance.trfParent.GetComponent<KoiClothesOverlayController>();
+                if (
+                    controller == null
+                    || !__instance.CreateInitEnd
+                    || color < 0
+                ) return true;
+
+                int kind = -1;
+                var main = true;
+
+                for (int i = 0; i < 9; i++)
+                    for (int j = 0; j < 3; j++)
+                        if (controller.ChaControl.ctCreateClothes[i, j] == __instance)
+                        {
+                            kind = i;
+                            goto End;
+                        }
+
+                for (int i = 0; i < 3; i++)
+                {
+                    for (int j = 0; j < 3; j++)
+                        if (controller.ChaControl.ctCreateClothesSub[i, j] == __instance)
+                        {
+                            kind = 0;
+                            main = false;
+                            goto End;
+                        }
+                }
+                End:
+                if (kind < 0) return true;
+
+                var clothesId = GetClothesIdFromKind(main, kind);
+                clothesId = MakePatternId(clothesId, color);
+
+                var tex = controller.GetOverlayTex(clothesId, false)?.Texture ?? GetPatternPlaceholder();
+                if (tex != null && controller.ChaControl.nowCoordinate.clothes.parts[kind].colorInfo[color].pattern == CustomPatternID)
+                {
+                    __instance.matCreate.SetTexture(propertyID, tex);
+                    return false;
+                }
+
+                return true;
+            }
+
+            public static Texture GetPattern(KoiClothesOverlayController controller, string clothesId)
+            {
+                GetKindIdsFromClothesId(clothesId, out int? kindId, out int? subKindId);
+                var color = GetColorFromPattern(clothesId);
+                if (kindId != null && color >= 0)
+                {
+                    if (controller.ChaControl.nowCoordinate.clothes.parts[(int)kindId].colorInfo[color].pattern == CustomPatternID)
+                        return GetPatternPlaceholder();
+
+                    var pattern = controller.ChaControl.nowCoordinate.clothes.parts[(int)kindId].colorInfo[color].pattern;
+                    var listInfo = controller.ChaControl.lstCtrl.GetListInfo(ChaListDefine.CategoryNo.mt_pattern, pattern);
+                    if (listInfo != null)
+                    {
+                        string bundle = listInfo.GetInfo(ChaListDefine.KeyType.MainTexAB);
+                        string asset = listInfo.GetInfo(ChaListDefine.KeyType.MainTex);
+
+                        if ("0" != bundle && "0" != asset)
+                            return CommonLib.LoadAsset<Texture2D>(bundle, asset);
+                        else if (pattern == 0) return null;
+                    }
+                }
+                throw new Exception($"Failed to get pattern with id:{clothesId}");
+            }
 
 #if KK || KKS
             /// <summary>
@@ -371,14 +451,36 @@ namespace KoiClothesOverlayX
                 foreach (var copySlot in copySlots)
                 {
                     destinationDic.Remove(copySlot);
-                    if (sourceDic.TryGetValue(copySlot, out var val))
-                        destinationDic[copySlot] = val;
+                    foreach (var data in sourceDic.Where(x => GetRealId(x.Key) == copySlot))
+                        destinationDic[data.Key] = data.Value;
                 }
 
                 if (copyDestination == controller.CurrentCoordinate.Value)
                     controller.RefreshAllTextures();
             }
 #endif
+
+            [HarmonyPostfix]
+            [HarmonyPatch(typeof(ChaListControl), nameof(ChaListControl.GetCategoryInfo))]
+            //Inject a custom pattern you need to select to make custom patterns work
+            private static void GetCategoryInfoPostHook(ref Dictionary<int, ListInfoBase> __result, ChaListDefine.CategoryNo type)
+            {
+                if (type != ChaListDefine.CategoryNo.mt_pattern) return;
+
+                var listInfo = new ListInfoBase();
+                listInfo.Set(
+                    (int)type,
+                    0,
+                    new List<string>() { ChaListDefine.KeyType.Name.ToString(), ChaListDefine.KeyType.ID.ToString() },
+                    new List<string>() { "Custom Overlay Pattern", CustomPatternID.ToString() });
+                __result.Add(CustomPatternID, listInfo);
+                // Ensure the None pattern is first, followed by our overlay pattern. Then just sort like normal
+                __result = __result
+                    .OrderBy(x => x.Key != 0)
+                    .ThenBy(x => x.Key != CustomPatternID)
+                    .ThenBy(x => x.Key)
+                    .ToDictionary(x => x.Key, x => x.Value);
+            }
         }
     }
 }
