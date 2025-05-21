@@ -37,6 +37,8 @@ namespace KoiClothesOverlayX
         private const string OverlayDataKey = "Overlays";
         private const string SizeOverrideDataKey = "TextureSizeOverride";
         private const string ColorMaskPrefix = "Colormask_";
+        private const string PatternPrefix = "Pattern_";
+        public const int CustomPatternID = 58947543;
 
         private Action<byte[]> _dumpCallback;
         private string _dumpClothesId;
@@ -110,55 +112,36 @@ namespace KoiClothesOverlayX
 
         public void DumpBaseTexture(string clothesId, Action<byte[]> callback)
         {
+            try
+            {
+                Texture tex = null;
+                if (IsColormask(clothesId)) tex = GetOriginalColormask(clothesId);
+                else if (IsPattern(clothesId)) tex = GetOriginalPattern(clothesId);
 #if KK || KKS || EC
-            if (IsMaskKind(clothesId))
-            {
-                try
-                {
-                    var tex = GetOriginalMask((MaskKind)Enum.Parse(typeof(MaskKind), clothesId));
-
-                    if (tex == null)
-                        throw new Exception("There is no texture to dump");
-
-                    // Fix being unable to save some texture formats with EncodeToPNG
-                    var t = tex.ToTexture2D();
-                    var bytes = t.EncodeToPNG();
-                    Destroy(t);
-                    callback(bytes);
-                }
-                catch (Exception e)
-                {
-                    KoiSkinOverlayMgr.Logger.LogMessage("Dumping texture failed - " + e.Message);
-                    KoiSkinOverlayMgr.Logger.LogDebug(e);
-                }
-            }
-            else if (IsColormask(clothesId))
-#else
-            if (IsColormask(clothesId))
+                else if (IsMaskKind(clothesId)) tex = GetOriginalMask((MaskKind)Enum.Parse(typeof(MaskKind), clothesId));
 #endif
-            {
-                try
+                else
                 {
-                    var tex = GetOriginalColormask(clothesId);
+                    _dumpCallback = callback;
+                    _dumpClothesId = clothesId;
 
-                    var t = tex.ToTexture2D();
-                    var bytes = t.EncodeToPNG();
-                    Destroy(t);
-                    callback(bytes);
+                    // Force redraw to trigger the dump
+                    RefreshTexture(clothesId);
+                    return;
                 }
-                catch (Exception e)
-                {
-                    KoiSkinOverlayMgr.Logger.LogMessage("Dumping texture failed - " + e.Message);
-                    KoiSkinOverlayMgr.Logger.LogDebug(e);
-                }
+
+                if (tex == null)
+                    throw new Exception("There is no texture to dump");
+
+                var t = tex.ToTexture2D();
+                var bytes = t.EncodeToPNG();
+                Destroy(t);
+                callback(bytes);
             }
-            else
+            catch (Exception e)
             {
-                _dumpCallback = callback;
-                _dumpClothesId = clothesId;
-
-                // Force redraw to trigger the dump
-                RefreshTexture(clothesId);
+                KoiSkinOverlayMgr.Logger.LogMessage("Dumping texture failed - " + e.Message);
+                KoiSkinOverlayMgr.Logger.LogDebug(e);
             }
         }
 
@@ -177,17 +160,28 @@ namespace KoiClothesOverlayX
             return ColorMaskPrefix + clothesId;
         }
 
+        public static string MakePatternId(string clothesId, int color)
+        {
+            return $"{PatternPrefix}{color}_{clothesId}";
+        }
+
         public static bool IsColormask(string clothesId)
         {
             return clothesId.StartsWith(ColorMaskPrefix);
         }
 
-        public static bool GetKindIdsFromColormask(string clothesId, out int? kindId, out int? subKindId)
+        public static bool IsPattern(string clothesId)
+        {
+            return clothesId.StartsWith(PatternPrefix);
+        }
+
+        [Obsolete]
+        public static bool GetKindIdsFromColormask(string clothesId, out int? kindId, out int? subKindId) => GetKindIdsFromClothesId(clothesId, out kindId, out subKindId);
+
+        public static bool GetKindIdsFromClothesId(string clothesId, out int? kindId, out int? subKindId)
         {
             kindId = null;
             subKindId = null;
-
-            if (!IsColormask(clothesId)) return false;
 
             switch (GetRealId(clothesId))
             {
@@ -251,10 +245,20 @@ namespace KoiClothesOverlayX
             }
         }
 
+        public static int GetColorFromPattern(string clothesId)
+        {
+            if (!IsPattern(clothesId)) return -1;
+            if(Int32.TryParse(clothesId.Substring(PatternPrefix.Length, 1), out var color))
+                return color;
+            return -1;
+        }
+
         public static string GetRealId(string clothesId)
         {
             if (IsColormask(clothesId))
                 return clothesId.Substring(ColorMaskPrefix.Length);
+            else if (IsPattern(clothesId))
+                return clothesId.Substring(PatternPrefix.Length + 2);
             return clothesId;
         }
 
@@ -313,6 +317,11 @@ namespace KoiClothesOverlayX
             return Hooks.GetColormask(this, clothesId);
         }
 
+        internal Texture GetOriginalPattern(string clothesId)
+        {
+            return Hooks.GetPattern(this, clothesId);
+        }
+
         public ClothesTexData GetOverlayTex(string clothesId, bool createNew)
         {
             if (CurrentOverlayTextures != null)
@@ -347,6 +356,20 @@ namespace KoiClothesOverlayX
                     CurrentTextureSizeOverrides.Remove(clothesId);
             }
             return 0;
+        }
+
+        public static Sprite GetPatternThumbnail()
+        {
+            var tex = new Texture2D(1, 1);
+            tex.LoadImage(ResourceUtils.GetEmbeddedResource("OverlayPatternThumbnail.png"));
+            return Sprite.Create(tex, new Rect(0f, 0f, tex.width, tex.height), new Vector2(0.5f, 0.5f));
+        }
+
+        public static Texture2D GetPatternPlaceholder()
+        {
+            var tex = new Texture2D(1, 1);
+            tex.LoadImage(ResourceUtils.GetEmbeddedResource("OverlayPatternPlaceholder.png"));
+            return tex;
         }
 
         public IEnumerable<Renderer> GetApplicableRenderers(string clothesId)
@@ -517,6 +540,7 @@ namespace KoiClothesOverlayX
         public void RefreshTexture(string texType)
         {
             var isColormask = IsColormask(texType);
+            var color = GetColorFromPattern(texType);
             texType = GetRealId(texType);
             if (IsMaskKind(texType))
             {
@@ -531,17 +555,17 @@ namespace KoiClothesOverlayX
                 {
                     // Needed in studio to trigger anything at all
                     // Needed for color masks to reinitialize them 
-                    if (Util.InsideStudio() || isColormask)
+                    if (Util.InsideStudio() || isColormask || color >= 0)
                         ChaControl.InitBaseCustomTextureClothes(true, i);
 
                     ChaControl.ChangeCustomClothes(
                         true,
                         i,
                         true,
-                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[0].pattern > 0,
-                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[1].pattern > 0,
-                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[2].pattern > 0,
-                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[3].pattern > 0
+                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[0].pattern > 0 || color == 0,
+                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[1].pattern > 0 || color == 1,
+                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[2].pattern > 0 || color == 2,
+                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[3].pattern > 0 || color == 3
                     );
                     return;
                 }
@@ -549,17 +573,17 @@ namespace KoiClothesOverlayX
                 i = Array.FindIndex(ChaControl.objParts, x => x != null && x.name == texType);
                 if (i >= 0)
                 {
-                    if (Util.InsideStudio() || isColormask)
+                    if (Util.InsideStudio() || isColormask || color >= 0)
                         ChaControl.InitBaseCustomTextureClothes(false, i);
 
                     ChaControl.ChangeCustomClothes(
                         false,
                         i,
                         true,
-                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[0].pattern > 0,
-                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[1].pattern > 0,
-                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[2].pattern > 0,
-                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[3].pattern > 0
+                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[0].pattern > 0 || color == 0,
+                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[1].pattern > 0 || color == 1,
+                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[2].pattern > 0 || color == 2,
+                        ChaControl.nowCoordinate.clothes.parts[i].colorInfo[3].pattern > 0 || color == 3
                     );
                     return;
                 }

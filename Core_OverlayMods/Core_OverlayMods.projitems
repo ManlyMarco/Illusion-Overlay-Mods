@@ -24,4 +24,10 @@
     <Compile Include="$(MSBuildThisFileDirectory)Skin\TexType.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Skin\Util.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Resources\OverlayPatternThumbnail.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Resources\OverlayPatternPlaceholder.png" />
+  </ItemGroup>
 </Project>
