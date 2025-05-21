@@ -38,6 +38,7 @@ namespace KoiClothesOverlayX
         private const string SizeOverrideDataKey = "TextureSizeOverride";
         private const string ColorMaskPrefix = "Colormask_";
         private const string PatternPrefix = "Pattern_";
+        private const string OverridePrefix = "Override_";
         public const int CustomPatternID = 58947543;
 
         private Action<byte[]> _dumpCallback;
@@ -123,7 +124,7 @@ namespace KoiClothesOverlayX
                 else
                 {
                     _dumpCallback = callback;
-                    _dumpClothesId = clothesId;
+                    _dumpClothesId = GetRealId(clothesId);
 
                     // Force redraw to trigger the dump
                     RefreshTexture(clothesId);
@@ -165,6 +166,11 @@ namespace KoiClothesOverlayX
             return $"{PatternPrefix}{color}_{clothesId}";
         }
 
+        public static string MakeOverrideId(string clothesId)
+        {
+            return OverridePrefix + clothesId;
+        }
+
         public static bool IsColormask(string clothesId)
         {
             return clothesId.StartsWith(ColorMaskPrefix);
@@ -173,6 +179,11 @@ namespace KoiClothesOverlayX
         public static bool IsPattern(string clothesId)
         {
             return clothesId.StartsWith(PatternPrefix);
+        }
+
+        public static bool IsOverride(string clothesId)
+        {
+            return clothesId.StartsWith(OverridePrefix);
         }
 
         [Obsolete]
@@ -259,6 +270,8 @@ namespace KoiClothesOverlayX
                 return clothesId.Substring(ColorMaskPrefix.Length);
             else if (IsPattern(clothesId))
                 return clothesId.Substring(PatternPrefix.Length + 2);
+            else if (IsOverride(clothesId))
+                return clothesId.Substring(OverridePrefix.Length);
             return clothesId;
         }
 
@@ -835,7 +848,7 @@ namespace KoiClothesOverlayX
 #endif
 
             if (!CurrentOverlayTextures.TryGetValue(clothesName, out var overlay)) return;
-            if (overlay == null || overlay.IsEmpty() || overlay.Override) return;
+            if (overlay == null || overlay.IsEmpty()) return;
 
             var applicableRenderers = GetApplicableRenderers(rendererArrs).ToList();
             if (applicableRenderers.Count == 0)
@@ -858,13 +871,13 @@ namespace KoiClothesOverlayX
                 var mainTexture = mat.mainTexture as RenderTexture;
                 if (mainTexture == null) return;
 
-                //if (overlay.Override)
-                //{
-                //    var rta = RenderTexture.active;
-                //    RenderTexture.active = mainTexture;
-                //    GL.Clear(false, true, Color.clear);
-                //    RenderTexture.active = rta;
-                //}
+                if (overlay.Override)
+                {
+                    var rta = RenderTexture.active;
+                    RenderTexture.active = mainTexture;
+                    GL.Clear(false, true, Color.clear);
+                    RenderTexture.active = rta;
+                }
 
                 if (overlay.Texture != null)
                     KoiSkinOverlayController.ApplyOverlay(mainTexture, overlay.Texture);

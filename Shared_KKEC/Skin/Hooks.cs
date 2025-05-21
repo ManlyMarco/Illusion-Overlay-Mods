@@ -108,6 +108,7 @@ namespace KoiSkinOverlayX
         private static void OverlayBlitImpl(Texture source, RenderTexture dest, Material mat, int pass, KoiClothesOverlayController controller, string clothesId)
         {
             var tex = controller.GetOverlayTex(clothesId, false);
+            var texOverride = controller.GetOverlayTex(KoiClothesOverlayController.MakeOverrideId(clothesId), false);
             var texColor = controller.GetOverlayTex(KoiClothesOverlayController.MakeColormaskId(clothesId), false);
             var newSize = controller.GetTextureSizeOverride(clothesId);
 
@@ -116,8 +117,8 @@ namespace KoiSkinOverlayX
             {
                 var outSize = KoiSkinOverlayMgr.GetOutputSize(type: TexType.Unknown,
                                                               original: dest,
-                                                              maxWidth: Mathf.Max(texColor?.Texture?.width ?? 0, Mathf.Max(tex?.Texture?.width ?? 0, newSize)),
-                                                              maxHeight: Mathf.Max(texColor?.Texture?.width ?? 0, Mathf.Max(tex?.Texture?.height ?? 0, newSize)));
+                                                              maxWidth: Mathf.Max(texColor?.Texture?.width ?? 0, Mathf.Max(tex?.Texture?.width ?? 0, newSize, texOverride?.Texture?.width ?? 0)),
+                                                              maxHeight: Mathf.Max(texColor?.Texture?.width ?? 0, Mathf.Max(tex?.Texture?.height ?? 0, newSize, texOverride?.Texture?.height ?? 0)));
                 if (dest.width != outSize.Width)
                 {
                     KoiSkinOverlayMgr.Logger.LogDebug($"Changing dest texture size from {dest.width}x{dest.height} to {outSize}");
@@ -131,10 +132,10 @@ namespace KoiSkinOverlayX
                 }
             }
 
-            if (tex != null && tex.Texture != null && tex.Override)
+            if (texOverride != null && texOverride.Texture != null)
             {
                 var trt = RenderTexture.GetTemporary(source.width, source.height, dest.depth, dest.format);
-                KoiSkinOverlayController.ApplyOverlay(trt, tex.Texture);
+                KoiSkinOverlayController.ApplyOverlay(trt, texOverride.Texture);
                 Graphics.Blit(trt, dest, mat, pass);
                 RenderTexture.ReleaseTemporary(trt);
             }
