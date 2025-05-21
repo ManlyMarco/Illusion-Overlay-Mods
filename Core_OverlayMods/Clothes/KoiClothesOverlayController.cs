@@ -175,6 +175,9 @@ namespace KoiClothesOverlayX
             return clothesId.StartsWith(PatternPrefix);
         }
 
+        [Obsolete]
+        public static bool GetKindIdsFromColormask(string clothesId, out int? kindId, out int? subKindId) => GetKindIdsFromClothesId(clothesId, out kindId, out subKindId);
+
         public static bool GetKindIdsFromClothesId(string clothesId, out int? kindId, out int? subKindId)
         {
             kindId = null;
