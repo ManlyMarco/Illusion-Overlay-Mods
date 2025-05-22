@@ -121,10 +121,11 @@ namespace KoiClothesOverlayX
 #if KK || KKS || EC
                 else if (IsMaskKind(clothesId)) tex = GetOriginalMask((MaskKind)Enum.Parse(typeof(MaskKind), clothesId));
 #endif
+                else if (IsOverride(clothesId)) tex = GetOriginalMainTex(clothesId);
                 else
                 {
                     _dumpCallback = callback;
-                    _dumpClothesId = GetRealId(clothesId);
+                    _dumpClothesId = clothesId;
 
                     // Force redraw to trigger the dump
                     RefreshTexture(clothesId);
@@ -333,6 +334,11 @@ namespace KoiClothesOverlayX
         internal Texture GetOriginalPattern(string clothesId)
         {
             return Hooks.GetPattern(this, clothesId);
+        }
+
+        internal Texture GetOriginalMainTex(string clothesId)
+        {
+            return Hooks.GetMainTex(this, clothesId);
         }
 
         public ClothesTexData GetOverlayTex(string clothesId, bool createNew)

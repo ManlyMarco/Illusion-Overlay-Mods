@@ -170,6 +170,33 @@ namespace KoiClothesOverlayX
                 return main ? chaControl.GetCustomClothesComponent(kind) : chaControl.GetCustomClothesSubComponent(kind);
             }
 
+            public static Texture GetMainTex(KoiClothesOverlayController controller, string clothesId)
+            {
+                if (GetKindIdsFromClothesId(clothesId, out int? part, out int? subPart))
+                {
+                    var listInfo = subPart == null ? controller.ChaControl.infoClothes[(int)part] : controller.ChaControl.infoParts[(int)subPart];
+                    var manifest = listInfo.GetInfo(ChaListDefine.KeyType.MainManifest);
+
+                    var mainAb = listInfo.GetInfo(ChaListDefine.KeyType.MainAB);
+                    var ab = listInfo.GetInfo(ChaListDefine.KeyType.MainTex03AB);
+                    var texString = listInfo.GetInfo(ChaListDefine.KeyType.MainTex03);
+
+                    if (texString == "0")
+                    {
+                        ab = listInfo.GetInfo(ChaListDefine.KeyType.MainTex02AB);
+                        texString = listInfo.GetInfo(ChaListDefine.KeyType.MainTex02);
+                    }
+                    if (texString == "0")
+                    {
+                        ab = listInfo.GetInfo(ChaListDefine.KeyType.MainTexAB);
+                        texString = listInfo.GetInfo(ChaListDefine.KeyType.MainTex);
+                    }
+                    ab = ab == "0" ? mainAb : ab;
+
+                    return CommonLib.LoadAsset<Texture2D>(ab, texString, false, manifest);
+                }
+                throw new Exception($"Failed to get MainTex with id:{clothesId}");
+            }
             #endregion
 
             #region Body masks
