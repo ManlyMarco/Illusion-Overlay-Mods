@@ -67,6 +67,25 @@ namespace KoiClothesOverlayX
                 return chaControl.GetCustomClothesComponent(kind);
             }
 
+            public static Texture GetMainTex(KoiClothesOverlayController controller, string clothesId)
+            {
+                if (GetKindIdsFromClothesId(clothesId, out int? kind, out int? subKind))
+                {
+                    var listInfo = controller.ChaControl.infoClothes[(int)kind];
+                    var manifest = listInfo.GetInfo(ChaListDefine.KeyType.MainManifest);
+
+                    var mainAb = listInfo.GetInfo(ChaListDefine.KeyType.MainAB);
+                    var texString = listInfo.GetInfo(ChaListDefine.KeyType.MainTex);
+
+                    if (texString == "0")
+                        texString = listInfo.GetInfo(ChaListDefine.KeyType.MainTex02);
+                    if (texString == "0")
+                        texString = listInfo.GetInfo(ChaListDefine.KeyType.MainTex03);
+
+                    return CommonLib.LoadAsset<Texture2D>(mainAb, texString, false, manifest);
+                }
+                throw new Exception($"Failed to get colormask with id:{clothesId}");
+            }
             #endregion
 
 
@@ -173,12 +192,12 @@ namespace KoiClothesOverlayX
                     var manifest = listInfo.GetInfo(ChaListDefine.KeyType.MainManifest);
 
                     var mainAb = listInfo.GetInfo(ChaListDefine.KeyType.MainAB);
-                    var texString = listInfo.GetInfo(ChaListDefine.KeyType.ColorMask03Tex);
+                    var texString = listInfo.GetInfo(ChaListDefine.KeyType.ColorMaskTex);
 
                     if (texString == "0")
                         texString = listInfo.GetInfo(ChaListDefine.KeyType.ColorMask02Tex);
                     if (texString == "0")
-                        texString = listInfo.GetInfo(ChaListDefine.KeyType.ColorMaskTex);
+                        texString = listInfo.GetInfo(ChaListDefine.KeyType.ColorMask03Tex);
 
                     return CommonLib.LoadAsset<Texture2D>(mainAb, texString, false, manifest);
                 }

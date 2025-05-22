@@ -152,18 +152,22 @@ namespace KoiClothesOverlayX
             // Either the 3 subs will be visible or the one main. 1st separator is made by the API
             AddSizeOverrideDropdown(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[0]);
             SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[0], "Overlay textures (Piece 1)");
+            SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[0], "Replace base texture (Piece 1)", true, KoiClothesOverlayController.MakeOverrideId(KoiClothesOverlayMgr.SubClothesNames[0]));
             SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[0], "Color mask (Piece 1)", true, KoiClothesOverlayController.MakeColormaskId(KoiClothesOverlayMgr.SubClothesNames[0]));
             for (int i = 0; i < 3; i++)
                 SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[0], $"Pattern {i + 1}", true, KoiClothesOverlayController.MakePatternId(KoiClothesOverlayMgr.SubClothesNames[0], i));
             AddSizeOverrideDropdown(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[1]);
             SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[1], "Overlay textures (Piece 2)", true);
+            SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[1], "Replace base texture (Piece 2)", true, KoiClothesOverlayController.MakeOverrideId(KoiClothesOverlayMgr.SubClothesNames[1]));
             SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[1], "Color mask (Piece 2)", true, KoiClothesOverlayController.MakeColormaskId(KoiClothesOverlayMgr.SubClothesNames[1]));
             AddSizeOverrideDropdown(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[2]);
             SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[2], "Overlay textures (Piece 3)", true);
+            SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[2], "Replace base texture (Piece 3)", true, KoiClothesOverlayController.MakeOverrideId(KoiClothesOverlayMgr.SubClothesNames[2]));
             SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.SubClothesNames[2], "Color mask (Piece 3)", true, KoiClothesOverlayController.MakeColormaskId(KoiClothesOverlayMgr.SubClothesNames[2]));
 
             AddSizeOverrideDropdown(e, makerCategory, owner, KoiClothesOverlayMgr.MainClothesNames[0]);
             SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.MainClothesNames[0]);
+            SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.MainClothesNames[0], "Replace base texture", true, KoiClothesOverlayController.MakeOverrideId(KoiClothesOverlayMgr.MainClothesNames[0]));
             SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.MainClothesNames[0], "Color mask", true, KoiClothesOverlayController.MakeColormaskId(KoiClothesOverlayMgr.MainClothesNames[0]));
             for (int i = 0; i < 3; i++)
                 SetupTexControls(e, makerCategory, owner, KoiClothesOverlayMgr.MainClothesNames[0], $"Pattern {i + 1}", true, KoiClothesOverlayController.MakePatternId(KoiClothesOverlayMgr.MainClothesNames[0], i));
@@ -198,6 +202,7 @@ namespace KoiClothesOverlayX
                 AddSizeOverrideDropdown(e, cat, owner, pair.Value);
 
                 SetupTexControls(e, cat, owner, pair.Value);
+                SetupTexControls(e, cat, owner, pair.Value, "Replace base texture", true, KoiClothesOverlayController.MakeOverrideId(pair.Value));
 #if KK
                 SetupTexControls(e, cat, owner, pair.Value, "Color mask", true, KoiClothesOverlayController.MakeColormaskId(pair.Value));
 #else
@@ -228,6 +233,7 @@ namespace KoiClothesOverlayX
                 var pair = cats[index];
                 AddSizeOverrideDropdown(e, cat, owner, pair.Value);
                 SetupTexControls(e, cat, owner, pair.Value, pair.Key, index != 0);
+                SetupTexControls(e, cat, owner, pair.Value, "Replace base texture", true, KoiClothesOverlayController.MakeOverrideId(pair.Value));
                 SetupTexControls(e, cat, owner, pair.Value, "Color mask", true, KoiClothesOverlayController.MakeColormaskId(pair.Value));
                 for (int i = 0; i < 3; i++)
                     SetupTexControls(e, cat, owner, pair.Value, $"Pattern {i + 1}", true, KoiClothesOverlayController.MakePatternId(pair.Value, i));
@@ -278,6 +284,7 @@ namespace KoiClothesOverlayX
             var texType = isMask ? "override texture" : "overlay texture";
             var isisOtherType = otherId != null;
             texType = isisOtherType ? "override texture" : texType;
+            var dumpString = isMask || isisOtherType ? "Dump original texture" : "Dump baked texture";
 
             var realClothesId = clothesId;
             clothesId = !isisOtherType ? clothesId : otherId;
@@ -286,7 +293,7 @@ namespace KoiClothesOverlayX
 
             var controlTitle = e.AddControl(new MakerText(title, makerCategory, owner));
 
-            var controlGen = e.AddControl(new MakerButton("Dump original texture", makerCategory, owner));
+            var controlGen = e.AddControl(new MakerButton(dumpString, makerCategory, owner));
             controlGen.OnClick.AddListener(() => GetOverlayController().DumpBaseTexture(clothesId, b => KoiSkinOverlayGui.WriteAndOpenPng(b, clothesId + "_Original")));
 
             var controlImage = e.AddControl(new MakerImage(null, makerCategory, owner) { Height = 150, Width = 150 });
@@ -467,8 +474,10 @@ namespace KoiClothesOverlayX
                     else if (isMask)
                         origTex = controller.GetOriginalMask((MaskKind)Enum.Parse(typeof(MaskKind), _typeToLoad));
 #endif
+                    else if (KoiClothesOverlayController.IsOverride(_typeToLoad))
+                        origTex = controller.GetOriginalMainTex(_typeToLoad);
                     else
-                        origTex = controller.GetApplicableRenderers(_typeToLoad).First().material.mainTexture;
+                        origTex = controller.GetApplicableRenderers(KoiClothesOverlayController.GetRealId(_typeToLoad)).First().material.mainTexture;
 
 #if KK || KKS || EC
                     var isWrongRes = origTex != null && (isMask ? tex.width > origTex.width || tex.height > origTex.height : tex.width != origTex.width || tex.height != origTex.height);
