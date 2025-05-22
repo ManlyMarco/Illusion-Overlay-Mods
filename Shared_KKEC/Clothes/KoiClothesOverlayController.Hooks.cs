@@ -178,8 +178,8 @@ namespace KoiClothesOverlayX
                     var manifest = listInfo.GetInfo(ChaListDefine.KeyType.MainManifest);
 
                     var mainAb = listInfo.GetInfo(ChaListDefine.KeyType.MainAB);
-                    var ab = listInfo.GetInfo(ChaListDefine.KeyType.MainTex03AB);
-                    var texString = listInfo.GetInfo(ChaListDefine.KeyType.MainTex03);
+                    var ab = listInfo.GetInfo(ChaListDefine.KeyType.MainTexAB);
+                    var texString = listInfo.GetInfo(ChaListDefine.KeyType.MainTex);
 
                     if (texString == "0")
                     {
@@ -188,8 +188,8 @@ namespace KoiClothesOverlayX
                     }
                     if (texString == "0")
                     {
-                        ab = listInfo.GetInfo(ChaListDefine.KeyType.MainTexAB);
-                        texString = listInfo.GetInfo(ChaListDefine.KeyType.MainTex);
+                        ab = listInfo.GetInfo(ChaListDefine.KeyType.MainTex03AB);
+                        texString = listInfo.GetInfo(ChaListDefine.KeyType.MainTex03);
                     }
                     ab = ab == "0" ? mainAb : ab;
 
@@ -342,8 +342,8 @@ namespace KoiClothesOverlayX
                     var manifest = listInfo.GetInfo(ChaListDefine.KeyType.MainManifest);
 
                     var mainAb = listInfo.GetInfo(ChaListDefine.KeyType.MainAB);
-                    var ab = listInfo.GetInfo(ChaListDefine.KeyType.ColorMask03AB);
-                    var texString = listInfo.GetInfo(ChaListDefine.KeyType.ColorMask03Tex);
+                    var ab = listInfo.GetInfo(ChaListDefine.KeyType.ColorMaskAB);
+                    var texString = listInfo.GetInfo(ChaListDefine.KeyType.ColorMaskTex);
 
                     if (texString == "0")
                     {
@@ -352,8 +352,8 @@ namespace KoiClothesOverlayX
                     }
                     if (texString == "0")
                     {
-                        ab = listInfo.GetInfo(ChaListDefine.KeyType.ColorMaskAB);
-                        texString = listInfo.GetInfo(ChaListDefine.KeyType.ColorMaskTex);
+                        ab = listInfo.GetInfo(ChaListDefine.KeyType.ColorMask03AB);
+                        texString = listInfo.GetInfo(ChaListDefine.KeyType.ColorMask03Tex);
                     }
                     ab = ab == "0" ? mainAb : ab;
 
