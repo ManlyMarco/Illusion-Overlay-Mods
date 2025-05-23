@@ -351,6 +351,7 @@ namespace KoiClothesOverlayX
                     tex = new ClothesTexData();
                     CurrentOverlayTextures[clothesId] = tex;
                 }
+                if (createNew) tex.OldAlphaBlending = false;
                 return tex;
             }
             return null;
@@ -659,7 +660,7 @@ namespace KoiClothesOverlayX
 
         protected override void OnCardBeingSaved(GameMode currentGameMode)
         {
-            var data = new PluginData { version = 1 };
+            var data = new PluginData { version = 2 };
 
             CleanupTextureList();
 
@@ -725,7 +726,16 @@ namespace KoiClothesOverlayX
             if (pd.data.TryGetValue(OverlayDataKey, out var overlayData))
             {
                 if (overlayData is byte[] overlayBytes)
-                    return ReadOverlayExtData(overlayBytes);
+                {
+                    var overlays = ReadOverlayExtData(overlayBytes);
+                    if (pd.version < 2 && overlays != null)
+                        overlays.Values
+                            .SelectMany(x => x.Values)
+                            .Where(x => x.OldAlphaBlending == null)
+                            .ToList()
+                            .ForEach(x => x.OldAlphaBlending = true);
+                    return overlays;
+                }
             }
 
             return null;
@@ -784,7 +794,7 @@ namespace KoiClothesOverlayX
             PluginData data = null;
 
             CleanupTextureList();
-            data = new PluginData { version = 1 };
+            data = new PluginData { version = 2 };
             if (CurrentOverlayTextures != null && CurrentOverlayTextures.Count != 0)
                 data.data.Add(OverlayDataKey, MessagePackSerializer.Serialize(CurrentOverlayTextures));
             if (CurrentTextureSizeOverrides != null &&  CurrentTextureSizeOverrides.Count != 0)
@@ -886,7 +896,7 @@ namespace KoiClothesOverlayX
                 }
 
                 if (overlay.Texture != null)
-                    KoiSkinOverlayController.ApplyOverlay(mainTexture, overlay.Texture, overlay.Override);
+                    KoiSkinOverlayController.ApplyOverlay(mainTexture, overlay.Texture, overlay.Override, overlay.OldAlphaBlending ?? true);
             }
         }
 
