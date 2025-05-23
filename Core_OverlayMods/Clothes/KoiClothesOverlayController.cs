@@ -38,6 +38,7 @@ namespace KoiClothesOverlayX
         private const string SizeOverrideDataKey = "TextureSizeOverride";
         private const string ColorMaskPrefix = "Colormask_";
         private const string PatternPrefix = "Pattern_";
+        private const string OverridePrefix = "Override_";
         public const int CustomPatternID = 58947543;
 
         private Action<byte[]> _dumpCallback;
@@ -120,6 +121,7 @@ namespace KoiClothesOverlayX
 #if KK || KKS || EC
                 else if (IsMaskKind(clothesId)) tex = GetOriginalMask((MaskKind)Enum.Parse(typeof(MaskKind), clothesId));
 #endif
+                else if (IsOverride(clothesId)) tex = GetOriginalMainTex(clothesId);
                 else
                 {
                     _dumpCallback = callback;
@@ -165,6 +167,11 @@ namespace KoiClothesOverlayX
             return $"{PatternPrefix}{color}_{clothesId}";
         }
 
+        public static string MakeOverrideId(string clothesId)
+        {
+            return OverridePrefix + clothesId;
+        }
+
         public static bool IsColormask(string clothesId)
         {
             return clothesId.StartsWith(ColorMaskPrefix);
@@ -173,6 +180,11 @@ namespace KoiClothesOverlayX
         public static bool IsPattern(string clothesId)
         {
             return clothesId.StartsWith(PatternPrefix);
+        }
+
+        public static bool IsOverride(string clothesId)
+        {
+            return clothesId.StartsWith(OverridePrefix);
         }
 
         [Obsolete]
@@ -259,6 +271,8 @@ namespace KoiClothesOverlayX
                 return clothesId.Substring(ColorMaskPrefix.Length);
             else if (IsPattern(clothesId))
                 return clothesId.Substring(PatternPrefix.Length + 2);
+            else if (IsOverride(clothesId))
+                return clothesId.Substring(OverridePrefix.Length);
             return clothesId;
         }
 
@@ -320,6 +334,11 @@ namespace KoiClothesOverlayX
         internal Texture GetOriginalPattern(string clothesId)
         {
             return Hooks.GetPattern(this, clothesId);
+        }
+
+        internal Texture GetOriginalMainTex(string clothesId)
+        {
+            return Hooks.GetMainTex(this, clothesId);
         }
 
         public ClothesTexData GetOverlayTex(string clothesId, bool createNew)
