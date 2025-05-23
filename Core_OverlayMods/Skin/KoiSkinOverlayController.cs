@@ -379,6 +379,11 @@ namespace KoiSkinOverlayX
 
         public static void ApplyOverlay(RenderTexture mainTex, Texture2D blitTex)
         {
+            ApplyOverlay(mainTex, blitTex, false);
+        }
+
+        public static void ApplyOverlay(RenderTexture mainTex, Texture2D blitTex, bool _override)
+        {
             if (blitTex == null) return;
 
             var rtTemp = RenderTexture.GetTemporary(mainTex.width, mainTex.height, 0, mainTex.format);
@@ -388,6 +393,7 @@ namespace KoiSkinOverlayX
             RenderTexture.active = rta;
 
             KoiSkinOverlayMgr.OverlayMat.SetTexture("_Overlay", blitTex);
+            KoiSkinOverlayMgr.OverlayMat.SetFloat("_Override", _override ? 1 : 0);
 #if KK || EC
             Graphics.Blit(mainTex, rtTemp, KoiSkinOverlayMgr.OverlayMat);
             Graphics.Blit(rtTemp, mainTex);

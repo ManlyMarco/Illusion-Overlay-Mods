@@ -867,7 +867,7 @@ namespace KoiClothesOverlayX
                 }
 
                 if (overlay.Texture != null)
-                    KoiSkinOverlayController.ApplyOverlay(mainTexture, overlay.Texture);
+                    KoiSkinOverlayController.ApplyOverlay(mainTexture, overlay.Texture, overlay.Override);
             }
         }
 
