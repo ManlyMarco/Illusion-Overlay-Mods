@@ -351,7 +351,7 @@ namespace KoiClothesOverlayX
                     tex = new ClothesTexData();
                     CurrentOverlayTextures[clothesId] = tex;
                 }
-                if (createNew) tex.OldAlphaBlending = false;
+                if (createNew) tex.BlendingMode = BlendingMode.LinearAlpha;
                 return tex;
             }
             return null;
@@ -726,16 +726,7 @@ namespace KoiClothesOverlayX
             if (pd.data.TryGetValue(OverlayDataKey, out var overlayData))
             {
                 if (overlayData is byte[] overlayBytes)
-                {
-                    var overlays = ReadOverlayExtData(overlayBytes);
-                    if (pd.version < 2 && overlays != null)
-                        overlays.Values
-                            .SelectMany(x => x.Values)
-                            .Where(x => x.OldAlphaBlending == null)
-                            .ToList()
-                            .ForEach(x => x.OldAlphaBlending = true);
-                    return overlays;
-                }
+                    return ReadOverlayExtData(overlayBytes);
             }
 
             return null;
@@ -896,7 +887,7 @@ namespace KoiClothesOverlayX
                 }
 
                 if (overlay.Texture != null)
-                    KoiSkinOverlayController.ApplyOverlay(mainTexture, overlay.Texture, overlay.Override, overlay.OldAlphaBlending ?? true);
+                    KoiSkinOverlayController.ApplyOverlay(mainTexture, overlay.Texture, overlay.Override, overlay.BlendingMode);
             }
         }
 

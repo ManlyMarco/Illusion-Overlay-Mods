@@ -52,7 +52,7 @@ namespace KoiClothesOverlayX
         public bool Override;
 
         [Key(2)]
-        public bool? OldAlphaBlending;
+        public BlendingMode BlendingMode;
 
         public void Dispose()
         {
@@ -69,5 +69,11 @@ namespace KoiClothesOverlayX
         {
             return !Override && TextureBytes == null;
         }
+    }
+
+    public enum BlendingMode
+    {
+        Default = 0,
+        LinearAlpha = 1,
     }
 }

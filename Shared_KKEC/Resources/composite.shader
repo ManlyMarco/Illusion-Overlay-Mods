@@ -5,7 +5,7 @@ Shader "Unlit/composite"
         _MainTex("MainTex", 2D) = "white" {}
         _Overlay("Overlay", 2D) = "white" {}
         _Override("Override", float) = 0
-        _OldBlending("OldBlending", float) = 0
+        _LinearAlpha("LinearAlpha", float) = 0
     }
     
     SubShader
@@ -20,7 +20,7 @@ Shader "Unlit/composite"
             uniform sampler2D _MainTex;
             uniform sampler2D _Overlay;
             float _Override;
-            float _OldBlending;
+            float _LinearAlpha;
             
             struct VertexInput {
                 float4 vertex : POSITION;
@@ -47,10 +47,10 @@ Shader "Unlit/composite"
 
                 mt.rgb *= mt.a;
                 o.rgb *= o.a;
-                float3 rgb_old = o.rgb + (mt.rgb * (1 - o.a));
-                float a_old = o.a + mt.rgb * (1.0 - o.a);
+                float3 rgb_default = o.rgb + (mt.rgb * (1 - o.a));
+                float a_default = o.a + mt.rgb * (1.0 - o.a);
 
-                return float4(lerp(rgb, rgb_old, _OldBlending), lerp(a, a_old, _OldBlending));
+                return lerp(float4(rgb_default, a_default), float4(rgb, a), _LinearAlpha);
             }
             ENDCG
         }
