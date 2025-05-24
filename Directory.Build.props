@@ -1,0 +1,91 @@
+<Project>
+	<PropertyGroup>
+		<!-- This is the master version, only change this one -->
+		<Version>6.3</Version>
+
+		<!-- Sets the 'Company' field on the dll file -->
+		<Authors>https://github.com/ManlyMarco/Illusion-Overlay-Mods</Authors>
+		<!-- Sets the 'Copyright' field on the dll file -->
+		<Copyright>Copyright GPL-3.0 © 2019</Copyright>
+		<!-- Sets the 'Product name' field on the dll file -->
+		<Product>Illusion Overlay Mods</Product>
+		<!-- Sets the 'File description' field on the dll file -->
+		<AssemblyTitle>Add apply custom textures (tattoos) to character's body and clothes</AssemblyTitle>
+
+		<RootNamespace>OverlayMods</RootNamespace>
+
+		<OutputPath>..\bin\$(MSBuildProjectName)\</OutputPath>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+
+		<OutputType>Library</OutputType>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+		<Deterministic>true</Deterministic>
+		<DebugSymbols>true</DebugSymbols>
+		<DebugType>embedded</DebugType>
+		<FileAlignment>512</FileAlignment>
+	</PropertyGroup>
+
+	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+		<Optimize>true</Optimize>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="..\LICENSE" Link="LICENSE" Visible="false">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Include="..\README.md" Link="README.md" Visible="false">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+		<Delete Files="$(OutputPath)\$(MSBuildProjectName).deps.json" />
+	</Target>
+
+	<Target Name="SkipAllRefs" AfterTargets="ResolveReferences">
+		<ItemGroup>
+			<ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" />
+		</ItemGroup>
+	</Target>
+
+	<!-- Create a release zip file (after successful Release build) -->
+	<Target Name="CreateReleaseZip" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
+		<PropertyGroup>
+			<CopyDir>$(OutputPath)\..\TEMP_COPY_$(AssemblyName)</CopyDir>
+		</PropertyGroup>
+		<ItemGroup>
+			<BuildFiles Include="$(OutputPath)\**\*" Exclude="**\*.tmp"/>
+		</ItemGroup>
+
+		<RemoveDir Directories="$(CopyDir)" />
+		<Copy DestinationFolder="$(CopyDir)\BepInEx\plugins\ClothingStateMenu\%(RecursiveDir)" SourceFiles="@(BuildFiles)" />
+		<!-- https://learn.microsoft.com/en-us/visualstudio/msbuild/zipdirectory-task?view=vs-2022 -->
+		<ZipDirectory SourceDirectory="$(CopyDir)" DestinationFile="$(OutputPath)\..\$(AssemblyName)_v$(Version).zip" Overwrite="true" />
+		<RemoveDir Directories="$(CopyDir)" />
+	</Target>
+
+	<!-- Allow using of the csproj properties defined above in the code itself -->
+	<Target Name="AddGeneratedConstantsFile" BeforeTargets="BeforeCompile;CoreCompile" Inputs="$(MSBuildAllProjects)" Outputs="$(IntermediateOutputPath)GeneratedConstantsFile.cs">
+		<PropertyGroup>
+			<GeneratedText>
+				<![CDATA[namespace $(RootNamespace) {
+    internal static class Constants {
+        public const string Version = "$(Version)"%3B
+        public const string Name = "$(Product)"%3B
+        public const string Description = "$(AssemblyTitle)"%3B
+        public const string Website = "$(Authors)"%3B
+        public const string Copyright = "$(Copyright)"%3B
+    }
+}]]>
+			</GeneratedText>
+			<GeneratedFilePath>$(IntermediateOutputPath)GeneratedConstantsFile.cs</GeneratedFilePath>
+		</PropertyGroup>
+		<ItemGroup>
+			<Compile Include="$(GeneratedFilePath)" />
+			<FileWrites Include="$(GeneratedFilePath)" />
+		</ItemGroup>
+		<WriteLinesToFile Lines="$(GeneratedText)" File="$(GeneratedFilePath)" WriteOnlyWhenDifferent="true" Overwrite="true" />
+	</Target>
+</Project>

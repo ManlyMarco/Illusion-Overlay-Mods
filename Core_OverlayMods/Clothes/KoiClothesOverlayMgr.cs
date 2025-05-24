@@ -11,8 +11,8 @@ namespace KoiClothesOverlayX
     [BepInDependency(KoikatuAPI.GUID, KoikatuAPI.VersionConst)]
     public class KoiClothesOverlayMgr : BaseUnityPlugin
     {
-        public const string GUID = Metadata.GUID_KCOX;
-        public const string Version = Metadata.Version;
+        public const string GUID = "KCOX";
+        public const string Version = Constants.Version;
 
 #if KK || KKS || EC
         public static readonly string[] MainClothesNames =
