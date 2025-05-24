@@ -5,28 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ExtensibleSaveFormat.KoikatsuSunshine" Version="16.7.0" />
-    <PackageReference Include="IllusionLibs.BepInEx" Version="5.4.15" />
-    <PackageReference Include="IllusionLibs.BepInEx.Harmony" Version="2.5.4" />
-    <PackageReference Include="IllusionLibs.BepInEx.MonoMod" Version="21.8.5.1" />
-    <PackageReference Include="IllusionLibs.KoikatsuSunshine.Assembly-CSharp" Version="2021.8.27.2" />
-    <PackageReference Include="IllusionLibs.KoikatsuSunshine.Assembly-CSharp-firstpass" Version="2021.8.27.2" />
-    <PackageReference Include="IllusionLibs.KoikatsuSunshine.UniRx" Version="2021.8.27.2" />
-    <PackageReference Include="IllusionLibs.KoikatsuSunshine.UniTask" Version="2021.8.27.2" />
     <PackageReference Include="IllusionLibs.KoikatsuSunshine.Unity.TextMeshPro" Version="2019.4.9" />
-    <PackageReference Include="IllusionLibs.KoikatsuSunshine.UnityEngine.AnimationModule" Version="2019.4.9" />
     <PackageReference Include="IllusionLibs.KoikatsuSunshine.UnityEngine.AssetBundleModule" Version="2019.4.9" />
-    <PackageReference Include="IllusionLibs.KoikatsuSunshine.UnityEngine.AudioModule" Version="2019.4.9" />
-    <PackageReference Include="IllusionLibs.KoikatsuSunshine.UnityEngine.CoreModule" Version="2019.4.9" />
     <PackageReference Include="IllusionLibs.KoikatsuSunshine.UnityEngine.ImageConversionModule" Version="2019.4.9" />
-    <PackageReference Include="IllusionLibs.KoikatsuSunshine.UnityEngine.IMGUIModule" Version="2019.4.9" />
-    <PackageReference Include="IllusionLibs.KoikatsuSunshine.UnityEngine.InputLegacyModule" Version="2019.4.9" />
-    <PackageReference Include="IllusionLibs.KoikatsuSunshine.UnityEngine.PhysicsModule" Version="2019.4.9" />
-    <PackageReference Include="IllusionLibs.KoikatsuSunshine.UnityEngine.TextRenderingModule" Version="2019.4.9" />
-    <PackageReference Include="IllusionLibs.KoikatsuSunshine.UnityEngine.UI" Version="2019.4.9" />
-    <PackageReference Include="IllusionLibs.KoikatsuSunshine.UnityEngine.UIModule" Version="2019.4.9" />
-    <PackageReference Include="IllusionLibs.XUnity.AutoTranslator.Plugin.Core" Version="4.16.0" />
-    <PackageReference Include="IllusionModdingAPI.KKSAPI" Version="1.25.0" />
+    <PackageReference Include="IllusionModdingAPI.KKSAPI" Version="1.30.1" />
   </ItemGroup>
 
   <Import Project="..\Shared_KKEC\Shared_KKEC.projitems" Label="Shared" />
