@@ -6,6 +6,8 @@ Shader "Unlit/composite"
         _Overlay("Overlay", 2D) = "white" {}
         _Override("Override", float) = 0
         _OldBlending("OldBlending", float) = 0
+        _SrcBlend ("__src", Float) = 0
+        _DstBlend ("__dst", Float) = 0
     }
     
     SubShader
@@ -16,7 +18,7 @@ Shader "Unlit/composite"
         }
         Pass
         {
-            Blend SrcAlpha OneMinusSrcAlpha, SrcAlpha OneMinusSrcAlpha
+            Blend [_SrcBlend] [_DstBlend], [_SrcBlend] [_DstBlend]
             ZWrite Off
             Name "Unlit"
             CGPROGRAM

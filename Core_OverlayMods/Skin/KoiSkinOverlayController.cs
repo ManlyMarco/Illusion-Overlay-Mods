@@ -8,6 +8,8 @@ using KKAPI;
 using KKAPI.Chara;
 using UniRx;
 using UnityEngine;
+using UnityEngine.Rendering;
+
 #if AI || HS2
 using AIChara;
 #endif
@@ -399,6 +401,11 @@ namespace KoiSkinOverlayX
             KoiSkinOverlayMgr.OverlayMat.SetTexture("_Overlay", blitTex);
             KoiSkinOverlayMgr.OverlayMat.SetFloat("_Override", _override ? 1 : 0);
             KoiSkinOverlayMgr.OverlayMat.SetFloat("_OldBlending", oldBlending ? 1 : 0);
+
+# if HS2 || AI
+            KoiSkinOverlayMgr.OverlayMat.SetInt("_SrcBlend", oldBlending ? (int)BlendMode.SrcAlpha : (int)BlendMode.One);
+            KoiSkinOverlayMgr.OverlayMat.SetInt("_DstBlend", oldBlending ? (int)BlendMode.OneMinusSrcAlpha : (int)BlendMode.Zero);
+#endif
 #if KK || EC
             Graphics.Blit(mainTex, rtTemp, KoiSkinOverlayMgr.OverlayMat);
             Graphics.Blit(rtTemp, mainTex);
