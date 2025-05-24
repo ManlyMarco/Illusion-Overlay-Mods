@@ -426,15 +426,10 @@ namespace KoiSkinOverlayX
                     KoiSkinOverlayMgr.OverlayMat.SetInt("_DstBlend", (int)BlendMode.Zero);
 #endif
                     break;
-                case OverlayBlendingMode.Default:
-                    KoiSkinOverlayMgr.OverlayMat.SetFloat("_LinearAlpha", 0);
-#if HS2 || AI
-                    KoiSkinOverlayMgr.OverlayMat.SetInt("_SrcBlend", (int)BlendMode.SrcAlpha);
-                    KoiSkinOverlayMgr.OverlayMat.SetInt("_DstBlend", (int)BlendMode.OneMinusSrcAlpha);
-#endif
-                    break;
                 default:
                     KoiSkinOverlayMgr.Logger.LogWarning("Blendmode doesn't exist, reverting to default");
+                    goto case OverlayBlendingMode.Default;
+                case OverlayBlendingMode.Default:
                     KoiSkinOverlayMgr.OverlayMat.SetFloat("_LinearAlpha", 0);
 #if HS2 || AI
                     KoiSkinOverlayMgr.OverlayMat.SetInt("_SrcBlend", (int)BlendMode.SrcAlpha);
