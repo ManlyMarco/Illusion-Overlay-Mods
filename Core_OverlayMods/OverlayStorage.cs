@@ -152,7 +152,7 @@ namespace KoiSkinOverlayX
                     }
                     else
                     {
-                        var id = _textureStorage.StoreTexture(texType.Value, false);
+                        var id = _textureStorage.StoreTexture(texType.Value);
                         textureDic[texType.Key] = id;
                     }
                 }

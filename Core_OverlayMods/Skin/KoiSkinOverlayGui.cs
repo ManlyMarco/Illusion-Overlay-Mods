@@ -41,7 +41,7 @@ namespace KoiSkinOverlayX
 
         private Subject<KeyValuePair<TexType, Texture2D>> _textureChanged;
 
-        private static MakerToggle[] _tPerCoord = new MakerToggle[2];
+        private static readonly MakerToggle[] _tPerCoord = new MakerToggle[2];
         private byte[] _bytesToLoad;
         private Exception _lastError;
         private TexType _typeToLoad;
@@ -371,7 +371,7 @@ namespace KoiSkinOverlayX
 
         private void Awake()
         {
-            WatchLoadedTexForChanges = Config.AddSetting("Maker", "Watch loaded texture for changes", true);
+            WatchLoadedTexForChanges = Config.Bind("Maker", "Watch loaded texture for changes", true);
             WatchLoadedTexForChanges.SettingChanged += (sender, args) =>
             {
                 if (!WatchLoadedTexForChanges.Value)
