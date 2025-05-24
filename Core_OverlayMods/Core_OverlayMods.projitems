@@ -9,14 +9,12 @@
     <Import_RootNamespace>OverlayMods</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)AssemblyInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)OverlayStorage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TextureStorage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Clothes\ClothesTexData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Clothes\KoiClothesOverlayController.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Clothes\KoiClothesOverlayGui.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Clothes\KoiClothesOverlayMgr.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Metadata.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Skin\AdditionalTexture.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Skin\KoiSkinOverlayController.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Skin\KoiSkinOverlayGui.cs" />

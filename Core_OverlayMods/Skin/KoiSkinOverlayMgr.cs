@@ -24,8 +24,8 @@ namespace KoiSkinOverlayX
 #endif
     public class KoiSkinOverlayMgr : BaseUnityPlugin
     {
-        public const string GUID = Metadata.GUID_KSOX;
-        public const string Version = Metadata.Version;
+        public const string GUID = "KSOX";
+        public const string Version = Constants.Version;
 
         private static ConfigEntry<bool> CompressTextures { get; set; }
         internal static ConfigEntry<TextureSizeLimit> SizeLimit { get; private set; }
