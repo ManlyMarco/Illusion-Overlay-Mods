@@ -10,7 +10,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)OverlayStorage.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)TextureStorage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Clothes\ClothesTexData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Clothes\KoiClothesOverlayController.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Clothes\KoiClothesOverlayGui.cs" />
