@@ -51,6 +51,9 @@ namespace KoiClothesOverlayX
         [Key(1)]
         public bool Override;
 
+        [Key(2)]
+        public bool? OldAlphaBlending;
+
         public void Dispose()
         {
             Object.Destroy(_texture);
