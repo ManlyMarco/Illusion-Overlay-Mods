@@ -242,7 +242,11 @@ namespace KoiSkinOverlayX
         internal static void ApplyOverlays(RenderTexture targetTexture, IEnumerable<Texture2D> overlays)
         {
             foreach (var overlay in overlays)
-                ApplyOverlay(targetTexture, overlay);
+                // Always use the old blending since
+                // 1. Doesn't seem different then the new blending on skin
+                //    (I think the old blending was only an issue when the source texture also has alpha, which skin never has)
+                // 2. The new blending breaks on body overlays specifically in HS2/AI
+                ApplyOverlay(targetTexture, overlay, oldBlending: true);
         }
 
         public Texture2D SetOverlayTex(byte[] overlayTex, TexType overlayType)

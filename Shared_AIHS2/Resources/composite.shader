@@ -4,6 +4,8 @@ Shader "Unlit/composite"
     {
         _MainTex("MainTex", 2D) = "white" {}
         _Overlay("Overlay", 2D) = "white" {}
+        _Override("Override", float) = 0
+        _OldBlending("OldBlending", float) = 0
     }
     
     SubShader
@@ -15,7 +17,6 @@ Shader "Unlit/composite"
         Pass
         {
             Blend SrcAlpha OneMinusSrcAlpha, SrcAlpha OneMinusSrcAlpha
-            ZClip Off
             ZWrite Off
             Name "Unlit"
             CGPROGRAM
@@ -24,6 +25,8 @@ Shader "Unlit/composite"
             
             uniform sampler2D _MainTex;
             uniform sampler2D _Overlay;
+            float _Override;
+            float _OldBlending;
             
             struct VertexInput {
                 float4 vertex : POSITION;
@@ -44,14 +47,17 @@ Shader "Unlit/composite"
             
             fixed4 frag (VertexOutput i) : COLOR
             {
-                float4 A = tex2D(_Overlay, i.uv0);
-                float4 B = tex2D(_MainTex, i.uv0);
+                float4 o = tex2D(_Overlay, i.uv0);
+                float4 mt = tex2D(_MainTex, i.uv0);
+
+                float3 rgb = lerp(mt.rgb, o.rgb, max(o.a, _Override));
+                float a = lerp(mt.a, o.a, _Override);
 
                 float4 Out;
-                Out.w = A.w + B.w*(1-A.w);
-                Out.xyz = (A.xyz*A.w + B.xyz*B.w*(1-A.w))/Out.w;
+                Out.w = o.w + mt.w*(1-o.w);
+                Out.xyz = (o.xyz*o.w + mt.xyz*mt.w*(1-o.w))/Out.w;
 
-                return Out;
+                return lerp(float4(rgb, a), Out, _OldBlending);
             }
             ENDCG
         }
