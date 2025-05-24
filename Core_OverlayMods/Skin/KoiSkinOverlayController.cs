@@ -427,7 +427,7 @@ namespace KoiSkinOverlayX
 #endif
                     break;
                 default:
-                    KoiSkinOverlayMgr.Logger.LogWarning("Blendmode doesn't exist, reverting to default");
+                    KoiSkinOverlayMgr.Logger.LogWarning($"Blendmode {blendingMode} doesn't exist, reverting to default");
                     goto case OverlayBlendingMode.Default;
                 case OverlayBlendingMode.Default:
                     KoiSkinOverlayMgr.OverlayMat.SetFloat("_LinearAlpha", 0);
