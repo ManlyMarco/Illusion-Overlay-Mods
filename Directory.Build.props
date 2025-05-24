@@ -60,7 +60,7 @@
 		</ItemGroup>
 
 		<RemoveDir Directories="$(CopyDir)" />
-		<Copy DestinationFolder="$(CopyDir)\BepInEx\plugins\ClothingStateMenu\%(RecursiveDir)" SourceFiles="@(BuildFiles)" />
+		<Copy DestinationFolder="$(CopyDir)\BepInEx\plugins\$(RootNamespace)\%(RecursiveDir)" SourceFiles="@(BuildFiles)" />
 		<!-- https://learn.microsoft.com/en-us/visualstudio/msbuild/zipdirectory-task?view=vs-2022 -->
 		<ZipDirectory SourceDirectory="$(CopyDir)" DestinationFile="$(OutputPath)\..\$(AssemblyName)_v$(Version).zip" Overwrite="true" />
 		<RemoveDir Directories="$(CopyDir)" />
