@@ -419,18 +419,19 @@ namespace KoiSkinOverlayX
             KoiSkinOverlayMgr.OverlayMat.SetFloat("_Override", _override ? 1 : 0);
             switch (blendingMode)
             {
-                case OverlayBlendingMode.Default:
-                    KoiSkinOverlayMgr.OverlayMat.SetFloat("_LinearAlpha", 0);
-#if HS2 || AI
-                    KoiSkinOverlayMgr.OverlayMat.SetInt("_SrcBlend", (int)BlendMode.SrcAlpha);
-                    KoiSkinOverlayMgr.OverlayMat.SetInt("_DstBlend", (int)BlendMode.OneMinusSrcAlpha);
-#endif
-                    break;
                 case OverlayBlendingMode.LinearAlpha:
                     KoiSkinOverlayMgr.OverlayMat.SetFloat("_LinearAlpha", 1);
 #if HS2 || AI
                     KoiSkinOverlayMgr.OverlayMat.SetInt("_SrcBlend", (int)BlendMode.One);
                     KoiSkinOverlayMgr.OverlayMat.SetInt("_DstBlend", (int)BlendMode.Zero);
+#endif
+                    break;
+                case OverlayBlendingMode.Default:
+                default:
+                    KoiSkinOverlayMgr.OverlayMat.SetFloat("_LinearAlpha", 0);
+#if HS2 || AI
+                    KoiSkinOverlayMgr.OverlayMat.SetInt("_SrcBlend", (int)BlendMode.SrcAlpha);
+                    KoiSkinOverlayMgr.OverlayMat.SetInt("_DstBlend", (int)BlendMode.OneMinusSrcAlpha);
 #endif
                     break;
             }
