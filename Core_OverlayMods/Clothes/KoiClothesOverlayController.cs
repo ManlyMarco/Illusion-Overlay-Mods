@@ -351,7 +351,7 @@ namespace KoiClothesOverlayX
                     tex = new ClothesTexData();
                     CurrentOverlayTextures[clothesId] = tex;
                 }
-                if (createNew) tex.BlendingMode = BlendingMode.LinearAlpha;
+                if (createNew) tex.BlendingMode = OverlayBlendingMode.LinearAlpha;
                 return tex;
             }
             return null;

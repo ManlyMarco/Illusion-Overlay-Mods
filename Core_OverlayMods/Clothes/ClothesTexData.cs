@@ -52,7 +52,7 @@ namespace KoiClothesOverlayX
         public bool Override;
 
         [Key(2)]
-        public BlendingMode BlendingMode;
+        public OverlayBlendingMode BlendingMode;
 
         public void Dispose()
         {
@@ -71,7 +71,7 @@ namespace KoiClothesOverlayX
         }
     }
 
-    public enum BlendingMode
+    public enum OverlayBlendingMode
     {
         Default = 0,
         LinearAlpha = 1,
