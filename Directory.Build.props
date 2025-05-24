@@ -10,7 +10,7 @@
 		<!-- Sets the 'Product name' field on the dll file -->
 		<Product>Illusion Overlay Mods</Product>
 		<!-- Sets the 'File description' field on the dll file -->
-		<AssemblyTitle>Utility for toggling state of clothes and accessories in character maker, main game and H scenes</AssemblyTitle>
+		<AssemblyTitle>Add apply custom textures (tattoos) to character's body and clothes</AssemblyTitle>
 
 		<RootNamespace>OverlayMods</RootNamespace>
 
