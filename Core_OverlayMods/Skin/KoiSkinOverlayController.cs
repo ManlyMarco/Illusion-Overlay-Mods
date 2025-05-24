@@ -8,6 +8,10 @@ using KKAPI;
 using KKAPI.Chara;
 using UniRx;
 using UnityEngine;
+using UnityEngine.Rendering;
+using KoiClothesOverlayX;
+
+
 #if AI || HS2
 using AIChara;
 #endif
@@ -242,7 +246,11 @@ namespace KoiSkinOverlayX
         internal static void ApplyOverlays(RenderTexture targetTexture, IEnumerable<Texture2D> overlays)
         {
             foreach (var overlay in overlays)
-                ApplyOverlay(targetTexture, overlay);
+                // Always use the old blending since
+                // 1. Doesn't seem different then the new blending on skin
+                //    (I think the old blending was only an issue when the source texture also has alpha, which skin never has)
+                // 2. The new blending breaks on body overlays specifically in HS2/AI
+                ApplyOverlay(targetTexture, overlay, blendingMode: OverlayBlendingMode.Default);
         }
 
         public Texture2D SetOverlayTex(byte[] overlayTex, TexType overlayType)
@@ -379,6 +387,11 @@ namespace KoiSkinOverlayX
 
         public static void ApplyOverlay(RenderTexture mainTex, Texture2D blitTex)
         {
+            ApplyOverlay(mainTex, blitTex, false);
+        }
+
+        public static void ApplyOverlay(RenderTexture mainTex, Texture2D blitTex, bool _override = false, OverlayBlendingMode blendingMode = OverlayBlendingMode.Default)
+        {
             if (blitTex == null) return;
 
             var rtTemp = RenderTexture.GetTemporary(mainTex.width, mainTex.height, 0, mainTex.format);
@@ -388,6 +401,7 @@ namespace KoiSkinOverlayX
             RenderTexture.active = rta;
 
             KoiSkinOverlayMgr.OverlayMat.SetTexture("_Overlay", blitTex);
+            SetOverlayMatProperties(_override, blendingMode);
 #if KK || EC
             Graphics.Blit(mainTex, rtTemp, KoiSkinOverlayMgr.OverlayMat);
             Graphics.Blit(rtTemp, mainTex);
@@ -398,6 +412,31 @@ namespace KoiSkinOverlayX
 #endif
 
             RenderTexture.ReleaseTemporary(rtTemp);
+        }
+
+        private static void SetOverlayMatProperties(bool _override, OverlayBlendingMode blendingMode)
+        {
+            KoiSkinOverlayMgr.OverlayMat.SetFloat("_Override", _override ? 1 : 0);
+            switch (blendingMode)
+            {
+                case OverlayBlendingMode.LinearAlpha:
+                    KoiSkinOverlayMgr.OverlayMat.SetFloat("_LinearAlpha", 1);
+#if HS2 || AI
+                    KoiSkinOverlayMgr.OverlayMat.SetInt("_SrcBlend", (int)BlendMode.One);
+                    KoiSkinOverlayMgr.OverlayMat.SetInt("_DstBlend", (int)BlendMode.Zero);
+#endif
+                    break;
+                default:
+                    KoiSkinOverlayMgr.Logger.LogWarning($"Blendmode {blendingMode} doesn't exist, reverting to default");
+                    goto case OverlayBlendingMode.Default;
+                case OverlayBlendingMode.Default:
+                    KoiSkinOverlayMgr.OverlayMat.SetFloat("_LinearAlpha", 0);
+#if HS2 || AI
+                    KoiSkinOverlayMgr.OverlayMat.SetInt("_SrcBlend", (int)BlendMode.SrcAlpha);
+                    KoiSkinOverlayMgr.OverlayMat.SetInt("_DstBlend", (int)BlendMode.OneMinusSrcAlpha);
+#endif
+                    break;
+            }
         }
 
         /// <summary>

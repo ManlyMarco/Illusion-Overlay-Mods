@@ -51,6 +51,9 @@ namespace KoiClothesOverlayX
         [Key(1)]
         public bool Override;
 
+        [Key(2)]
+        public OverlayBlendingMode BlendingMode;
+
         public void Dispose()
         {
             Object.Destroy(_texture);
@@ -66,5 +69,11 @@ namespace KoiClothesOverlayX
         {
             return !Override && TextureBytes == null;
         }
+    }
+
+    public enum OverlayBlendingMode
+    {
+        Default = 0,
+        LinearAlpha = 1,
     }
 }
