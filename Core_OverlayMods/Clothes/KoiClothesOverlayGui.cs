@@ -50,9 +50,12 @@ namespace KoiClothesOverlayX
 
         private void SetTexAndUpdate(Texture2D tex, string texType)
         {
+            // TODO allow setting of different blend modes
             var ctrl = GetOverlayController();
             var t = ctrl.GetOverlayTex(texType, true);
             t.Texture = tex;
+            t.BlendingMode = OverlayBlendingMode.LinearAlpha;
+
             ctrl.RefreshTexture(texType);
 
             _textureChanged.OnNext(new KeyValuePair<string, Texture2D>(texType, tex));

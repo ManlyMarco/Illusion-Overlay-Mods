@@ -53,7 +53,7 @@ Shader "Unlit/composite"
                 float4 mt = tex2D(_MainTex, i.uv0);
 
                 float3 rgb = lerp(mt.rgb, o.rgb, max(o.a, _Override));
-                float a = lerp(mt.a, o.a, _Override);
+                float a = lerp(mt.a + o.a * (1.0 - mt.a), o.a, _Override);
 
                 float4 Out;
                 Out.w = o.w + mt.w*(1-o.w);
