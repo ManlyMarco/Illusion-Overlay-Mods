@@ -343,15 +343,16 @@ namespace KoiClothesOverlayX
 
         public ClothesTexData GetOverlayTex(string clothesId, bool createNew)
         {
+            // TODO allow setting of different blend modes
             if (CurrentOverlayTextures != null)
             {
                 CurrentOverlayTextures.TryGetValue(clothesId, out var tex);
                 if (tex == null && createNew)
                 {
                     tex = new ClothesTexData();
+                    tex.BlendingMode = OverlayBlendingMode.LinearAlpha;
                     CurrentOverlayTextures[clothesId] = tex;
                 }
-                if (createNew) tex.BlendingMode = OverlayBlendingMode.LinearAlpha;
                 return tex;
             }
             return null;
