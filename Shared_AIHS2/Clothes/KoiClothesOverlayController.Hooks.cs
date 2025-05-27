@@ -246,7 +246,6 @@ namespace KoiClothesOverlayX
                 __result = __result
                     .OrderBy(x => x.Key != 0)
                     .ThenBy(x => x.Key != CustomPatternID)
-                    .ThenBy(x => x.Key)
                     .ToDictionary(x => x.Key, x => x.Value);
             }
         }
