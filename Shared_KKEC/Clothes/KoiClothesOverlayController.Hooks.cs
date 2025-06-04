@@ -385,17 +385,17 @@ namespace KoiClothesOverlayX
                 int kind = -1;
                 var main = true;
 
-                for (int i = 0; i < 9; i++)
-                    for (int j = 0; j < 3; j++)
+                for (int i = 0; i < controller.ChaControl.ctCreateClothes.GetLength(0); i++)
+                    for (int j = 0; j < controller.ChaControl.ctCreateClothes.GetLength(1); j++)
                         if (controller.ChaControl.ctCreateClothes[i, j] == __instance)
                         {
                             kind = i;
                             goto End;
                         }
 
-                for (int i = 0; i < 3; i++)
+                for (int i = 0; i < controller.ChaControl.ctCreateClothesSub.GetLength(0); i++)
                 {
-                    for (int j = 0; j < 3; j++)
+                    for (int j = 0; j < controller.ChaControl.ctCreateClothesSub.GetLength(1); j++)
                         if (controller.ChaControl.ctCreateClothesSub[i, j] == __instance)
                         {
                             kind = 0;
