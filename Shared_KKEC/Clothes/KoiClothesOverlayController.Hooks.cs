@@ -28,7 +28,7 @@ namespace KoiClothesOverlayX
                     if (importedData.TryGetValue(KoiClothesOverlayMgr.GUID, out var pluginData) && pluginData != null)
                     {
                         var dic = ReadOverlayExtData(pluginData);
-                        var dicResize = ReadTextureSizeOverrideExtData(pluginData);
+                        var dicResize = ReadTextureSizeOverrideExtData(pluginData) ?? new Dictionary<KoikatsuCharaFile.ChaFileDefine.CoordinateType, Dictionary<string, int>>(0);
 
                         // Only keep 1st coord
                         foreach (var coordKey in dic.Keys.ToList())
@@ -44,17 +44,14 @@ namespace KoiClothesOverlayX
                             else
                             {
                                 var group = dic[coordKey];
-                                var groupResize = dicResize[coordKey];
+                                dicResize.TryGetValue(coordKey, out var groupResize);
                                 if (group == null)
                                 {
                                     dic.Remove(coordKey);
                                     continue;
                                 }
                                 if (groupResize == null)
-                                {
                                     dicResize.Remove(coordKey);
-                                    continue;
-                                }
 #if EC
                                 // Convert shoe overlays to EC format (1 pair instead of 2)
                                 if (group.TryGetValue("ct_shoes_outer", out var data))
@@ -65,7 +62,7 @@ namespace KoiClothesOverlayX
 #endif
                                 // Neither EC or KKS use inner shoes
                                 group.Remove("ct_shoes_inner");
-                                groupResize.Remove("ct_shoes_inner");
+                                groupResize?.Remove("ct_shoes_inner");
                             }
                         }
 
@@ -86,7 +83,7 @@ namespace KoiClothesOverlayX
                     if (data.TryGetValue(KoiClothesOverlayMgr.GUID, out var pluginData) && pluginData != null)
                     {
                         var dic = ReadOverlayExtData(pluginData);
-                        var dicResize = ReadTextureSizeOverrideExtData(pluginData);
+                        var dicResize = ReadTextureSizeOverrideExtData(pluginData) ?? new Dictionary<ChaFileDefine.CoordinateType, Dictionary<string, int>>(0);;
                         // Map coords into a new dictionary based on the mapping
                         var outDic = new Dictionary<ChaFileDefine.CoordinateType, Dictionary<string, ClothesTexData>>(dic.Count);
                         var outDicResize = new Dictionary<ChaFileDefine.CoordinateType, Dictionary<string, int>>(dicResize.Count);
@@ -103,7 +100,7 @@ namespace KoiClothesOverlayX
                                 outDic[(ChaFileDefine.CoordinateType) map.Value.Value] = value;
                             }
                             dicResize.TryGetValue((ChaFileDefine.CoordinateType)map.Key, out var valueResize);
-                            if (value != null)
+                            if (valueResize != null)
                             {
                                 // KKS doesn't have inner shoes
                                 valueResize.Remove("ct_shoes_inner");

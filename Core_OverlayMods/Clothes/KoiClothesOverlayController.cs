@@ -715,7 +715,6 @@ namespace KoiClothesOverlayX
         }
         private static void SetTextureSizeOverrideExtData(Dictionary<CoordinateType, Dictionary<string, int>> allTextureSizeOverrides, PluginData data)
         {
-            
             if (allTextureSizeOverrides.Count > 0)
                 data.data[SizeOverrideDataKey] = MessagePackSerializer.Serialize(allTextureSizeOverrides);
             else
