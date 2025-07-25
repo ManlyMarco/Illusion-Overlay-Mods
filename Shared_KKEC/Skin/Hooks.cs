@@ -134,7 +134,8 @@ namespace KoiSkinOverlayX
 
             if (texOverride != null && texOverride.Texture != null)
             {
-                var trt = RenderTexture.GetTemporary(source.width, source.height, dest.depth, dest.format);
+                var outSize = KoiSkinOverlayMgr.GetOutputSize(type: TexType.Unknown, original: dest, maxWidth: texOverride.Texture.width, maxHeight: texOverride.Texture.height);
+                var trt = RenderTexture.GetTemporary(outSize.Width, outSize.Height, dest.depth, dest.format);
                 KoiSkinOverlayController.ApplyOverlay(trt, texOverride.Texture, true, OverlayBlendingMode.LinearAlpha);
                 Graphics.Blit(trt, dest, mat, pass);
                 RenderTexture.ReleaseTemporary(trt);
