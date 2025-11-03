@@ -10,7 +10,7 @@ namespace KoiSkinOverlayX
 {
     internal class TextureStorage : IDisposable
     {
-        private const string DataMarker = "_TextureID_";
+        public const string DataMarker = "_TextureID_";
 
         private readonly Dictionary<int, TextureHolder> _data = new Dictionary<int, TextureHolder>();
 
@@ -58,41 +58,15 @@ namespace KoiSkinOverlayX
 
         public void Load(PluginData data)
         {
-            if (data == null) throw new ArgumentNullException(nameof(data));
-            lock (_data)
-            {
-                foreach (var dataPair in data.data.Where(x => x.Key.StartsWith(DataMarker)))
-                {
-                    var idStr = dataPair.Key.Substring(DataMarker.Length);
-                    if (!int.TryParse(idStr, out var id))
-                    {
-                        KoiSkinOverlayMgr.Logger.LogDebug($"Invalid ID {idStr} in key {dataPair.Key}");
-                        continue;
-                    }
-
-                    var value = dataPair.Value as byte[];
-                    if (value == null && dataPair.Value != null)
-                    {
-                        KoiSkinOverlayMgr.Logger.LogDebug($"Invalid value of ID {id}. Should be of type byte[] but is {dataPair.Value.GetType()}");
-                        continue;
-                    }
-
-                    _data[id] = new TextureHolder(value);
-                }
-            }
+            var loadedData = TextureSaveHandler.Instance.Load<Dictionary<int, TextureHolder>>(data, DataMarker, true);
+            if (loadedData != null)
+                foreach (var kvp in loadedData)
+                    _data[kvp.Key]= kvp.Value;
         }
 
         public void Save(PluginData data)
         {
-            if (data == null) throw new ArgumentNullException(nameof(data));
-            lock (_data)
-            {
-                foreach (var tex in _data)
-                {
-                    if (tex.Value == null) continue;
-                    data.data[DataMarker + tex.Key] = tex.Value.Data;
-                }
-            }
+            TextureSaveHandler.Instance.Save(data, DataMarker, _data, true);
         }
 
         // auto dedupe and return the same id
@@ -147,10 +121,11 @@ namespace KoiSkinOverlayX
             return null;
         }
 
-        private sealed class TextureHolder : IDisposable
+        internal sealed class TextureHolder : IDisposable
         {
             private byte[] _data;
             private Texture2D _texture;
+            private ulong? hash = null;
 
             public TextureHolder(byte[] data)
             {
@@ -174,6 +149,16 @@ namespace KoiSkinOverlayX
                     if (_texture == null && _data != null)
                         _texture = Util.TextureFromBytes(_data, KoiSkinOverlayMgr.GetSelectedOverlayTexFormat(false));
                     return _texture;
+                }
+            }
+
+            public ulong Hash
+            {
+                get
+                {
+                    if (!hash.HasValue)
+                        hash = CRC64Calculator.CalculateCRC64(_data, 2 << 11, 2 << 9, true);
+                    return hash.Value;
                 }
             }
 

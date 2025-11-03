@@ -34,11 +34,11 @@ namespace KoiClothesOverlayX
 
     public partial class KoiClothesOverlayController : CharaCustomFunctionController
     {
-        private const string OverlayDataKey = "Overlays";
-        private const string SizeOverrideDataKey = "TextureSizeOverride";
-        private const string ColorMaskPrefix = "Colormask_";
-        private const string PatternPrefix = "Pattern_";
-        private const string OverridePrefix = "Override_";
+        public const string OverlayDataKey = "Overlays";
+        public const string SizeOverrideDataKey = "TextureSizeOverride";
+        public const string ColorMaskPrefix = "Colormask_";
+        public const string PatternPrefix = "Pattern_";
+        public const string OverridePrefix = "Override_";
         public const int CustomPatternID = 58947543;
 
         private Action<byte[]> _dumpCallback;
@@ -709,7 +709,7 @@ namespace KoiClothesOverlayX
         private static void SetOverlayExtData(Dictionary<CoordinateType, Dictionary<string, ClothesTexData>> allOverlayTextures, PluginData data)
         {
             if (allOverlayTextures.Count > 0)
-                data.data[OverlayDataKey] = MessagePackSerializer.Serialize(allOverlayTextures);
+                TextureSaveHandler.Instance.Save(data, OverlayDataKey, allOverlayTextures, true);
             else
                 data.data.Remove(OverlayDataKey);
         }
@@ -723,33 +723,9 @@ namespace KoiClothesOverlayX
 
         private static Dictionary<CoordinateType, Dictionary<string, ClothesTexData>> ReadOverlayExtData(PluginData pd)
         {
-            if (pd.data.TryGetValue(OverlayDataKey, out var overlayData))
-            {
-                if (overlayData is byte[] overlayBytes)
-                    return ReadOverlayExtData(overlayBytes);
-            }
-
-            return null;
-        }
-
-        private static Dictionary<CoordinateType, Dictionary<string, ClothesTexData>> ReadOverlayExtData(byte[] overlayBytes)
-        {
-            try
-            {
-                return MessagePackSerializer.Deserialize<
-                    Dictionary<CoordinateType, Dictionary<string, ClothesTexData>>>(
-                    overlayBytes);
-            }
-            catch (Exception ex)
-            {
-                if (MakerAPI.InsideMaker)
-                    KoiSkinOverlayMgr.Logger.LogMessage("WARNING: Failed to load clothes overlay data");
-                else
-                    KoiSkinOverlayMgr.Logger.LogDebug("WARNING: Failed to load clothes overlay data");
-                KoiSkinOverlayMgr.Logger.LogError(ex);
-
-                return null;
-            }
+            return TextureSaveHandler.Instance.Load
+                <Dictionary<CoordinateType, Dictionary<string, ClothesTexData>>>
+                (pd, OverlayDataKey, true);
         }
 
         private static Dictionary<CoordinateType, Dictionary<string, int>> ReadTextureSizeOverrideExtData(PluginData pd)
