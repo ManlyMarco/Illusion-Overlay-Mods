@@ -30,6 +30,14 @@ namespace KoiSkinOverlayX
     {
         private const string OverlayDataKey = "Lookup";
 
+        internal IEnumerable<TextureStorage.TextureHolder> TextureData
+        {
+            get
+            {
+                return _textureStorage.TextureData;
+            }
+        }
+
         private readonly TextureStorage _textureStorage;
         private readonly ChaControl _chaControl;
         private Dictionary<CoordinateType, Dictionary<TexType, int>> _allOverlayTextures;

@@ -43,7 +43,7 @@ namespace KoiSkinOverlayX
         public const string FileExt = ".png";
         public const string FileFilter = "Overlay images (*.png)|*.png|All files|*.*";
 
-        private static string LocalTexPathDefault = Path.Combine(Paths.GameRootPath, @"UserData\Overlays\_LocalTextures");
+        private static readonly string LocalTexPathDefault = Path.Combine(Paths.GameRootPath, @"UserData\Overlays\_LocalTextures");
         private static string LocalTexPath = LocalTexPathDefault;
 
         private Subject<KeyValuePair<TexType, Texture2D>> _textureChanged;

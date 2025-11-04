@@ -34,6 +34,8 @@ namespace KoiClothesOverlayX
 
     public partial class KoiClothesOverlayController : CharaCustomFunctionController
     {
+        public static readonly List<KoiClothesOverlayController> controllers = new List<KoiClothesOverlayController>();
+
         public const string OverlayDataKey = "Overlays";
         public const string SizeOverrideDataKey = "TextureSizeOverride";
         public const string ColorMaskPrefix = "Colormask_";
@@ -47,6 +49,14 @@ namespace KoiClothesOverlayX
 #if !EC
         public bool EnableInStudio { get; set; } = true;
 #endif
+
+        public IEnumerable<ClothesTexData> TextureData
+        {
+            get
+            {
+                return from x in _allOverlayTextures from y in x.Value select y.Value;
+            }
+        }
 
         private Dictionary<CoordinateType, Dictionary<string, ClothesTexData>> _allOverlayTextures;
         internal Dictionary<string, ClothesTexData> CurrentOverlayTextures
@@ -79,6 +89,12 @@ namespace KoiClothesOverlayX
 #endif
                 return GetClothingSizeOverrides(coordinateType);
             }
+        }
+
+        protected override void Awake()
+        {
+            controllers.Add(this);
+            base.Awake();
         }
 
         private Dictionary<string, ClothesTexData> GetOverlayTextures(CoordinateType coordinateType)
@@ -965,6 +981,7 @@ namespace KoiClothesOverlayX
 
         protected override void OnDestroy()
         {
+            controllers.Remove(this);
             base.OnDestroy();
 
             if (_allOverlayTextures == null) return;

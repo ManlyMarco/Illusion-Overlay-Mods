@@ -11,6 +11,7 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)CRC64Calculator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)OverlayStorage.cs" />
+    <Compile Include="..\Core_OverlayMods\OverlaySceneTextureController.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TextureSaveHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TextureStorage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Clothes\ClothesTexData.cs" />
