@@ -387,7 +387,7 @@ namespace KoiSkinOverlayX
             // Texture saving configs
             ConfLocalTexPath = Config.Bind("Textures", "Local Texture Path Override", "", new ConfigDescription($"Local textures will be exported to / imported from this folder. If empty, defaults to {LocalTexPathDefault}.\nWARNING: If you change this, make sure to move all files to the new path!", null, new ConfigurationManagerAttributes { Order = 10, IsAdvanced = true }));
             ConfLocalTexPath.SettingChanged += ConfLocalTexPath_SettingChanged;
-            SetLocalTexPath();
+            ConfLocalTexPath_SettingChanged(null, null);
             var handler = new TextureSaveHandler(LocalTexPath);
             handler.RegisterForAudit("Overlays", handler.LocalTexSavePrefix + TextureSaveHandler.DataKey);
 
@@ -399,13 +399,27 @@ namespace KoiSkinOverlayX
 
         private void ConfLocalTexPath_SettingChanged(object sender, EventArgs e)
         {
-            SetLocalTexPath();
+            if (ConfLocalTexPath.Value.ToLower().StartsWith(Paths.GameRootPath.ToLower()))
+            {
+                if (ConfLocalTexPath.Value.Length > Paths.GameRootPath.Length)
+                    ConfLocalTexPath.Value = ConfLocalTexPath.Value.Substring(Paths.GameRootPath.Length + 1);
+                else
+                    ConfLocalTexPath.Value = "";
+                return;
+            }
+            if (ConfLocalTexPath.Value.Split(Path.GetInvalidPathChars()).Length == 1)
+                SetLocalTexPath();
             TextureSaveHandler.Instance.LocalTexturePath = LocalTexPath;
         }
 
         private void SetLocalTexPath()
         {
-            LocalTexPath = ConfLocalTexPath.Value == "" ? LocalTexPathDefault : ConfLocalTexPath.Value;
+            if (ConfLocalTexPath.Value == "")
+                LocalTexPath = LocalTexPathDefault;
+            else if (Path.IsPathRooted(ConfLocalTexPath.Value))
+                LocalTexPath = ConfLocalTexPath.Value;
+            else
+                LocalTexPath = Path.Combine(Paths.GameRootPath, ConfLocalTexPath.Value);
         }
 
         private void Start()
