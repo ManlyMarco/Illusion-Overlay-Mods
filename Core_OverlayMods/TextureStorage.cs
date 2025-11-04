@@ -12,6 +12,14 @@ namespace KoiSkinOverlayX
     {
         public const string DataMarker = "_TextureID_";
 
+        public IEnumerable<TextureHolder> TextureData
+        {
+            get
+            {
+                return _data.Values.ToArray();
+            }
+        }
+
         private readonly Dictionary<int, TextureHolder> _data = new Dictionary<int, TextureHolder>();
 
         void IDisposable.Dispose()

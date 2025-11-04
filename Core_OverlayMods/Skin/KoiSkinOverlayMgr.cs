@@ -82,6 +82,9 @@ namespace KoiSkinOverlayX
 
             Hooks.Init();
             CharacterApi.RegisterExtraBehaviour<KoiSkinOverlayController>(GUID);
+#if !EC
+            KKAPI.Studio.SaveLoad.StudioSaveLoadApi.RegisterExtraBehaviour<OverlaySceneTextureController>(OverlaySceneTextureController.Savekey);
+#endif
 
             Directory.CreateDirectory(OverlayDirectory);
         }

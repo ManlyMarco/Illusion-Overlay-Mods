@@ -392,7 +392,7 @@ namespace KoiSkinOverlayX
             ConfLocalTexPath.SettingChanged += ConfLocalTexPath_SettingChanged;
             SetLocalTexPath();
             var handler = new TextureSaveHandler(LocalTexPath);
-            handler.RegisterForAudit("Overlays", handler.LocalTexSavePrefix + TextureStorage.DataMarker);
+            handler.RegisterForAudit("Overlays", handler.LocalTexSavePrefix + TextureSaveHandler.DataKey);
 
             CharaLocalTextures.Activate();
 #if !EC
