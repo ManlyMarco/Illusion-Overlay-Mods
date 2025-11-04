@@ -10,15 +10,14 @@ using MessagePack;
 using UnityEngine;
 using ExtensibleSaveFormat;
 using KKAPI.Utilities;
-
 #if KK || KKS
 using CoordinateType = ChaFileDefine.CoordinateType;
-using KKAPI.Studio;
-using Studio;
 #elif EC
 using CoordinateType = KoikatsuCharaFile.ChaFileDefine.CoordinateType;
 #elif AI || HS2
 using AIChara;
+#endif
+#if !EC
 using KKAPI.Studio;
 using Studio;
 #endif
@@ -36,11 +35,11 @@ namespace KoiClothesOverlayX
     {
         public static readonly List<KoiClothesOverlayController> controllers = new List<KoiClothesOverlayController>();
 
-        public const string OverlayDataKey = "Overlays";
-        public const string SizeOverrideDataKey = "TextureSizeOverride";
-        public const string ColorMaskPrefix = "Colormask_";
-        public const string PatternPrefix = "Pattern_";
-        public const string OverridePrefix = "Override_";
+        private const string OverlayDataKey = "Overlays";
+        private const string SizeOverrideDataKey = "TextureSizeOverride";
+        private const string ColorMaskPrefix = "Colormask_";
+        private const string PatternPrefix = "Pattern_";
+        private const string OverridePrefix = "Override_";
         public const int CustomPatternID = 58947543;
 
         private Action<byte[]> _dumpCallback;

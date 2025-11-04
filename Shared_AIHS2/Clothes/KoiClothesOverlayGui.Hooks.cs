@@ -1,7 +1,6 @@
 ﻿using AIChara;
 using CharaCustom;
 using HarmonyLib;
-using UnityEngine;
 
 namespace KoiClothesOverlayX
 {

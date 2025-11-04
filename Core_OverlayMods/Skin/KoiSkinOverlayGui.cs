@@ -6,13 +6,10 @@
  
  */
 
-#pragma warning disable CS0436
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
-using System.Linq;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;

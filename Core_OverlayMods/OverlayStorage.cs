@@ -6,7 +6,6 @@ using System.Linq;
 using ExtensibleSaveFormat;
 using KKAPI.Chara;
 using KKAPI.Maker;
-using KoiClothesOverlayX;
 using MessagePack;
 using UnityEngine;
 #if KK || KKS

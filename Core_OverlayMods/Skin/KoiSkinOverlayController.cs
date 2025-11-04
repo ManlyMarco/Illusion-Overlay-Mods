@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using ExtensibleSaveFormat;
 using KKAPI;
@@ -10,8 +9,6 @@ using UniRx;
 using UnityEngine;
 using UnityEngine.Rendering;
 using KoiClothesOverlayX;
-
-
 #if AI || HS2
 using AIChara;
 #endif
