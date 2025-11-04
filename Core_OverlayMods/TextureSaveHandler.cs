@@ -222,9 +222,10 @@ namespace KoiSkinOverlayX
 
             var dict = new Dictionary<KeyValuePair<string, ulong>, byte[]>();
             // KoiClothesOverlayX
-            if (dictRaw is Dictionary<CoordinateType, Dictionary<string, ClothesTexData>> clothesData)
+            Dictionary<CoordinateType, Dictionary<string, ClothesTexData>> clothesData = null;
+            if (dictRaw is Dictionary<CoordinateType, Dictionary<string, ClothesTexData>> clothesDataReceived)
             {
-                clothesData = clothesData.ToDictionary(
+                clothesData = clothesDataReceived.ToDictionary(
                     kvp => kvp.Key,
                     kvp => kvp.Value.ToDictionary(
                         kvp2 => kvp2.Key,
@@ -242,7 +243,6 @@ namespace KoiSkinOverlayX
                         };
                         i++;
                     }
-                data.data.Add(LocalTexSavePrefix + key, MessagePackSerializer.Serialize(clothesData));
             }
             // KoiSkinOverlayX
             else if (dictRaw is Dictionary<int, TextureHolder> skinData)
@@ -261,6 +261,8 @@ namespace KoiSkinOverlayX
 
             var hashDict = dict.ToDictionary(pair => pair.Key.Key, pair => pair.Key.Value.ToString("X16"));
             data.data.Add(LocalTexSavePrefix + DataKey, MessagePackSerializer.Serialize(hashDict));
+            if (clothesData != null)
+                data.data.Add(LocalTexSavePrefix + key, MessagePackSerializer.Serialize(clothesData));
         }
 
         protected override object LoadLocal(PluginData data, string key, object dataLocal, bool isCharaController = false)
@@ -297,7 +299,7 @@ namespace KoiSkinOverlayX
         {
             if (!Directory.Exists(LocalTexturePath))
             {
-                KoiSkinOverlayGui.Logger.LogMessage("[MaterialEditor] Local texture directory doesn't exist, can't load texture!");
+                KoiSkinOverlayGui.Logger.LogMessage("[Overlays] Local texture directory doesn't exist, can't load texture!");
                 return new byte[0];
             }
 
@@ -305,12 +307,12 @@ namespace KoiSkinOverlayX
             string[] files = Directory.GetFiles(LocalTexturePath, searchPattern, SearchOption.TopDirectoryOnly);
             if (files == null || files.Length == 0)
             {
-                KoiSkinOverlayGui.Logger.LogMessage($"[MaterialEditor] No local texture found with hash {hash}!");
+                KoiSkinOverlayGui.Logger.LogMessage($"[Overlays] No local texture found with hash {hash}!");
                 return new byte[0];
             }
             if (files.Length > 1)
             {
-                KoiSkinOverlayGui.Logger.LogMessage($"[MaterialEditor] Multiple local textures found with hash {hash}, aborting!");
+                KoiSkinOverlayGui.Logger.LogMessage($"[Overlays] Multiple local textures found with hash {hash}, aborting!");
                 return new byte[0];
             }
 
