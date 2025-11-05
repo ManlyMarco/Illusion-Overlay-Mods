@@ -409,7 +409,8 @@ namespace KoiSkinOverlayX
             }
             if (ConfLocalTexPath.Value.Split(Path.GetInvalidPathChars()).Length == 1)
                 SetLocalTexPath();
-            TextureSaveHandler.Instance.LocalTexturePath = LocalTexPath;
+            if (TextureSaveHandler.Instance != null)
+                TextureSaveHandler.Instance.LocalTexturePath = LocalTexPath;
         }
 
         private void SetLocalTexPath()
