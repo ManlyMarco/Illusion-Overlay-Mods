@@ -58,8 +58,8 @@ namespace KoiSkinOverlayX
             }
             catch (Exception ex)
             {
-                KoiSkinOverlayGui.Logger.LogWarning("Save method failed, falling back to Bundled saving!");
                 KoiSkinOverlayGui.Logger.LogError(ex);
+                KoiSkinOverlayGui.Logger.LogWarning("Save method failed, falling back to Bundled saving!");
                 SaveBundled(pluginData, key, data, isCharaController);
             }
         }
@@ -81,7 +81,7 @@ namespace KoiSkinOverlayX
         protected override bool IsDeduped(PluginData pluginData, string key, out object data)
         {
             data = null;
-            return pluginData?.data.TryGetValue(DedupedTexSavePrefix + DataKey, out data) != null && data != null;
+            return pluginData?.data.TryGetValue(DedupedTexSavePrefix + DataKey, out data) == true && data != null;
         }
 
 #endif
@@ -89,25 +89,20 @@ namespace KoiSkinOverlayX
         protected override bool IsLocal(PluginData pluginData, string key, out object data)
         {
             data = null;
-            return pluginData?.data.TryGetValue(LocalTexSavePrefix + DataKey, out data) != null && data != null;
+            return pluginData?.data.TryGetValue(LocalTexSavePrefix + DataKey, out data) == true && data != null;
         }
 
         protected override void SaveBundled(PluginData pluginData, string key, object dictRaw, bool isCharaController = false)
         {
             if (!isCharaController) return;
+            if (pluginData == null) throw new ArgumentNullException(nameof(pluginData));
 
             // KoiSkinOverlayX
             if (dictRaw is Dictionary<int, TextureHolder> _dataSkin)
             {
-                if (pluginData == null) throw new System.ArgumentNullException(nameof(pluginData));
                 lock (_dataSkin)
-                {
-                    foreach (var tex in _dataSkin)
-                    {
-                        if (tex.Value == null) continue;
+                    foreach (var tex in _dataSkin.Where(x => x.Value != null))
                         pluginData.data[key + tex.Key] = tex.Value.Data;
-                    }
-                }
             }
             // KoiClothesOverlayX
             else if (dictRaw is Dictionary<CoordinateType, Dictionary<string, ClothesTexData>> _dataClothes)
@@ -221,13 +216,11 @@ namespace KoiSkinOverlayX
             // SceneController
             var dicHashData = new Dictionary<ulong, byte[]>();
             foreach (var controller in KoiSkinOverlayController.controllers)
-                foreach (var item in controller.OverlayStorage.TextureData)
-                    if (!dicHashData.ContainsKey(item.Hash))
-                        dicHashData.Add(item.Hash, item.Data);
+                foreach (var item in controller.OverlayStorage.TextureData.Where(x => !dicHashData.ContainsKey(x.Hash)))
+                    dicHashData.Add(item.Hash, item.Data);
             foreach (var controller in KoiClothesOverlayController.controllers)
-                foreach (var item in controller.TextureData)
-                    if (!dicHashData.ContainsKey(item.Hash))
-                        dicHashData.Add(item.Hash, item.TextureBytes);
+                foreach (var item in controller.TextureData.Where(x => !dicHashData.ContainsKey(x.Hash)))
+                    dicHashData.Add(item.Hash, item.TextureBytes);
 
             var hashDictScene = dicHashData.ToDictionary(kvp => kvp.Key.ToString("X16"), kvp => kvp.Value);
             pluginData.data.Add(DedupedTexSavePrefix + DataKey + DedupedTexSavePostfix, MessagePackSerializer.Serialize(hashDictScene));
@@ -266,7 +259,7 @@ namespace KoiSkinOverlayX
                                 }
                     return loadedDic;
                 }
-                // KoiSkinOberlayX
+                // KoiSkinOverlayX
                 else
                 {
                     return hashDic.ToDictionary(kvp => kvp.Key, kvp => new TextureHolder(DedupedTextureData[kvp.Value]));
@@ -341,13 +334,13 @@ namespace KoiSkinOverlayX
             if (!isCharaController) return DefaultData();
 
             var hashDic = MessagePackSerializer.Deserialize<Dictionary<int, string>>((byte[])dataLocal);
-            if (hashDic == null ||  hashDic.Count == 0) return DefaultData();
+            if (hashDic == null || hashDic.Count == 0) return DefaultData();
             // KoiClothesOverlayX
             if (data.data.TryGetValue(LocalTexSavePrefix + key, out var loadedDicBytes))
             {
                 if (loadedDicBytes == null)
                 {
-                    KoiSkinOverlayGui.Logger.LogMessage("[Overlays] Failed to load deduped character overlays!");
+                    KoiSkinOverlayGui.Logger.LogMessage("[Overlays] Failed to load lcoal character overlays!");
                     return DefaultData();
                 }
 

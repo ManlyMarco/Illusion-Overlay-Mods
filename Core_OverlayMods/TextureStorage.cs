@@ -69,7 +69,7 @@ namespace KoiSkinOverlayX
             var loadedData = TextureSaveHandler.Instance.Load<Dictionary<int, TextureHolder>>(data, DataMarker, true);
             if (loadedData != null)
                 foreach (var kvp in loadedData)
-                    _data[kvp.Key]= kvp.Value;
+                    _data[kvp.Key] = kvp.Value;
         }
 
         public void Save(PluginData data)
@@ -133,7 +133,7 @@ namespace KoiSkinOverlayX
         {
             private byte[] _data;
             private Texture2D _texture;
-            private ulong? hash = null;
+            private ulong? _hash = null;
 
             public TextureHolder(byte[] data)
             {
@@ -147,6 +147,7 @@ namespace KoiSkinOverlayX
                 {
                     Dispose();
                     _data = value;
+                    _hash = null;
                 }
             }
 
@@ -164,9 +165,9 @@ namespace KoiSkinOverlayX
             {
                 get
                 {
-                    if (!hash.HasValue)
-                        hash = CRC64Calculator.CalculateCRC64(_data, 2 << 11, 2 << 9, true);
-                    return hash.Value;
+                    if (!_hash.HasValue)
+                        _hash = CRC64Calculator.CalculateCRC64(_data, 2 << 11, 2 << 9, true);
+                    return _hash.Value;
                 }
             }
 

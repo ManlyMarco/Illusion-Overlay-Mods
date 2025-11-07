@@ -35,7 +35,9 @@ namespace KoiClothesOverlayX
                 if (value != null && value == _texture) return;
                 Object.Destroy(_texture);
                 _texture = value;
-                _textureBytes = value?.EncodeToPNG();
+                if (value != null)
+                    _textureBytes = value.EncodeToPNG();
+                _hash = null;
             }
         }
 
@@ -58,6 +60,7 @@ namespace KoiClothesOverlayX
             {
                 Texture = null;
                 _textureBytes = value;
+                _hash = null;
             }
         }
 
