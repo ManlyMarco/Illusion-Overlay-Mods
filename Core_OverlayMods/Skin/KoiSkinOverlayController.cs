@@ -16,8 +16,6 @@ namespace KoiSkinOverlayX
 {
     public class KoiSkinOverlayController : CharaCustomFunctionController
     {
-        public static readonly List<KoiSkinOverlayController> controllers = new List<KoiSkinOverlayController>();
-
         /// <summary>
         /// Additional overlays to be applied over the KSOX overlay (if any).
         /// Drawn bottom to top based on the <exception cref="AdditionalTexture.ApplyOrder"></exception> property.
@@ -34,7 +32,6 @@ namespace KoiSkinOverlayX
 
         protected override void Awake()
         {
-            controllers.Add(this);
             base.Awake();
             OverlayStorage = new OverlayStorage(this);
 #if KK || KKS
@@ -275,7 +272,6 @@ namespace KoiSkinOverlayX
 
         protected override void OnDestroy()
         {
-            controllers.Remove(this);
             base.OnDestroy();
 
             RemoveAllOverlays(true);

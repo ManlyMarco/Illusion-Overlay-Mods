@@ -64,6 +64,17 @@ namespace KoiSkinOverlayX
             }
         }
 
+        public override T Load<T>(PluginData pluginData, string key, bool isCharaController)
+        {
+            if (pluginData.version <= 2)
+                return base.Load<T>(pluginData, key, isCharaController);
+            else
+            {
+                KoiSkinOverlayGui.Logger.LogMessage("[OverlayMods] Unsupported data version! Please update your plugin!");
+                throw new Exception("Unsupported data version! Plugin is outdated.");
+            }
+        }
+
         protected override bool IsBundled(PluginData pluginData, string key, out object data)
         {
             data = null;
@@ -96,6 +107,7 @@ namespace KoiSkinOverlayX
         {
             if (!isCharaController) return;
             if (pluginData == null) throw new ArgumentNullException(nameof(pluginData));
+            pluginData.version = 1;
 
             // KoiSkinOverlayX
             if (dictRaw is Dictionary<int, TextureHolder> _dataSkin)
@@ -162,6 +174,8 @@ namespace KoiSkinOverlayX
 
         protected override void SaveDeduped(PluginData pluginData, string key, object dictRaw, bool isCharaController = false)
         {
+            pluginData.version = 2;
+
             if (isCharaController)
             {
                 if (!Directory.Exists(LocalTexturePath))
@@ -215,10 +229,10 @@ namespace KoiSkinOverlayX
 
             // SceneController
             var dicHashData = new Dictionary<ulong, byte[]>();
-            foreach (var controller in KoiSkinOverlayController.controllers)
+            foreach (var controller in UnityEngine.Object.FindObjectsOfType<KoiSkinOverlayController>())
                 foreach (var item in controller.OverlayStorage.TextureData.Where(x => !dicHashData.ContainsKey(x.Hash)))
                     dicHashData.Add(item.Hash, item.Data);
-            foreach (var controller in KoiClothesOverlayController.controllers)
+            foreach (var controller in UnityEngine.Object.FindObjectsOfType<KoiClothesOverlayController>())
                 foreach (var item in controller.TextureData.Where(x => !dicHashData.ContainsKey(x.Hash)))
                     dicHashData.Add(item.Hash, item.TextureBytes);
 
@@ -274,6 +288,7 @@ namespace KoiSkinOverlayX
         protected override void SaveLocal(PluginData pluginData, string key, object dictRaw, bool isCharaController = false)
         {
             if (!isCharaController) return;
+            pluginData.version = 2;
 
             if (!Directory.Exists(LocalTexturePath))
                 Directory.CreateDirectory(LocalTexturePath);
