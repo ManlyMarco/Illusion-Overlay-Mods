@@ -1,10 +1,11 @@
-﻿using System;
+﻿#pragma warning disable CS0436
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using ExtensibleSaveFormat;
 using KKAPI.Chara;
 using KKAPI.Maker;
-using KoiClothesOverlayX;
 using MessagePack;
 using UnityEngine;
 #if KK || KKS
@@ -27,6 +28,14 @@ namespace KoiSkinOverlayX
     public class OverlayStorage
     {
         private const string OverlayDataKey = "Lookup";
+
+        internal IEnumerable<TextureStorage.TextureHolder> TextureData
+        {
+            get
+            {
+                return _textureStorage.TextureData;
+            }
+        }
 
         private readonly TextureStorage _textureStorage;
         private readonly ChaControl _chaControl;

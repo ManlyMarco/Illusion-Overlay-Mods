@@ -15,6 +15,8 @@ namespace KoiClothesOverlayX
         private byte[] _textureBytes;
         [IgnoreMember]
         private Texture2D _texture;
+        [IgnoreMember]
+        private ulong? _hash;
 
         [IgnoreMember]
         public Texture2D Texture
@@ -33,7 +35,20 @@ namespace KoiClothesOverlayX
                 if (value != null && value == _texture) return;
                 Object.Destroy(_texture);
                 _texture = value;
-                _textureBytes = value?.EncodeToPNG();
+                if (value != null)
+                    _textureBytes = value.EncodeToPNG();
+                _hash = null;
+            }
+        }
+
+        [IgnoreMember]
+        public ulong Hash
+        {
+            get
+            {
+                if (!_hash.HasValue)
+                    _hash = CRC64Calculator.CalculateCRC64(_textureBytes, 2 << 11, 2 << 9, true);
+                return _hash.Value;
             }
         }
 
@@ -45,6 +60,7 @@ namespace KoiClothesOverlayX
             {
                 Texture = null;
                 _textureBytes = value;
+                _hash = null;
             }
         }
 

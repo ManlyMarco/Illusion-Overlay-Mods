@@ -10,9 +10,9 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
-using System.Linq;
 using BepInEx;
 using BepInEx.Configuration;
+using BepInEx.Logging;
 using HarmonyLib;
 using KKAPI.Chara;
 using KKAPI.Maker;
@@ -34,10 +34,14 @@ namespace KoiSkinOverlayX
     [BepInDependency(KoiSkinOverlayMgr.GUID)]
     public class KoiSkinOverlayGui : BaseUnityPlugin
     {
+        internal static new ManualLogSource Logger;
         public const string GUID = KoiSkinOverlayMgr.GUID + "_GUI";
 
         public const string FileExt = ".png";
         public const string FileFilter = "Overlay images (*.png)|*.png|All files|*.*";
+
+        private static readonly string LocalTexPathDefault = Path.Combine(Paths.GameRootPath, @"UserData\Overlays\_LocalTextures");
+        private static string LocalTexPath = LocalTexPathDefault;
 
         private Subject<KeyValuePair<TexType, Texture2D>> _textureChanged;
 
@@ -49,6 +53,7 @@ namespace KoiSkinOverlayX
 
         [Browsable(false)]
         public static ConfigEntry<bool> WatchLoadedTexForChanges;
+        public static ConfigEntry<string> ConfLocalTexPath;
 
         private static KoiSkinOverlayController GetOverlayController()
         {
@@ -371,12 +376,51 @@ namespace KoiSkinOverlayX
 
         private void Awake()
         {
+            Logger = base.Logger;
             WatchLoadedTexForChanges = Config.Bind("Maker", "Watch loaded texture for changes", true);
             WatchLoadedTexForChanges.SettingChanged += (sender, args) =>
             {
                 if (!WatchLoadedTexForChanges.Value)
                     _texChangeWatcher?.Dispose();
             };
+
+            // Texture saving configs
+            ConfLocalTexPath = Config.Bind("Textures", "Local Texture Path Override", "", new ConfigDescription($"Local textures will be exported to / imported from this folder. If empty, defaults to {LocalTexPathDefault}.\nWARNING: If you change this, make sure to move all files to the new path!", null, new ConfigurationManagerAttributes { Order = 10, IsAdvanced = true }));
+            ConfLocalTexPath.SettingChanged += ConfLocalTexPath_SettingChanged;
+            ConfLocalTexPath_SettingChanged(null, null);
+            var handler = new TextureSaveHandler(LocalTexPath);
+            handler.RegisterForAudit("Overlays", handler.LocalTexSavePrefix + TextureSaveHandler.DataKey);
+
+            CharaLocalTextures.Activate();
+#if !EC
+            SceneLocalTextures.Activate();
+#endif
+        }
+
+        private void ConfLocalTexPath_SettingChanged(object sender, EventArgs e)
+        {
+            if (ConfLocalTexPath.Value.ToLower().StartsWith(Paths.GameRootPath.ToLower()))
+            {
+                if (ConfLocalTexPath.Value.Length > Paths.GameRootPath.Length)
+                    ConfLocalTexPath.Value = ConfLocalTexPath.Value.Substring(Paths.GameRootPath.Length + 1);
+                else
+                    ConfLocalTexPath.Value = "";
+                return;
+            }
+            if (ConfLocalTexPath.Value.Split(Path.GetInvalidPathChars()).Length == 1)
+                SetLocalTexPath();
+            if (TextureSaveHandler.Instance != null)
+                TextureSaveHandler.Instance.LocalTexturePath = LocalTexPath;
+        }
+
+        private void SetLocalTexPath()
+        {
+            if (ConfLocalTexPath.Value == "")
+                LocalTexPath = LocalTexPathDefault;
+            else if (Path.IsPathRooted(ConfLocalTexPath.Value))
+                LocalTexPath = ConfLocalTexPath.Value;
+            else
+                LocalTexPath = Path.Combine(Paths.GameRootPath, ConfLocalTexPath.Value);
         }
 
         private void Start()

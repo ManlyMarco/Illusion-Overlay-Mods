@@ -10,15 +10,14 @@ using MessagePack;
 using UnityEngine;
 using ExtensibleSaveFormat;
 using KKAPI.Utilities;
-
 #if KK || KKS
 using CoordinateType = ChaFileDefine.CoordinateType;
-using KKAPI.Studio;
-using Studio;
 #elif EC
 using CoordinateType = KoikatsuCharaFile.ChaFileDefine.CoordinateType;
 #elif AI || HS2
 using AIChara;
+#endif
+#if !EC
 using KKAPI.Studio;
 using Studio;
 #endif
@@ -47,6 +46,14 @@ namespace KoiClothesOverlayX
 #if !EC
         public bool EnableInStudio { get; set; } = true;
 #endif
+
+        public IEnumerable<ClothesTexData> TextureData
+        {
+            get
+            {
+                return from x in _allOverlayTextures from y in x.Value select y.Value;
+            }
+        }
 
         private Dictionary<CoordinateType, Dictionary<string, ClothesTexData>> _allOverlayTextures;
         internal Dictionary<string, ClothesTexData> CurrentOverlayTextures
@@ -661,7 +668,7 @@ namespace KoiClothesOverlayX
 
         protected override void OnCardBeingSaved(GameMode currentGameMode)
         {
-            var data = new PluginData { version = 2 };
+            var data = new PluginData { version = KoiSkinOverlayController.SaveVersion };
 
             CleanupTextureList();
 
@@ -709,7 +716,7 @@ namespace KoiClothesOverlayX
         private static void SetOverlayExtData(Dictionary<CoordinateType, Dictionary<string, ClothesTexData>> allOverlayTextures, PluginData data)
         {
             if (allOverlayTextures.Count > 0)
-                data.data[OverlayDataKey] = MessagePackSerializer.Serialize(allOverlayTextures);
+                TextureSaveHandler.Instance.Save(data, OverlayDataKey, allOverlayTextures, true);
             else
                 data.data.Remove(OverlayDataKey);
         }
@@ -723,33 +730,9 @@ namespace KoiClothesOverlayX
 
         private static Dictionary<CoordinateType, Dictionary<string, ClothesTexData>> ReadOverlayExtData(PluginData pd)
         {
-            if (pd.data.TryGetValue(OverlayDataKey, out var overlayData))
-            {
-                if (overlayData is byte[] overlayBytes)
-                    return ReadOverlayExtData(overlayBytes);
-            }
-
-            return null;
-        }
-
-        private static Dictionary<CoordinateType, Dictionary<string, ClothesTexData>> ReadOverlayExtData(byte[] overlayBytes)
-        {
-            try
-            {
-                return MessagePackSerializer.Deserialize<
-                    Dictionary<CoordinateType, Dictionary<string, ClothesTexData>>>(
-                    overlayBytes);
-            }
-            catch (Exception ex)
-            {
-                if (MakerAPI.InsideMaker)
-                    KoiSkinOverlayMgr.Logger.LogMessage("WARNING: Failed to load clothes overlay data");
-                else
-                    KoiSkinOverlayMgr.Logger.LogDebug("WARNING: Failed to load clothes overlay data");
-                KoiSkinOverlayMgr.Logger.LogError(ex);
-
-                return null;
-            }
+            return TextureSaveHandler.Instance.Load
+                <Dictionary<CoordinateType, Dictionary<string, ClothesTexData>>>
+                (pd, OverlayDataKey, true);
         }
 
         private static Dictionary<CoordinateType, Dictionary<string, int>> ReadTextureSizeOverrideExtData(PluginData pd)
@@ -785,7 +768,7 @@ namespace KoiClothesOverlayX
             PluginData data = null;
 
             CleanupTextureList();
-            data = new PluginData { version = 2 };
+            data = new PluginData { version = KoiSkinOverlayController.SaveVersion };
             if (CurrentOverlayTextures != null && CurrentOverlayTextures.Count != 0)
                 data.data.Add(OverlayDataKey, MessagePackSerializer.Serialize(CurrentOverlayTextures));
             if (CurrentTextureSizeOverrides != null &&  CurrentTextureSizeOverrides.Count != 0)
