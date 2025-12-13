@@ -668,7 +668,7 @@ namespace KoiClothesOverlayX
 
         protected override void OnCardBeingSaved(GameMode currentGameMode)
         {
-            var data = new PluginData { version = 2 };
+            var data = new PluginData { version = KoiSkinOverlayController.SaveVersion };
 
             CleanupTextureList();
 
@@ -768,7 +768,7 @@ namespace KoiClothesOverlayX
             PluginData data = null;
 
             CleanupTextureList();
-            data = new PluginData { version = 2 };
+            data = new PluginData { version = KoiSkinOverlayController.SaveVersion };
             if (CurrentOverlayTextures != null && CurrentOverlayTextures.Count != 0)
                 data.data.Add(OverlayDataKey, MessagePackSerializer.Serialize(CurrentOverlayTextures));
             if (CurrentTextureSizeOverrides != null &&  CurrentTextureSizeOverrides.Count != 0)

@@ -19,7 +19,7 @@ namespace KoiSkinOverlayX
 
         protected override void OnSceneSave()
         {
-            PluginData data = new PluginData();
+            PluginData data = new PluginData { version = KoiSkinOverlayController.SaveVersion };
             TextureSaveHandler.Instance.Save(data, "", null, false);
             if (data.data.Keys.Count > 0)
                 SetExtendedData(data);

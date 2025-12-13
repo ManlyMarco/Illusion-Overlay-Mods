@@ -16,6 +16,8 @@ namespace KoiSkinOverlayX
 {
     public class KoiSkinOverlayController : CharaCustomFunctionController
     {
+        public const int SaveVersion = 2;
+
         /// <summary>
         /// Additional overlays to be applied over the KSOX overlay (if any).
         /// Drawn bottom to top based on the <exception cref="AdditionalTexture.ApplyOrder"></exception> property.
@@ -46,7 +48,7 @@ namespace KoiSkinOverlayX
 
         protected override void OnCardBeingSaved(GameMode currentGameMode)
         {
-            var pd = new PluginData { version = 2 };
+            var pd = new PluginData { version = SaveVersion };
 
             OverlayStorage.Save(pd);
 

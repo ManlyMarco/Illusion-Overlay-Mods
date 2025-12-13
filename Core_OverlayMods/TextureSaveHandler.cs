@@ -107,7 +107,6 @@ namespace KoiSkinOverlayX
         {
             if (!isCharaController) return;
             if (pluginData == null) throw new ArgumentNullException(nameof(pluginData));
-            pluginData.version = 1;
 
             // KoiSkinOverlayX
             if (dictRaw is Dictionary<int, TextureHolder> _dataSkin)
@@ -174,8 +173,6 @@ namespace KoiSkinOverlayX
 
         protected override void SaveDeduped(PluginData pluginData, string key, object dictRaw, bool isCharaController = false)
         {
-            pluginData.version = 2;
-
             if (isCharaController)
             {
                 if (!Directory.Exists(LocalTexturePath))
@@ -288,7 +285,6 @@ namespace KoiSkinOverlayX
         protected override void SaveLocal(PluginData pluginData, string key, object dictRaw, bool isCharaController = false)
         {
             if (!isCharaController) return;
-            pluginData.version = 2;
 
             if (!Directory.Exists(LocalTexturePath))
                 Directory.CreateDirectory(LocalTexturePath);
