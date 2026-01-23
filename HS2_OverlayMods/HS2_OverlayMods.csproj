@@ -5,8 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="IllusionLibs.HoneySelect2.UnityEngine.AssetBundleModule" Version="2018.4.11.4" />
-    <PackageReference Include="IllusionLibs.HoneySelect2.UnityEngine.ImageConversionModule" Version="2018.4.11.4" />
+    <PackageReference Include="IllusionLibs.HoneySelect2.AllPackages" Version="*" />
     <PackageReference Include="IllusionModdingAPI.HS2API" Version="1.45.0" />
   </ItemGroup>
 

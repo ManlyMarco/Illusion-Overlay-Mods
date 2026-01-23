@@ -5,9 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="IllusionLibs.Koikatu.TextMeshPro" Version="2019.4.27.4" />
+    <PackageReference Include="IllusionLibs.Koikatu.AllPackages" Version="*" />
     <PackageReference Include="IllusionModdingAPI.KKAPI" Version="1.45.0" />
-    <PackageReference Include="KoikatuCompatibilityAnalyzer" Version="1.1.0" />
   </ItemGroup>
 
   <Import Project="..\Shared_KKEC\Shared_KKEC.projitems" Label="Shared" />
