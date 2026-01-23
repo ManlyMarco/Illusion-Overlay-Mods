@@ -232,6 +232,40 @@ namespace KoiSkinOverlayX
                     other.Add(curval.Key, curval.Value);
             }
         }
+
+        public void CopyToOtherCoords(HashSet<int> dstCoordId, params TexType[] texTypes)
+        {
+            var cur = GetCurrentOverlayTextures();
+
+            foreach (var texType in texTypes)
+            {
+                bool exists = cur.ContainsKey(texType);
+                int id = -1;
+
+                if (exists)
+                {
+                    id = cur[texType];
+                }
+
+                for (var coordId = 0; coordId < _chaControl.chaFile.coordinate.Length; coordId++)
+                {
+                    if (!dstCoordId.Contains(coordId))
+                        continue;
+
+                    var other = GetOverlayTextures((CoordinateType)coordId);
+                    if (cur == other) continue;
+
+                    if (exists)
+                    {
+                        other[texType] = id;
+                    }
+                    else
+                    {
+                        other.Remove(texType);
+                    }
+                }
+            }
+        }
 #endif
 
 #if KKS

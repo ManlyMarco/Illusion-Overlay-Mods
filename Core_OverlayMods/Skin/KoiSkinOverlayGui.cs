@@ -7,6 +7,7 @@
  */
 
 using System;
+using System.Text;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -20,6 +21,9 @@ using KKAPI.Maker.UI;
 using KKAPI.Utilities;
 using UniRx;
 using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
+using UnityEngine.EventSystems;
 #if AI || HS2
 using AIChara;
 #endif
@@ -161,41 +165,41 @@ namespace KoiSkinOverlayX
             e.AddControl(new MakerButton("Get body overlay template", makerCategory, owner))
                 .OnClick.AddListener(() => WriteAndOpenPng(ResourceUtils.GetEmbeddedResource("body.png"), "Body template"));
 
-            AddConfigSettings(e, owner, makerCategory, 0);
+            var perCoordToggle = AddConfigSettings(e, owner, makerCategory, 0);
 
             e.AddControl(new MakerSeparator(makerCategory, owner));
 
-            SetupTexControls(e, makerCategory, owner, TexType.FaceOver, "Face overlay texture (On top of almost everything)");
+            SetupTexControls(e, makerCategory, owner, TexType.FaceOver, "Face overlay texture (On top of almost everything)", perCoordToggle);
 
             e.AddControl(new MakerSeparator(makerCategory, owner));
 
-            SetupTexControls(e, makerCategory, owner, TexType.BodyOver, "Body overlay texture (On top of almost everything)");
+            SetupTexControls(e, makerCategory, owner, TexType.BodyOver, "Body overlay texture (On top of almost everything)", perCoordToggle);
 
             e.AddControl(new MakerSeparator(makerCategory, owner));
 
-            SetupTexControls(e, makerCategory, owner, TexType.FaceUnder, "Face underlay texture (Under tattoos, blushes, etc.)");
+            SetupTexControls(e, makerCategory, owner, TexType.FaceUnder, "Face underlay texture (Under tattoos, blushes, etc.)", perCoordToggle);
 
             e.AddControl(new MakerSeparator(makerCategory, owner));
 
-            SetupTexControls(e, makerCategory, owner, TexType.BodyUnder, "Body underlay texture (Under tattoos, blushes, etc.)");
+            SetupTexControls(e, makerCategory, owner, TexType.BodyUnder, "Body underlay texture (Under tattoos, blushes, etc.)", perCoordToggle);
 
 #if AI || HS2
             // Controls for DetailMainTex
             e.AddControl(new MakerSeparator(makerCategory, owner));
 
-            SetupTexControls(e, makerCategory, owner, TexType.FaceDetailOver, "Face detail overlay texture (On top of almost everything)");
+            SetupTexControls(e, makerCategory, owner, TexType.FaceDetailOver, "Face detail overlay texture (On top of almost everything)", perCoordToggle);
 
             e.AddControl(new MakerSeparator(makerCategory, owner));
 
-            SetupTexControls(e, makerCategory, owner, TexType.BodyDetailOver, "Body detail overlay texture (On top of almost everything)");
+            SetupTexControls(e, makerCategory, owner, TexType.BodyDetailOver, "Body detail overlay texture (On top of almost everything)", perCoordToggle);
 
             e.AddControl(new MakerSeparator(makerCategory, owner));
 
-            SetupTexControls(e, makerCategory, owner, TexType.FaceDetailUnder, "Face detail underlay texture (Under tattoos, blushes, etc.)");
+            SetupTexControls(e, makerCategory, owner, TexType.FaceDetailUnder, "Face detail underlay texture (Under tattoos, blushes, etc.)", perCoordToggle);
 
             e.AddControl(new MakerSeparator(makerCategory, owner));
 
-            SetupTexControls(e, makerCategory, owner, TexType.BodyDetailUnder, "Body detail underlay texture (Under tattoos, blushes, etc.)");
+            SetupTexControls(e, makerCategory, owner, TexType.BodyDetailUnder, "Body detail underlay texture (Under tattoos, blushes, etc.)", perCoordToggle);
 #endif
         }
 
@@ -220,26 +224,26 @@ namespace KoiSkinOverlayX
             e.AddControl(new MakerButton(eyelinerTemplateName, eyeCategory, owner))
                 .OnClick.AddListener(() => WriteAndOpenPng(ResourceUtils.GetEmbeddedResource("eyeline.png"), "Eyeliner template"));
 
-            AddConfigSettings(e, owner, eyeCategory, 1);
+            var perCoordToggle = AddConfigSettings(e, owner, eyeCategory, 1);
 
             e.AddControl(new MakerSeparator(eyeCategory, owner));
 
-            SetupTexControls(e, eyeCategory, owner, TexType.EyeOver, "Iris overlay texture (On top of original iris)");
+            SetupTexControls(e, eyeCategory, owner, TexType.EyeOver, "Iris overlay texture (On top of original iris)", perCoordToggle);
 
             e.AddControl(new MakerSeparator(eyeCategory, owner));
 
-            SetupTexControls(e, eyeCategory, owner, TexType.EyeUnder, "Iris underlay texture (Before coloring and effects)");
+            SetupTexControls(e, eyeCategory, owner, TexType.EyeUnder, "Iris underlay texture (Before coloring and effects)", perCoordToggle);
 
             e.AddControl(new MakerSeparator(eyeCategory, owner));
 
-            SetupTexControls(e, eyeCategory, owner, TexType.EyelineUnder, "Eyelashes override texture (Before coloring and effects)");
+            SetupTexControls(e, eyeCategory, owner, TexType.EyelineUnder, "Eyelashes override texture (Before coloring and effects)", perCoordToggle);
 
             e.AddControl(new MakerSeparator(eyeCategory, owner));
 
-            SetupTexControls(e, eyeCategory, owner, TexType.EyebrowUnder, "Eyebrow override texture (Before coloring and effects)");
+            SetupTexControls(e, eyeCategory, owner, TexType.EyebrowUnder, "Eyebrow override texture (Before coloring and effects)", perCoordToggle);
         }
 
-        private static void AddConfigSettings(RegisterSubCategoriesEvent e, KoiSkinOverlayMgr owner, MakerCategory makerCategory, int id)
+        private static MakerToggle AddConfigSettings(RegisterSubCategoriesEvent e, KoiSkinOverlayMgr owner, MakerCategory makerCategory, int id)
         {
             var tWatch = e.AddControl(new MakerToggle(makerCategory, "Watch last loaded texture file for changes", owner));
             tWatch.Value = WatchLoadedTexForChanges.Value;
@@ -257,6 +261,10 @@ namespace KoiSkinOverlayX
 
             e.AddControl(new MakerText("When off, there is a single set of overlays for all outfits. When on, each outfit has its own set of skin overlays.", makerCategory, owner)
             { TextColor = MakerText.ExplanationGray });
+
+            return _tPerCoord[id];
+#else
+            return null;
 #endif
         }
 
@@ -280,7 +288,7 @@ namespace KoiSkinOverlayX
             _textureChanged.OnNext(new KeyValuePair<TexType, Texture2D>(texType, overlay));
         }
 
-        private void SetupTexControls(RegisterCustomControlsEvent e, MakerCategory makerCategory, BaseUnityPlugin owner, TexType texType, string title)
+        private void SetupTexControls(RegisterCustomControlsEvent e, MakerCategory makerCategory, BaseUnityPlugin owner, TexType texType, string title, MakerToggle perCoordToggle)
         {
             var radButtons = texType == TexType.EyeOver || texType == TexType.EyeUnder ?
                 e.AddControl(new MakerRadioButtons(makerCategory, owner, "Eye to edit", "Both", "Left", "Right")) :
@@ -353,6 +361,23 @@ namespace KoiSkinOverlayX
                         }
                     });
 
+#if KK || KKS
+            SetupCopyToOtherClothButton(e, makerCategory, owner, perCoordToggle, (coords) =>
+            {
+                var ctrl = GetOverlayController();
+                var copyTexType = GetTexType(false);
+
+                if (radButtons != null && radButtons.Value == 0)
+                {
+                    ctrl.OverlayStorage.CopyToOtherCoords(coords, copyTexType + 2, copyTexType + 4);
+                }
+                else
+                {
+                    ctrl.OverlayStorage.CopyToOtherCoords(coords, copyTexType);
+                }
+            });
+#endif
+
             radButtons?.ValueChanged.Subscribe(i =>
             {
                 forceAllowBoth = true;
@@ -368,6 +393,143 @@ namespace KoiSkinOverlayX
                 return overlayTexture;
             }
         }
+
+#if KK || KKS
+        private void SetupCopyToOtherClothButton(RegisterCustomControlsEvent e, MakerCategory makerCategory, BaseUnityPlugin owner, MakerToggle perCoordToggle, UnityEngine.Events.UnityAction<HashSet<int>> onClickCopy)
+        {
+            if (perCoordToggle == null)
+                return;
+
+            var copyButton = e.AddControl(new MakerButton("Copy to other outfit overlay", makerCategory, owner));
+
+            perCoordToggle.ObserveEveryValueChanged(t => t.Value).Subscribe(isPerCoord =>
+            {
+                copyButton.ControlObject?.SetActive(isPerCoord);
+            });
+
+            copyButton.ObserveEveryValueChanged(b => b.ControlObject).Where(g => g)
+                .Subscribe(_ =>
+                {
+                    //setup
+
+                    var copyButtonGObj = copyButton.ControlObject;
+                    if (!copyButtonGObj) return;
+
+                    copyButtonGObj.SetActive(perCoordToggle.Value);
+
+                    var coordListButton = GameObject.Find("CustomScene/CustomRoot/FrontUIGroup/CustomUIGroup/CvsMenuTree/03_ClothesTop/tglCopy/CopyTop/rect/copyinfo/dst/ddDstCoordinate");
+
+                    if (coordListButton)
+                    {
+                        RectTransform buttonRect = (RectTransform)copyButtonGObj.transform;
+                        ((RectTransform)buttonRect.GetChild(0)).anchorMax = new Vector2(0.6f, 1.0f);
+
+                        var copyCoordListDropdown = Instantiate(coordListButton, copyButtonGObj.transform);
+                        copyCoordListDropdown.transform.SetSiblingIndex(copyButtonGObj.transform.GetSiblingIndex() + 1);
+                        copyCoordListDropdown.transform.Find("Template/Scrollbar").GetComponent<Image>().raycastTarget = true;
+
+                        foreach (var component in copyCoordListDropdown.GetComponents<UnityEngine.Component>())
+                            if (component.GetType().Name.Contains("MultiSelectDropdown"))
+                                DestroyImmediate(component);
+
+                        var multiSelectDropdown = copyCoordListDropdown.AddComponent<MultiSelectDropdown>();
+                        var layout = copyCoordListDropdown.AddComponent<LayoutElement>();
+                        var srcLayout = copyButtonGObj.GetComponent<LayoutElement>();
+
+                        copyButton.OnClick.RemoveAllListeners();
+                        copyButton.OnClick.AddListener(() =>
+                        {
+                            onClickCopy(multiSelectDropdown.selected);
+                            Logger.LogMessage($"Copy overlay to other {multiSelectDropdown.selected.Count} clothes.");
+                        });
+
+                        RectTransform dropdownRect = (RectTransform)copyCoordListDropdown.transform;
+                        dropdownRect.anchorMin = new Vector2(0.58f, 0.0f);
+                        dropdownRect.anchorMax = new Vector2(1.0f, 1.0f);
+                        dropdownRect.offsetMin = new Vector2(8.0f, 5.0f);
+                        dropdownRect.offsetMax = new Vector2(-8.0f, -5.0f);
+
+                        if (srcLayout)
+                        {
+                            layout.ignoreLayout = srcLayout.ignoreLayout;
+                            layout.minWidth = srcLayout.minWidth;
+                            layout.minHeight = srcLayout.minHeight;
+                            layout.preferredWidth = srcLayout.preferredWidth;
+                            layout.preferredHeight = srcLayout.preferredHeight;
+                            layout.flexibleWidth = srcLayout.flexibleWidth;
+                            layout.flexibleHeight = srcLayout.flexibleHeight;
+                        }
+
+                        var chaCtrl = Singleton<ChaCustom.CustomBase>.Instance.chaCtrl;
+
+                        var templateItem = copyCoordListDropdown.transform.Find("Template/Viewport/Content/Item");
+                        foreach (var image in templateItem.GetComponentsInChildren<Image>())
+                            image.raycastTarget = true;
+
+                        var toggleGObj = GameObject.Find("CustomScene/CustomRoot/FrontUIGroup/CustomUIGroup/CvsMenuTree/00_FaceTop/tglMouth/MouthTop/tglCanine");
+                        var copyToggleGObj = Instantiate(toggleGObj, templateItem);
+                        DestroyImmediate(copyToggleGObj.GetComponent<LayoutElement>());
+                        DestroyImmediate(copyToggleGObj.transform.Find("imgTglCol/textTgl").gameObject);
+
+                        var toggle = copyToggleGObj.GetComponentInChildren<Toggle>();
+
+                        toggle.gameObject.AddComponent<MultiSelectDropdownToggle>();
+                        toggle.image.raycastTarget = true;
+                        toggle.graphic.raycastTarget = true;
+                        RectTransform toggleRect = (RectTransform)copyToggleGObj.transform;
+                        RectTransform brother = (RectTransform)templateItem.transform.GetChild(0);
+                        toggleRect.anchorMin = new Vector2(0.92f, 0.0f);
+                        toggleRect.anchorMax = new Vector2(1.0f, 1.0f);
+                        toggleRect.offsetMin = new Vector2(-25.0f, -5.0f);
+                        toggleRect.offsetMax = new Vector2(-10.0f, 5.0f);
+
+                        chaCtrl?.ObserveEveryValueChanged(cha => cha.chaFile.coordinate.Length).Subscribe(__ =>
+                        {
+                            var coordsDropdown = copyCoordListDropdown.GetComponentInChildren<TMPro.TMP_Dropdown>();
+#if KK
+                            int baseCoordinates = 7;
+#elif KKS
+                            int baseCoordinates = 4;
+#endif
+                            int coordinates = Math.Max(baseCoordinates, chaCtrl.chaFile.coordinate.Length) + 1; //+1=ALL
+
+                            if (coordsDropdown.options.Count > coordinates)
+                            {
+                                coordsDropdown.options.RemoveRange(coordinates, coordsDropdown.options.Count - coordinates);
+                            }
+                            else if (coordsDropdown.options.Count < coordinates)
+                            {
+                                for (int i = coordsDropdown.options.Count; i < coordinates; ++i)
+                                {
+                                    if (i == coordinates - 1)
+                                    {
+                                        coordsDropdown.options.Add(new TMP_Dropdown.OptionData("All"));
+                                    }
+                                    else
+                                    {
+                                        coordsDropdown.options.Add(new TMP_Dropdown.OptionData("Outfit " + (i + 1)));
+                                    }
+                                }
+                            }
+
+                            var moreOutfitsController = chaCtrl.GetComponent("MoreOutfitsController");
+                            if (moreOutfitsController && moreOutfitsController.GetFieldValue("CoordinateNames", out object nameObjects))
+                            {
+                                Dictionary<int, string> nameTable = (Dictionary<int, string>)nameObjects;
+
+                                foreach (var clothName in nameTable)
+                                {
+                                    if (0 <= clothName.Key && clothName.Key < coordsDropdown.options.Count)
+                                    {
+                                        coordsDropdown.options[clothName.Key].text = clothName.Value;
+                                    }
+                                }
+                            }
+                        });
+                    }
+                });
+        }
+#endif
 
         public static string GetDefaultLoadDir()
         {
@@ -394,6 +556,10 @@ namespace KoiSkinOverlayX
             CharaLocalTextures.Activate();
 #if !EC
             SceneLocalTextures.Activate();
+#endif
+
+#if KK || KKS
+            Harmony.CreateAndPatchAll(typeof(TMP_Dropdown_Injector), nameof(TMP_Dropdown_Injector));
 #endif
         }
 
@@ -511,4 +677,202 @@ namespace KoiSkinOverlayX
             }
         }
     }
+
+#if KK || KKS
+
+    internal class MultiSelectDropdownToggle : UIBehaviour
+    {
+        public Toggle parent;
+
+        public override void Awake()
+        {
+            base.Awake();
+            parent = GetComponent<Toggle>();
+            parent.onValueChanged.AddListener(OnCheck);
+        }
+
+        private void OnCheck(bool check)
+        {
+            GetComponentInParent<MultiSelectDropdown>().OnToggle(transform.parent.parent.GetSiblingIndex() - 1, check);
+        }
+    }
+
+    internal class MultiSelectDropdown : UIBehaviour
+    {
+        private TMP_Dropdown m_Dropdown;
+        public HashSet<int> selected = new HashSet<int>();
+
+        public override void Awake()
+        {
+            base.Awake();
+            m_Dropdown = GetComponent<TMP_Dropdown>();
+            selected.Add(m_Dropdown.value);
+        }
+
+        public void OnToggle(int index, bool check)
+        {
+            var toggles = GetComponentsInChildren<MultiSelectDropdownToggle>();
+            int allIndex = toggles.Length - 1;
+
+            if (index == allIndex)
+            {
+                if (check)
+                {
+                    for (int i = 0; i < toggles.Length; ++i)
+                        selected.Add(i);
+                }
+                else
+                {
+                    selected.Clear();
+                }
+            }
+            else
+            {
+                if (check)
+                {
+                    selected.Add(index);
+
+                    if (selected.Count == toggles.Length - 1 && !selected.Contains(allIndex))
+                        selected.Add(allIndex);
+                }
+                else
+                {
+                    selected.Remove(index);
+                    selected.Remove(allIndex);
+                }
+            }
+
+            SyncToggleState();
+        }
+
+        public void SyncToggleState()
+        {
+            var toggles = GetComponentsInChildren<MultiSelectDropdownToggle>();
+
+            for (int i = 0; i < toggles.Length; ++i)
+            {
+                toggles[i].parent.Set(selected.Contains(i), false);
+            }
+
+            ReflashCaption();
+        }
+
+        public void SetOne(int index)
+        {
+            selected.Clear();
+
+            var toggles = GetComponentsInChildren<MultiSelectDropdownToggle>();
+
+            if (index == toggles.Length - 1)
+            {
+                for (int i = 0; i < toggles.Length; ++i)
+                    selected.Add(i);
+            }
+            else
+            {
+                selected.Add(index);
+            }
+
+            SyncToggleState();
+        }
+
+        public void SetAll()
+        {
+            var toggles = GetComponentsInChildren<MultiSelectDropdownToggle>();
+
+            selected.Clear();
+            for (int i = 0; i < toggles.Length; ++i)
+                selected.Add(i);
+
+            SyncToggleState();
+        }
+
+        public void ReflashCaption()
+        {
+            if (!m_Dropdown)
+                return;
+
+            var items = m_Dropdown.m_Items;
+
+            if (items == null || items.Count <= 0)
+                return;
+
+            StringBuilder builder = new StringBuilder();
+            int maxLength = 36;
+
+            for (int i = 0; i < items.Count - 1; ++i)
+            {
+                if (!selected.Contains(i))
+                    continue;
+
+                if (builder.Length > 0)
+                    builder.Append('/');
+
+                var name = items[i].name;
+                builder.Append(name.Substring(name.IndexOf(':') + 1).Trim());
+
+                if (builder.Length >= maxLength)
+                    break;
+            }
+
+            string joinName = builder.ToString();
+            if (builder.Length > maxLength)
+            {
+                builder.Remove(maxLength, builder.Length - maxLength);
+                builder.Append("...");
+            }
+
+            m_Dropdown.m_CaptionText.text = builder.ToString();
+        }
+    }
+
+    internal class TMP_Dropdown_Injector
+    {
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(TMP_Dropdown), nameof(TMP_Dropdown.Show))]
+        private static void ShowPostfix(TMP_Dropdown __instance)
+        {
+            if (!__instance)
+                return;
+
+            MultiSelectDropdown multi = __instance.GetComponent<MultiSelectDropdown>();
+            if (!multi)
+                return;
+
+            multi.SyncToggleState();
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(TMP_Dropdown), nameof(TMP_Dropdown.RefreshShownValue))]
+        private static void RefreshShownValuePostfix(TMP_Dropdown __instance)
+        {
+            if (!__instance)
+                return;
+
+            MultiSelectDropdown multi = __instance.GetComponent<MultiSelectDropdown>();
+            if (!multi)
+                return;
+
+            multi.ReflashCaption();
+        }
+
+        [HarmonyPrefix]
+#if KKS
+        [HarmonyPatch(typeof(TMP_Dropdown), nameof(TMP_Dropdown.SetValue))]
+#endif
+        [HarmonyPatch(typeof(TMP_Dropdown), nameof(TMP_Dropdown.value), MethodType.Setter)]
+        private static void SetValuePrefix(TMP_Dropdown __instance, int value)
+        {
+            if (!__instance)
+                return;
+
+            MultiSelectDropdown multi = __instance.GetComponent<MultiSelectDropdown>();
+            if (!multi)
+                return;
+
+            multi.SetOne(value);
+        }
+    }
+
+#endif
 }
