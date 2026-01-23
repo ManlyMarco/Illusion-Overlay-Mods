@@ -235,6 +235,9 @@ namespace KoiSkinOverlayX
 
         public void CopyToOtherCoords(ICollection<int> dstCoordId, params TexType[] texTypes)
         {
+            if (dstCoordId == null) throw new ArgumentNullException(nameof(dstCoordId));
+            if (texTypes == null) throw new ArgumentNullException(nameof(texTypes));
+
             var cur = GetCurrentOverlayTextures();
 
             foreach (var texType in texTypes)
