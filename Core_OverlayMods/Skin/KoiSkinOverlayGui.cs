@@ -11,6 +11,7 @@ using System.Text;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
@@ -400,7 +401,7 @@ namespace KoiSkinOverlayX
             if (perCoordToggle == null)
                 return;
 
-            var copyButton = e.AddControl(new MakerButton("Copy to other outfit overlay", makerCategory, owner));
+            var copyButton = e.AddControl(new MakerButton("Copy to other outfits", makerCategory, owner));
 
             perCoordToggle.ObserveEveryValueChanged(t => t.Value).Subscribe(isPerCoord =>
             {
@@ -808,30 +809,37 @@ namespace KoiSkinOverlayX
                 return;
 
             StringBuilder builder = new StringBuilder();
-            int maxLength = 36;
+            int maxLength = 26;
 
-            for (int i = 0; i < items.Count - 1; ++i)
+
+            var selectedItems = items.Where((item, i) => selected.Contains(i)).ToArray();
+            if (selectedItems.Length == items.Count)
             {
-                if (!selected.Contains(i))
-                    continue;
+                m_Dropdown.m_CaptionText.text = "All";
+                return;
+            }
+            if (selectedItems.Length == 0)
+            {
+                m_Dropdown.m_CaptionText.text = "None";
+                return;
+            }
 
+            foreach (var selectedItem in selectedItems)
+            {
                 if (builder.Length > 0)
                     builder.Append('/');
 
-                var name = items[i].name;
-                builder.Append(name.Substring(name.IndexOf(':') + 1).Trim());
-
-                if (builder.Length >= maxLength)
-                    break;
+                var itemName = selectedItem.name;
+                var itemNameTrim = itemName.Substring(itemName.IndexOf(':') + 1).Trim();
+                if (TranslationHelper.TryTranslate(itemNameTrim, out var tlName))
+                    itemNameTrim = tlName;
+                builder.Append(itemNameTrim);
             }
 
-            if (builder.Length > maxLength)
-            {
-                builder.Remove(maxLength, builder.Length - maxLength);
-                builder.Append("...");
-            }
-
-            m_Dropdown.m_CaptionText.text = builder.ToString();
+            if (builder.Length >= maxLength)
+                m_Dropdown.m_CaptionText.text = selectedItems.Length + " outfits";
+            else
+                m_Dropdown.m_CaptionText.text = builder.ToString();
         }
     }
 
