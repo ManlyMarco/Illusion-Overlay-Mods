@@ -477,7 +477,6 @@ namespace KoiSkinOverlayX
                         toggle.image.raycastTarget = true;
                         toggle.graphic.raycastTarget = true;
                         RectTransform toggleRect = (RectTransform)copyToggleGObj.transform;
-                        RectTransform brother = (RectTransform)templateItem.transform.GetChild(0);
                         toggleRect.anchorMin = new Vector2(0.92f, 0.0f);
                         toggleRect.anchorMax = new Vector2(1.0f, 1.0f);
                         toggleRect.offsetMin = new Vector2(-25.0f, -5.0f);
@@ -485,7 +484,7 @@ namespace KoiSkinOverlayX
 
                         chaCtrl?.ObserveEveryValueChanged(cha => cha.chaFile.coordinate.Length).Subscribe(__ =>
                         {
-                            var coordsDropdown = copyCoordListDropdown.GetComponentInChildren<TMPro.TMP_Dropdown>();
+                            var coordsDropdown = copyCoordListDropdown.GetComponentInChildren<TMP_Dropdown>();
 #if KK
                             int baseCoordinates = 7;
 #elif KKS
@@ -512,6 +511,7 @@ namespace KoiSkinOverlayX
                                 }
                             }
 
+                            // ReSharper disable once Unity.UnresolvedComponentOrScriptableObject
                             var moreOutfitsController = chaCtrl.GetComponent("MoreOutfitsController");
                             if (moreOutfitsController && moreOutfitsController.GetFieldValue("CoordinateNames", out object nameObjects))
                             {
@@ -732,7 +732,7 @@ namespace KoiSkinOverlayX
                 {
                     selected.Add(index);
 
-                    if (selected.Count == toggles.Length - 1 && !selected.Contains(allIndex))
+                    if (selected.Count == toggles.Length - 1)
                         selected.Add(allIndex);
                 }
                 else
@@ -815,7 +815,6 @@ namespace KoiSkinOverlayX
                     break;
             }
 
-            string joinName = builder.ToString();
             if (builder.Length > maxLength)
             {
                 builder.Remove(maxLength, builder.Length - maxLength);

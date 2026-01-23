@@ -233,7 +233,7 @@ namespace KoiSkinOverlayX
             }
         }
 
-        public void CopyToOtherCoords(HashSet<int> dstCoordId, params TexType[] texTypes)
+        public void CopyToOtherCoords(ICollection<int> dstCoordId, params TexType[] texTypes)
         {
             var cur = GetCurrentOverlayTextures();
 
