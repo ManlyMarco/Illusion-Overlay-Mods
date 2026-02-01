@@ -30,7 +30,7 @@ namespace KoiSkinOverlayX
 
         protected override void OnSceneLoad(SceneOperationKind operation, ReadOnlyDictionary<int, ObjectCtrlInfo> loadedItems)
         {
-            TextureSaveHandler.Instance.Load<object>(null, "", false);
+            TextureSaveHandler.Instance.Load<object>(new PluginData(), "", false);
         }
 
         protected override void OnObjectsCopied(ReadOnlyDictionary<int, ObjectCtrlInfo> copiedItems)
