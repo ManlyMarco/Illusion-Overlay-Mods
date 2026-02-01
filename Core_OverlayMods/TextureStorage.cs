@@ -72,6 +72,12 @@ namespace KoiSkinOverlayX
                     _data[kvp.Key] = kvp.Value;
         }
 
+        public void LoadFrom(TextureStorage other)
+        {
+            _data.Clear();
+            foreach (var kvp in other._data) _data.Add(kvp.Key, new TextureHolder(kvp.Value.Data));
+        }
+
         public void Save(PluginData data)
         {
             TextureSaveHandler.Instance.Save(data, DataMarker, _data, true);

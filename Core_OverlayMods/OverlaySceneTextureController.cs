@@ -2,6 +2,7 @@
 using ExtensibleSaveFormat;
 using KKAPI.Studio.SaveLoad;
 using KKAPI.Utilities;
+using KoiClothesOverlayX;
 using Studio;
 
 namespace KoiSkinOverlayX
@@ -30,6 +31,18 @@ namespace KoiSkinOverlayX
         protected override void OnSceneLoad(SceneOperationKind operation, ReadOnlyDictionary<int, ObjectCtrlInfo> loadedItems)
         {
             TextureSaveHandler.Instance.Load<object>(null, "", false);
+        }
+
+        protected override void OnObjectsCopied(ReadOnlyDictionary<int, ObjectCtrlInfo> copiedItems)
+        {
+            foreach (var item in copiedItems)
+            {
+                if (item.Value is OCIChar ociChar)
+                {
+                    ociChar.charInfo.GetComponent<KoiSkinOverlayController>().DuplicatingFrom = item.Key;
+                    ociChar.charInfo.GetComponent<KoiClothesOverlayController>().DuplicatingFrom = item.Key;
+                }
+            }
         }
     }
 }

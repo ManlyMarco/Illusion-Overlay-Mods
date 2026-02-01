@@ -120,29 +120,47 @@ namespace KoiSkinOverlayX
             _textureStorage.Clear();
         }
 
-        public void Load(PluginData data)
+        public void Load(PluginData data, int? duplicatingFrom)
         {
-            data.data.TryGetValue(OverlayDataKey, out var lookup);
-            if (lookup is byte[] lookuparr)
+#if !EC
+            if (duplicatingFrom.HasValue)
             {
-                try
+                var ctrlOrig = (Studio.Studio.Instance.dicObjectCtrl[duplicatingFrom.Value] as Studio.OCIChar).charInfo.GetComponent<KoiSkinOverlayController>();
+                _allOverlayTextures.Clear();
+                Dictionary<TexType, int> newTexDicEntry;
+                foreach (var kvp1 in ctrlOrig.OverlayStorage._allOverlayTextures)
                 {
-                    _allOverlayTextures = MessagePackSerializer.Deserialize<Dictionary<CoordinateType, Dictionary<TexType, int>>>(lookuparr);
-                    _textureStorage.Load(data);
-                    return;
+                    newTexDicEntry = new Dictionary<TexType, int>();
+                    foreach (var kvp2 in kvp1.Value) newTexDicEntry[kvp2.Key] = kvp2.Value;
+                    _allOverlayTextures[kvp1.Key] = newTexDicEntry;
                 }
-                catch (Exception ex)
+                _textureStorage.LoadFrom(ctrlOrig.OverlayStorage._textureStorage);
+            }
+            else
+#endif
+            {
+                data.data.TryGetValue(OverlayDataKey, out var lookup);
+                if (lookup is byte[] lookuparr)
                 {
-                    if (MakerAPI.InsideMaker)
-                        KoiSkinOverlayMgr.Logger.LogMessage("WARNING: Failed to load embedded overlay data for " + (_chaControl.chaFile?.charaFileName ?? "?"));
-                    else
-                        KoiSkinOverlayMgr.Logger.LogWarning("WARNING: Failed to load embedded overlay data for " + (_chaControl.chaFile?.charaFileName ?? "?"));
-                    KoiSkinOverlayMgr.Logger.LogError(ex);
+                    try
+                    {
+                        _allOverlayTextures = MessagePackSerializer.Deserialize<Dictionary<CoordinateType, Dictionary<TexType, int>>>(lookuparr);
+                        _textureStorage.Load(data);
+                        return;
+                    }
+                    catch (Exception ex)
+                    {
+                        if (MakerAPI.InsideMaker)
+                            KoiSkinOverlayMgr.Logger.LogMessage("WARNING: Failed to load embedded overlay data for " + (_chaControl.chaFile?.charaFileName ?? "?"));
+                        else
+                            KoiSkinOverlayMgr.Logger.LogWarning("WARNING: Failed to load embedded overlay data for " + (_chaControl.chaFile?.charaFileName ?? "?"));
+                        KoiSkinOverlayMgr.Logger.LogError(ex);
+                    }
+
+                    // If anything goes wrong, make sure we are in a sane state
+                    Clear();
                 }
             }
-
-            // If anything goes wrong, make sure we are in a sane state
-            Clear();
         }
 
         public void Load(Dictionary<CoordinateType, Dictionary<TexType, byte[]>> overlays)
