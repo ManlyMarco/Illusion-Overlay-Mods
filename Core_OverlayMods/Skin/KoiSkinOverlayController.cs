@@ -32,6 +32,8 @@ namespace KoiSkinOverlayX
         public bool EnableInStudioIris { get; set; } = true;
 #endif
 
+        internal int? DuplicatingFrom = null;
+
         protected override void Awake()
         {
             base.Awake();
@@ -85,7 +87,8 @@ namespace KoiSkinOverlayX
                 }
                 else
                 {
-                    OverlayStorage.Load(data);
+                    OverlayStorage.Load(data, DuplicatingFrom);
+                    DuplicatingFrom = null;
 #if !EC
                     EnableInStudioSkin = !data.data.TryGetValue(nameof(EnableInStudioSkin), out var val1) || !(val1 is bool) || (bool)val1;
                     EnableInStudioIris = !data.data.TryGetValue(nameof(EnableInStudioIris), out var val2) || !(val2 is bool) || (bool)val2;

@@ -42,6 +42,7 @@ namespace KoiClothesOverlayX
 
         private Action<byte[]> _dumpCallback;
         private string _dumpClothesId;
+        internal int? DuplicatingFrom = null;
 
 #if !EC
         public bool EnableInStudio { get; set; } = true;
@@ -697,7 +698,7 @@ namespace KoiClothesOverlayX
             var pd = GetExtendedData();
             if (pd != null)
             {
-                _allOverlayTextures = ReadOverlayExtData(pd);
+                _allOverlayTextures = ReadOverlayExtData(pd, this);
                 _allTextureSizeOverrides = ReadTextureSizeOverrideExtData(pd);
 #if !EC
                 EnableInStudio = !pd.data.TryGetValue(nameof(EnableInStudio), out var val1) || !(val1 is bool) || (bool)val1;
@@ -728,11 +729,31 @@ namespace KoiClothesOverlayX
                 data.data.Remove(SizeOverrideDataKey);
         }
 
-        private static Dictionary<CoordinateType, Dictionary<string, ClothesTexData>> ReadOverlayExtData(PluginData pd)
+        private static Dictionary<CoordinateType, Dictionary<string, ClothesTexData>> ReadOverlayExtData(PluginData pd, KoiClothesOverlayController ctrl = null)
         {
-            return TextureSaveHandler.Instance.Load
-                <Dictionary<CoordinateType, Dictionary<string, ClothesTexData>>>
-                (pd, OverlayDataKey, true);
+#if !EC
+            if (ctrl != null && ctrl.DuplicatingFrom.HasValue)
+            {
+                var ctrlOrig = (Studio.Studio.Instance.dicObjectCtrl[ctrl.DuplicatingFrom.Value] as Studio.OCIChar).charInfo.GetComponent<KoiClothesOverlayController>();
+                var newTexDic = new Dictionary<CoordinateType, Dictionary<string, ClothesTexData>>();
+                Dictionary<string, ClothesTexData> newTexDicEntry;
+                foreach (var kvp1 in ctrlOrig._allOverlayTextures)
+                {
+                    newTexDicEntry = new Dictionary<string, ClothesTexData>();
+                    foreach (var kvp2 in kvp1.Value)
+                        newTexDicEntry[kvp2.Key] = new ClothesTexData() { TextureBytes = kvp2.Value.TextureBytes };
+                    newTexDic[kvp1.Key] = newTexDicEntry;
+                }
+                ctrl.DuplicatingFrom = null;
+                return newTexDic;
+            }
+            else
+#endif
+            {
+                return TextureSaveHandler.Instance.Load
+                    <Dictionary<CoordinateType, Dictionary<string, ClothesTexData>>>
+                    (pd, OverlayDataKey, true);
+            }
         }
 
         private static Dictionary<CoordinateType, Dictionary<string, int>> ReadTextureSizeOverrideExtData(PluginData pd)
