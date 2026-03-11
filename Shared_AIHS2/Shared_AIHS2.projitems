@@ -11,6 +11,7 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Clothes\KoiClothesOverlayController.Hooks.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Clothes\KoiClothesOverlayGui.Hooks.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CoordinateTypeShim.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Skin\Hooks.cs" />
   </ItemGroup>
   <ItemGroup>
