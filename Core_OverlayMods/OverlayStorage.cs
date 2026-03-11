@@ -18,13 +18,6 @@ using AIChara;
 
 namespace KoiSkinOverlayX
 {
-#if AI || HS2
-    public enum CoordinateType
-    {
-        Unknown = 0
-    }
-#endif
-
     public class OverlayStorage
     {
         private const string OverlayDataKey = "Lookup";

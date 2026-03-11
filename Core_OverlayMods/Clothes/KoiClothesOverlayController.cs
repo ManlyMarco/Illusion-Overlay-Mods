@@ -24,13 +24,6 @@ using Studio;
 
 namespace KoiClothesOverlayX
 {
-#if AI || HS2
-    public enum CoordinateType
-    {
-        Unknown = 0
-    }
-#endif
-
     public partial class KoiClothesOverlayController : CharaCustomFunctionController
     {
         private const string OverlayDataKey = "Overlays";
