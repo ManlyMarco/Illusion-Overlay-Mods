@@ -363,20 +363,13 @@ namespace KoiSkinOverlayX
                     });
 
 #if KK || KKS
-            SetupCopyToOtherClothButton(e, makerCategory, owner, perCoordToggle, (coords) =>
+            // Setup copy to other coordinates button
+            if (perCoordToggle != null)
             {
-                var ctrl = GetOverlayController();
-                var copyTexType = GetTexType(false);
+                var copyButton = e.AddControl(new MakerCopyButton("Copy to other outfits", makerCategory, owner, perCoordToggle, radButtons, GetTexType));
 
-                if (radButtons != null && radButtons.Value == 0)
-                {
-                    ctrl.OverlayStorage.CopyToOtherCoords(coords, copyTexType + 2, copyTexType + 4);
-                }
-                else
-                {
-                    ctrl.OverlayStorage.CopyToOtherCoords(coords, copyTexType);
-                }
-            });
+                perCoordToggle.ValueChanged.Subscribe(isPerCoord => copyButton.ControlObject?.SetActive(isPerCoord));
+            }
 #endif
 
             radButtons?.ValueChanged.Subscribe(i =>
@@ -396,149 +389,162 @@ namespace KoiSkinOverlayX
         }
 
 #if KK || KKS
-        private void SetupCopyToOtherClothButton(RegisterCustomControlsEvent e, MakerCategory makerCategory, BaseUnityPlugin owner, MakerToggle perCoordToggle, UnityEngine.Events.UnityAction<HashSet<int>> onClickCopy)
+        private class MakerCopyButton : MakerButton
         {
-            if (perCoordToggle == null)
-                return;
+            private readonly MakerToggle _perCoordToggle;
+            private readonly MakerRadioButtons _sideButtons;
+            private readonly Func<bool, TexType> _getTexType;
 
-            var copyButton = e.AddControl(new MakerButton("Copy to other outfits", makerCategory, owner));
-
-            perCoordToggle.ObserveEveryValueChanged(t => t.Value).Subscribe(isPerCoord =>
+            public MakerCopyButton(string copyToOtherOutfits, MakerCategory makerCategory, BaseUnityPlugin owner, MakerToggle perCoordToggle, MakerRadioButtons sideButtons, Func<bool, TexType> getTexType)
+                : base(copyToOtherOutfits, makerCategory, owner)
             {
-                copyButton.ControlObject?.SetActive(isPerCoord);
-            });
+                _perCoordToggle = perCoordToggle;
+                _sideButtons = sideButtons;
+                _getTexType = getTexType;
+            }
 
-            copyButton.ObserveEveryValueChanged(b => b.ControlObject).Where(g => g)
-                .Subscribe(_ =>
+            protected override GameObject OnCreateControl(Transform subCategoryList)
+            {
+                var copyButtonGObj = base.OnCreateControl(subCategoryList);
+
+                copyButtonGObj.SetActive(_perCoordToggle.Value);
+
+                const string coordDropdownPath = "CustomScene/CustomRoot/FrontUIGroup/CustomUIGroup/CvsMenuTree/03_ClothesTop/tglCopy/CopyTop/rect/copyinfo/dst/ddDstCoordinate";
+                var coordListButton = GameObject.Find(coordDropdownPath);
+                if (coordListButton == null)
                 {
-                    //setup
+                    Logger.LogError($"[KoiSkinOverlayGui] Failed to find dropdown GameObject at path '{coordDropdownPath}'. Multi-select dropdown toggle will not be created.");
+                    return copyButtonGObj;
+                }
 
-                    var copyButtonGObj = copyButton.ControlObject;
-                    if (!copyButtonGObj) return;
+                const string togglePath = "CustomScene/CustomRoot/FrontUIGroup/CustomUIGroup/CvsMenuTree/00_FaceTop/tglMouth/MouthTop/tglCanine";
+                var toggleGObj = GameObject.Find(togglePath);
+                if (toggleGObj == null)
+                {
+                    Logger.LogError($"[KoiSkinOverlayGui] Failed to find toggle GameObject at path '{togglePath}'. Multi-select dropdown toggle will not be created.");
+                    return copyButtonGObj;
+                }
 
-                    copyButtonGObj.SetActive(perCoordToggle.Value);
+                RectTransform buttonRect = (RectTransform)copyButtonGObj.transform;
+                ((RectTransform)buttonRect.GetChild(0)).anchorMax = new Vector2(0.6f, 1.0f);
 
-                    const string coordDropdownPath = "CustomScene/CustomRoot/FrontUIGroup/CustomUIGroup/CvsMenuTree/03_ClothesTop/tglCopy/CopyTop/rect/copyinfo/dst/ddDstCoordinate";
-                    var coordListButton = GameObject.Find(coordDropdownPath);
-                    if (coordListButton == null)
+                var copyCoordListDropdown = Instantiate(coordListButton, copyButtonGObj.transform);
+                copyCoordListDropdown.transform.SetSiblingIndex(copyButtonGObj.transform.GetSiblingIndex() + 1);
+                copyCoordListDropdown.transform.Find("Template/Scrollbar").GetComponent<Image>().raycastTarget = true;
+
+                foreach (var component in copyCoordListDropdown.GetComponents<UnityEngine.Component>())
+                    if (component.GetType().Name.Contains("MultiSelectDropdown"))
+                        DestroyImmediate(component);
+
+                var multiSelectDropdown = copyCoordListDropdown.AddComponent<MultiSelectDropdown>();
+                var layout = copyCoordListDropdown.AddComponent<LayoutElement>();
+                var srcLayout = copyButtonGObj.GetComponent<LayoutElement>();
+
+                OnClick.RemoveAllListeners();
+                OnClick.AddListener(() =>
+                {
+                    var coords = (multiSelectDropdown.selected);
                     {
-                        Logger.LogError($"[KoiSkinOverlayGui] Failed to find dropdown GameObject at path '{coordDropdownPath}'. Multi-select dropdown toggle will not be created.");
-                        return;
+                        var ctrl = GetOverlayController();
+                        var copyTexType = _getTexType(false);
+
+                        if (_sideButtons != null && _sideButtons.Value == 0)
+                        {
+                            ctrl.OverlayStorage.CopyToOtherCoords(coords, copyTexType + 2, copyTexType + 4);
+                        }
+                        else
+                        {
+                            ctrl.OverlayStorage.CopyToOtherCoords(coords, copyTexType);
+                        }
                     }
+                    Logger.LogMessage($"Copy overlay to other {multiSelectDropdown.selected.Count} clothes.");
+                });
 
-                    const string togglePath = "CustomScene/CustomRoot/FrontUIGroup/CustomUIGroup/CvsMenuTree/00_FaceTop/tglMouth/MouthTop/tglCanine";
-                    var toggleGObj = GameObject.Find(togglePath);
-                    if (toggleGObj == null)
-                    {
-                        Logger.LogError($"[KoiSkinOverlayGui] Failed to find toggle GameObject at path '{togglePath}'. Multi-select dropdown toggle will not be created.");
-                        return;
-                    }
+                RectTransform dropdownRect = (RectTransform)copyCoordListDropdown.transform;
+                dropdownRect.anchorMin = new Vector2(0.58f, 0.0f);
+                dropdownRect.anchorMax = new Vector2(1.0f, 1.0f);
+                dropdownRect.offsetMin = new Vector2(8.0f, 5.0f);
+                dropdownRect.offsetMax = new Vector2(-8.0f, -5.0f);
 
-                    RectTransform buttonRect = (RectTransform)copyButtonGObj.transform;
-                    ((RectTransform)buttonRect.GetChild(0)).anchorMax = new Vector2(0.6f, 1.0f);
+                if (srcLayout)
+                {
+                    layout.ignoreLayout = srcLayout.ignoreLayout;
+                    layout.minWidth = srcLayout.minWidth;
+                    layout.minHeight = srcLayout.minHeight;
+                    layout.preferredWidth = srcLayout.preferredWidth;
+                    layout.preferredHeight = srcLayout.preferredHeight;
+                    layout.flexibleWidth = srcLayout.flexibleWidth;
+                    layout.flexibleHeight = srcLayout.flexibleHeight;
+                }
 
-                    var copyCoordListDropdown = Instantiate(coordListButton, copyButtonGObj.transform);
-                    copyCoordListDropdown.transform.SetSiblingIndex(copyButtonGObj.transform.GetSiblingIndex() + 1);
-                    copyCoordListDropdown.transform.Find("Template/Scrollbar").GetComponent<Image>().raycastTarget = true;
+                var chaCtrl = Singleton<ChaCustom.CustomBase>.Instance.chaCtrl;
 
-                    foreach (var component in copyCoordListDropdown.GetComponents<UnityEngine.Component>())
-                        if (component.GetType().Name.Contains("MultiSelectDropdown"))
-                            DestroyImmediate(component);
+                var templateItem = copyCoordListDropdown.transform.Find("Template/Viewport/Content/Item");
+                foreach (var image in templateItem.GetComponentsInChildren<Image>())
+                    image.raycastTarget = true;
 
-                    var multiSelectDropdown = copyCoordListDropdown.AddComponent<MultiSelectDropdown>();
-                    var layout = copyCoordListDropdown.AddComponent<LayoutElement>();
-                    var srcLayout = copyButtonGObj.GetComponent<LayoutElement>();
+                var copyToggleGObj = Instantiate(toggleGObj, templateItem);
+                DestroyImmediate(copyToggleGObj.GetComponent<LayoutElement>());
+                DestroyImmediate(copyToggleGObj.transform.Find("imgTglCol/textTgl").gameObject);
 
-                    copyButton.OnClick.RemoveAllListeners();
-                    copyButton.OnClick.AddListener(() =>
-                    {
-                        onClickCopy(multiSelectDropdown.selected);
-                        Logger.LogMessage($"Copy overlay to other {multiSelectDropdown.selected.Count} clothes.");
-                    });
+                var toggle = copyToggleGObj.GetComponentInChildren<Toggle>();
 
-                    RectTransform dropdownRect = (RectTransform)copyCoordListDropdown.transform;
-                    dropdownRect.anchorMin = new Vector2(0.58f, 0.0f);
-                    dropdownRect.anchorMax = new Vector2(1.0f, 1.0f);
-                    dropdownRect.offsetMin = new Vector2(8.0f, 5.0f);
-                    dropdownRect.offsetMax = new Vector2(-8.0f, -5.0f);
+                toggle.gameObject.AddComponent<MultiSelectDropdownToggle>();
+                toggle.image.raycastTarget = true;
+                toggle.graphic.raycastTarget = true;
+                RectTransform toggleRect = (RectTransform)copyToggleGObj.transform;
+                toggleRect.anchorMin = new Vector2(0.92f, 0.0f);
+                toggleRect.anchorMax = new Vector2(1.0f, 1.0f);
+                toggleRect.offsetMin = new Vector2(-25.0f, -5.0f);
+                toggleRect.offsetMax = new Vector2(-10.0f, 5.0f);
 
-                    if (srcLayout)
-                    {
-                        layout.ignoreLayout = srcLayout.ignoreLayout;
-                        layout.minWidth = srcLayout.minWidth;
-                        layout.minHeight = srcLayout.minHeight;
-                        layout.preferredWidth = srcLayout.preferredWidth;
-                        layout.preferredHeight = srcLayout.preferredHeight;
-                        layout.flexibleWidth = srcLayout.flexibleWidth;
-                        layout.flexibleHeight = srcLayout.flexibleHeight;
-                    }
-
-                    var chaCtrl = Singleton<ChaCustom.CustomBase>.Instance.chaCtrl;
-
-                    var templateItem = copyCoordListDropdown.transform.Find("Template/Viewport/Content/Item");
-                    foreach (var image in templateItem.GetComponentsInChildren<Image>())
-                        image.raycastTarget = true;
-
-                    var copyToggleGObj = Instantiate(toggleGObj, templateItem);
-                    DestroyImmediate(copyToggleGObj.GetComponent<LayoutElement>());
-                    DestroyImmediate(copyToggleGObj.transform.Find("imgTglCol/textTgl").gameObject);
-
-                    var toggle = copyToggleGObj.GetComponentInChildren<Toggle>();
-
-                    toggle.gameObject.AddComponent<MultiSelectDropdownToggle>();
-                    toggle.image.raycastTarget = true;
-                    toggle.graphic.raycastTarget = true;
-                    RectTransform toggleRect = (RectTransform)copyToggleGObj.transform;
-                    toggleRect.anchorMin = new Vector2(0.92f, 0.0f);
-                    toggleRect.anchorMax = new Vector2(1.0f, 1.0f);
-                    toggleRect.offsetMin = new Vector2(-25.0f, -5.0f);
-                    toggleRect.offsetMax = new Vector2(-10.0f, 5.0f);
-
-                    chaCtrl?.ObserveEveryValueChanged(cha => cha.chaFile.coordinate.Length).Subscribe(__ =>
-                    {
-                        var coordsDropdown = copyCoordListDropdown.GetComponentInChildren<TMP_Dropdown>();
+                chaCtrl?.ObserveEveryValueChanged(cha => cha.chaFile.coordinate.Length).Subscribe(__ =>
+                {
+                    var coordsDropdown = copyCoordListDropdown.GetComponentInChildren<TMP_Dropdown>();
 #if KK
-                            int baseCoordinates = 7;
+                    int baseCoordinates = 7;
 #elif KKS
                         int baseCoordinates = 4;
 #endif
-                        int coordinates = Math.Max(baseCoordinates, chaCtrl.chaFile.coordinate.Length) + 1; //+1=ALL
+                    int coordinates = Math.Max(baseCoordinates, chaCtrl.chaFile.coordinate.Length) + 1; //+1=ALL
 
-                        if (coordsDropdown.options.Count > coordinates)
+                    if (coordsDropdown.options.Count > coordinates)
+                    {
+                        coordsDropdown.options.RemoveRange(coordinates, coordsDropdown.options.Count - coordinates);
+                    }
+                    else if (coordsDropdown.options.Count < coordinates)
+                    {
+                        for (int i = coordsDropdown.options.Count; i < coordinates; ++i)
                         {
-                            coordsDropdown.options.RemoveRange(coordinates, coordsDropdown.options.Count - coordinates);
-                        }
-                        else if (coordsDropdown.options.Count < coordinates)
-                        {
-                            for (int i = coordsDropdown.options.Count; i < coordinates; ++i)
+                            if (i == coordinates - 1)
                             {
-                                if (i == coordinates - 1)
-                                {
-                                    coordsDropdown.options.Add(new TMP_Dropdown.OptionData("All"));
-                                }
-                                else
-                                {
-                                    coordsDropdown.options.Add(new TMP_Dropdown.OptionData("Outfit " + (i + 1)));
-                                }
+                                coordsDropdown.options.Add(new TMP_Dropdown.OptionData("All"));
+                            }
+                            else
+                            {
+                                coordsDropdown.options.Add(new TMP_Dropdown.OptionData("Outfit " + (i + 1)));
                             }
                         }
+                    }
 
-                        // ReSharper disable once Unity.UnresolvedComponentOrScriptableObject
-                        var moreOutfitsController = chaCtrl.GetComponent("MoreOutfitsController");
-                        if (moreOutfitsController && moreOutfitsController.GetFieldValue("CoordinateNames", out object nameObjects))
+                    // ReSharper disable once Unity.UnresolvedComponentOrScriptableObject
+                    var moreOutfitsController = chaCtrl.GetComponent("MoreOutfitsController");
+                    if (moreOutfitsController && moreOutfitsController.GetFieldValue("CoordinateNames", out object nameObjects))
+                    {
+                        Dictionary<int, string> nameTable = (Dictionary<int, string>)nameObjects;
+
+                        foreach (var clothName in nameTable)
                         {
-                            Dictionary<int, string> nameTable = (Dictionary<int, string>)nameObjects;
-
-                            foreach (var clothName in nameTable)
+                            if (0 <= clothName.Key && clothName.Key < coordsDropdown.options.Count)
                             {
-                                if (0 <= clothName.Key && clothName.Key < coordsDropdown.options.Count)
-                                {
-                                    coordsDropdown.options[clothName.Key].text = clothName.Value;
-                                }
+                                coordsDropdown.options[clothName.Key].text = clothName.Value;
                             }
                         }
-                    });
+                    }
                 });
+
+                return copyButtonGObj;
+            }
         }
 #endif
 
